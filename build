@@ -1,0 +1,3 @@
+#!/bin/bash
+
+./makeit --build --boost=/home/zhang30/inst/ --mpi=/home/zhang30/inst/
