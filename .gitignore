@@ -30,3 +30,9 @@
 /nbproject/
 /src/.libs/
 /tests/.libs/
+/apps/mmpbsa/Makefile
+/apps/mmpbsa/Makefile.in
+/apps/mmpbsa/amberTools
+/apps/mmpbsa/.libs/
+/apps/Makefile
+/apps/Makefile.in
