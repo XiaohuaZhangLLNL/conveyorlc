@@ -5,6 +5,7 @@
  * Created on December 6, 2011, 8:32 AM
  */
 
+#include <cstdlib>
 #include <iostream>
 
 #include "Protein.h"

@@ -7,7 +7,8 @@
 
 #include <ctype.h>
 #include <stddef.h>
-
+#include <cstring>
+#include <cstdio>
 #include "XMLBase.h"
 #include "XMLConstant.hpp"
 

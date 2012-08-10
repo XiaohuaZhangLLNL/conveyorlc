@@ -5,6 +5,8 @@
  * Created on November 30, 2011, 9:18 PM
  */
 
+#include <cstring>
+
 #include "XMLNode.h"
 #include "XMLDocument.h"
 #include "XMLComment.h"

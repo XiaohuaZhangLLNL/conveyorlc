@@ -5,6 +5,8 @@
  * Created on November 30, 2011, 9:40 PM
  */
 
+#include <cstring>
+
 #include "XMLElement.h"
 #include "XMLVisitor.hpp"
 #include "XMLText.h"

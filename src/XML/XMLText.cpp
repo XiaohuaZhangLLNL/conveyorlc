@@ -5,6 +5,8 @@
  * Created on November 30, 2011, 9:46 PM
  */
 
+#include <cstring>
+
 #include "XMLText.h"
 #include "XMLParsingData.h"
 #include "XMLDocument.h"

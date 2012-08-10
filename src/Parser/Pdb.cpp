@@ -6,14 +6,14 @@
  */
 
 #include "Pdb.h"
-#include "Complex.h"
-#include "Molecule.h"
-#include "Fragment.h"
-#include "Atom.h"
-#include "Sstrm.hpp"
-#include "Element.h"
+#include "Structure/Complex.h"
+#include "Structure/Molecule.h"
+#include "Structure/Fragment.h"
+#include "Structure/Atom.h"
+#include "Structure/Sstrm.hpp"
+#include "Structure/Element.h"
 //#include "Conformer.h"
-#include "Coordinates.h"
+#include "Structure/Coordinates.h"
 
 #include <string>
 #include <iostream>

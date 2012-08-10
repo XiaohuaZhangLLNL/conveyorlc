@@ -8,10 +8,10 @@
 
 #include "ElementParser.h"
 
-#include "Element.h"
+#include "Structure/Element.h"
 #include "BaseParser.h"
 #include "Common/LBindException.h"
-#include "ElementContainer.h"
+#include "Structure/ElementContainer.h"
 
 #include "XML/XMLHeader.hpp"
 

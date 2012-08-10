@@ -6,6 +6,7 @@
  */
 
 #include <cassert>
+#include <cstring>
 #include "XMLAttributeSet.h"
 
 namespace LBIND{
