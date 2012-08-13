@@ -294,6 +294,40 @@ void Pdb::parse(const std::string& fileName, Complex* pComplex){
     
 }
 
+void Pdb::strip(const std::string& inFileName, const std::string& outFileName){
+    std::ifstream inFile;
+    try {
+        inFile.open(inFileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::read >> Cannot open file" << inFileName << std::endl;
+    }
+    
+    std::ofstream outFile;
+    try {
+        outFile.open(outFileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::read >> Cannot open file" << outFileName << std::endl;
+    }    
+
+    std::string fileLine="";    
+    
+    const std::string atomStr="ATOM";
+    const std::string hetatmStr="HETATM";    
+    
+    while(std::getline(inFile, fileLine)){
+
+        if(fileLine.compare(0,4, atomStr)==0 || fileLine.compare(0,6, hetatmStr)==0){
+            outFile << fileLine << std::endl;
+        }   
+    }
+    
+    inFile.close();
+    outFile.close();
+    
+}
+
 
 void Pdb::write(const std::string& fileName, Complex* pComplex)
 {

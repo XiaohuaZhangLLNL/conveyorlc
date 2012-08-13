@@ -56,9 +56,9 @@ void Amber::antechamber(std::string& input, std::string& output, std::string& op
 //    snprintf(buffer, sizeof(buffer), "%g", totCharge);
 //    std::string strTotalCharge=buffer;
     std::string cmd=AMBERPATH +"/bin/antechamber -i " +input + " -fi pdb -o "
-            + output + " -fo mol2 -s 0"+options; 
+            + output + " -fo mol2 -s 0"+options+" >& antechamber.out"; 
     std::cout << cmd << std::endl;
-    system(cmd.c_str());    
+    system(cmd.c_str());       
 }
 
 void Amber::parmchk(std::string mol2FName){
@@ -116,9 +116,32 @@ void Amber::comLeapInput(std::string pdbid, std::string ligName, std::string tle
     tleapFile.close();
 }
 
+void Amber::tleapInput(std::string& mol2FName, std::string& ligName, std::string& tleapFName){
+    std::ofstream tleapFile;
+    try {
+        tleapFile.open(tleapFName.c_str());
+    }
+    catch(...){
+        std::string mesg="Amber::createLeapInput()\n\t Cannot open VMD file: "+tleapFName;
+        throw LBindException(mesg);
+    }  
+    
+    std::string mol2FBase=mol2FName.substr(0,mol2FName.size()-5);
+       
+    tleapFile << "source leaprc.ff99SB" << std::endl;
+    tleapFile << "source leaprc.gaff" << std::endl;
+    tleapFile << "loadamberparams " << mol2FBase << ".frcmod" << std::endl;    
+    tleapFile << ligName <<" = loadmol2 " << mol2FName << std::endl;
+    tleapFile << "check " << ligName << std::endl;
+    tleapFile << "saveoff " << ligName <<" " << ligName <<".lib " << std::endl;
+    tleapFile << "saveamberparm " << ligName <<" " << ligName <<".prmtop " << ligName <<".inpcrd" << std::endl;
+    tleapFile << "quit " << std::endl;
+    
+    tleapFile.close();
+}
 
 void Amber::tleap(std::string input){
-    std::string cmd=AMBERPATH +"/bin/tleap -f " + input;
+    std::string cmd=AMBERPATH +"/bin/tleap -f " + input + " > leap.out";
     std::cout << cmd << std::endl;
     system(cmd.c_str());        
 }

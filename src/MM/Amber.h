@@ -24,6 +24,7 @@ public:
     void reduce(std::string& input, std::string& output, std::string& options);
     void antechamber(std::string& input, std::string& output, std::string& options);
     void parmchk(std::string mol2FName);
+    void tleapInput(std::string& mol2FName, std::string& ligName, std::string& tleapFName);
     void tleap(std::string input);
     void minimization(std::string pdbid);
     void md(std::string pdbid);

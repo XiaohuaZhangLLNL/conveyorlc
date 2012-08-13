@@ -30,6 +30,8 @@ public:
     void write(const std::string& fileName, Complex* pComplex);
     void write(const std::string& fileName, boost::shared_ptr<Complex> pComplex);
     void write(const std::string& fileName, Molecule* pMol);
+    
+    void strip(const std::string& inFileName, const std::string& outFileName);
 //    void write(const std::string& fileName, boost::shared_ptr<Conformer> pConformer);
 //    void write(const std::string& fileName, Conformer* pConformer);
 private:

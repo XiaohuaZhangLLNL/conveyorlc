@@ -8,14 +8,23 @@
 #ifndef SDF_H
 #define	SDF_H
 
+#include <string>
+
+namespace LBIND{
+
 class Sdf {
 public:
     Sdf();
     Sdf(const Sdf& orig);
     virtual ~Sdf();
+    
+    void parse(const std::string& fileName);
+    std::string getInfo(const std::string& fileName, const std::string& keyword);
+    
 private:
 
 };
 
+} //namespace LBIND
 #endif	/* SDF_H */
 
