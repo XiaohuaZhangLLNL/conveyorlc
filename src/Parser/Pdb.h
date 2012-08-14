@@ -31,10 +31,13 @@ public:
     void write(const std::string& fileName, boost::shared_ptr<Complex> pComplex);
     void write(const std::string& fileName, Molecule* pMol);
     
+    void renameAtom(const std::string& inFileName, const std::string& outFileName);
     void strip(const std::string& inFileName, const std::string& outFileName);
 //    void write(const std::string& fileName, boost::shared_ptr<Conformer> pConformer);
 //    void write(const std::string& fileName, Conformer* pConformer);
 private:
+    
+    std::string newAtomName(const std::string& atomType, int seq);
 
 };
 

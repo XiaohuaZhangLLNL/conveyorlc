@@ -16,6 +16,7 @@
 #include "Structure/Coordinates.h"
 
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -291,6 +292,111 @@ void Pdb::parse(const std::string& fileName, Complex* pComplex){
     }
 
     inFile.close();    
+    
+}
+
+std::string Pdb::newAtomName(const std::string& atomType, int seq){
+    int strSize=5;
+    if(seq<10){
+        strSize=atomType.size()+1;
+    }else if(seq<100){
+        strSize=atomType.size()+2;
+    }else if(seq<1000){
+        strSize=atomType.size()+3;
+    }
+    std::stringstream ss;
+    if(strSize==2){
+        ss <<" " << atomType << seq<< " ";
+    }else if(strSize==3){
+        ss <<" " << atomType << seq;
+    }else if(strSize==4){
+        ss << atomType << seq;
+    }else {
+        int xxSize=4-atomType.size();
+        ss << atomType << std::string(xxSize, 'X');
+        std::cerr << "Warning: Atom name exceed 4 characters!" << std::endl;
+    }
+    return ss.str();
+}
+
+void Pdb::renameAtom(const std::string& inFileName, const std::string& outFileName){
+    std::ifstream inFile;
+    try {
+        inFile.open(inFileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::read >> Cannot open file" << inFileName << std::endl;
+    }
+    
+    std::ofstream outFile;
+    try {
+        outFile.open(outFileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::read >> Cannot open file" << outFileName << std::endl;
+    }    
+
+    std::string fileLine="";    
+    
+    const std::string atomStr="ATOM";
+    const std::string hetatmStr="HETATM"; 
+    
+    const std::string ResStr="LIG";
+    const std::string RidStr="  1";
+    
+    int nC=0;
+    int nO=0;
+    int nN=0;
+    int nH=0;
+    int nS=0;
+    int nP=0;
+    int nCL=0;
+    int nE=0;   
+    
+    while(std::getline(inFile, fileLine)){
+
+        if(fileLine.compare(0,4, atomStr)==0 || fileLine.compare(0,6, hetatmStr)==0){
+            std::string newAtomName="";
+            std::string atomType=fileLine.substr(77,1);
+            
+            if(atomType.compare(0, 1, "C")==0){
+                nC=nC+1;
+                newAtomName=this->newAtomName(atomType, nC);
+            } else if(atomType.compare(0, 1, "O")==0){
+                nO=nO+1;
+                newAtomName=this->newAtomName(atomType, nO);
+            } else if(atomType.compare(0, 1, "N")==0){
+                nN=nN+1;
+                newAtomName=this->newAtomName(atomType, nN);
+            } else if(atomType.compare(0, 1, "H")==0){
+                nH=nH+1;
+                newAtomName=this->newAtomName(atomType, nH);
+            } else if(atomType.compare(0, 1, "S")==0){
+                nS=nS+1;
+                newAtomName=this->newAtomName(atomType, nS);
+            } else if(atomType.compare(0, 1, "P")==0){
+                nP=nP+1;
+                newAtomName=this->newAtomName(atomType, nP);
+            } else if(atomType.compare(0, 1, "l")==0){
+                nCL=nCL+1;
+                atomType="CL";
+                newAtomName=this->newAtomName(atomType, nCL);
+            } else {
+                nE=nE+1;
+                newAtomName=this->newAtomName(atomType, nE);               
+            }
+            fileLine.replace(12, 4, newAtomName);
+            // Also rename the residue name to LIG and residue ID to 1.
+            fileLine.replace(17, 3, ResStr);
+            fileLine.replace(23, 3, RidStr);
+        }
+
+        outFile << fileLine << std::endl;
+           
+    }
+    
+    inFile.close();
+    outFile.close();
     
 }
 

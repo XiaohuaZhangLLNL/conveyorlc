@@ -5,13 +5,16 @@ else
 endif
 
 if USE_MPI
-    bin_PROGRAMS = amberTools
+    bin_PROGRAMS = amberTools premmpbsa
 else
 endif
 
 if USE_MPI
     amberTools_SOURCES = amberTools.cpp
     amberTools_LDADD = -L$(top_srcdir)/src -lLBind -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
+
+    premmpbsa_SOURCES = premmpbsa.cpp
+    premmpbsa_LDADD = -L$(top_srcdir)/src -lLBind -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
 
 
 else

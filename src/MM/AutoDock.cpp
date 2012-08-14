@@ -18,7 +18,7 @@
 #include "Common/Tokenize.hpp"
 #include "Common/LBindException.h"
 #include "Amber.h"
-#include "Structure/Pdb.h"
+#include "Parser/Pdb.h"
 #include "Structure/Complex.h"
 #include "Structure/Molecule.h"
 #include "Structure/Atom.h"
