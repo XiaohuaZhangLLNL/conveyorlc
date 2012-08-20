@@ -453,10 +453,19 @@ void VinaLC::getGridDims(std::string& selSphFile, Coor3d& gridDims){
     }    
     
     selSphgenFile.close();   
-    
+
     std::cout << "xMax=" << xMax << "yMax=" << yMax << "zMax=" << zMax << std::endl;
     std::cout << "xMin=" << xMin << "yMin=" << yMin << "zMin=" << zMin << std::endl;
-    gridDims.set((xMax-xMin+10),(yMax-yMin+10),(zMax-zMin+10));
+    double xDimen=xMax-xMin+10;
+    double yDimen=yMax-yMin+10;
+    double zDimen=zMax-zMin+10;
+    
+    // Limit the dimension to be less than 100.0 angstroms.
+    if(xDimen>100.0) xDimen=45.0;
+    if(yDimen>100.0) yDimen=45.0;
+    if(zDimen>100.0) zDimen=45.0;
+    
+    gridDims.set(xDimen,yDimen,zDimen);
     
     return;
 }
