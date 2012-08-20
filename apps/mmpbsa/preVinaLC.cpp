@@ -35,7 +35,11 @@ void preVinaLC(std::string& dir){
     system(cmd.c_str());
     
     chdir(vinaDir.c_str());
-     
+    
+    std::string csaPdbFile=siteDir+dir+"_00_ref_cent_1.pdb";
+    
+    cmd="prepare_receptor4.py -r "+csaPdbFile+" -o "+dir+".pdbqt";
+    system(cmd.c_str());
     
     boost::scoped_ptr<VinaLC> pVinaLC(new VinaLC());
     
@@ -48,7 +52,7 @@ void preVinaLC(std::string& dir){
               << std::endl;
 
     boost::scoped_ptr<Pdb> pPdb(new Pdb());    
-    std::string csaPdbFile=siteDir+dir+"_00_ref_cent_1.pdb";
+    
     std::string cutPdbFile=dir+"_00_ref_cut.pdb";
     pPdb->cutByRadius(csaPdbFile, cutPdbFile, center, 20);
     
