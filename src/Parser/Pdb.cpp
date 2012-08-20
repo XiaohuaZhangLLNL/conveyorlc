@@ -241,11 +241,11 @@ void Pdb::parse(const std::string& fileName, Complex* pComplex){
             
             std::string rIDstr= fileLine.substr(23,4);
             int rID=atoi(rIDstr.c_str());
-            std::string xstr= fileLine.substr(31,8);
+            std::string xstr= fileLine.substr(30,8);
             double x=atof(xstr.c_str());
-            std::string ystr= fileLine.substr(39,8);
+            std::string ystr= fileLine.substr(38,8);
             double y=atof(ystr.c_str());
-            std::string zstr= fileLine.substr(47,8);
+            std::string zstr= fileLine.substr(46,8);
             double z=atof(zstr.c_str());
 
 //            std::cout << rID << " " << x << " " << y << " " << z << std::endl;
@@ -406,7 +406,7 @@ void Pdb::strip(const std::string& inFileName, const std::string& outFileName){
         inFile.open(inFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::read >> Cannot open file" << inFileName << std::endl;
+        std::cout << "PDB::strip >> Cannot open file" << inFileName << std::endl;
     }
     
     std::ofstream outFile;
@@ -414,7 +414,7 @@ void Pdb::strip(const std::string& inFileName, const std::string& outFileName){
         outFile.open(outFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::read >> Cannot open file" << outFileName << std::endl;
+        std::cout << "PDB::strip >> Cannot open file" << outFileName << std::endl;
     }    
 
     std::string fileLine="";    
@@ -426,6 +426,57 @@ void Pdb::strip(const std::string& inFileName, const std::string& outFileName){
 
         if(fileLine.compare(0,4, atomStr)==0 || fileLine.compare(0,6, hetatmStr)==0){
             outFile << fileLine << std::endl;
+        }   
+    }
+    
+    inFile.close();
+    outFile.close();
+    
+}
+
+void Pdb::cutByRadius(const std::string& inFileName, const std::string& outFileName, Coor3d& center, double radius){
+    std::ifstream inFile;
+    try {
+        inFile.open(inFileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::cutByRadius >> Cannot open file" << inFileName << std::endl;
+    }
+    
+    std::ofstream outFile;
+    try {
+        outFile.open(outFileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::cutByRadius >> Cannot open file" << outFileName << std::endl;
+    }    
+
+    std::string fileLine="";    
+    
+    const std::string atomStr="ATOM";
+    const std::string hetatmStr="HETATM";   
+    
+    double radius2=radius*radius;
+    
+    while(std::getline(inFile, fileLine)){
+
+        if(fileLine.compare(0,4, atomStr)==0 || fileLine.compare(0,6, hetatmStr)==0){
+
+            std::string xstr= fileLine.substr(30,8);
+            double x=atof(xstr.c_str());
+            std::string ystr= fileLine.substr(38,8);
+            double y=atof(ystr.c_str());
+            std::string zstr= fileLine.substr(46,8);
+            double z=atof(zstr.c_str());
+            
+            double distx=x-center.getX();
+            double disty=y-center.getY();
+            double distz=z-center.getZ();
+            
+            double dist2=distx*distx+disty*disty+distz*distz;
+            
+            if(dist2<radius2)
+                outFile << fileLine << std::endl;
         }   
     }
     
