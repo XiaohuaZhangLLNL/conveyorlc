@@ -486,6 +486,64 @@ void Pdb::cutByRadius(const std::string& inFileName, const std::string& outFileN
 }
 
 
+int Pdb::splitByModel(const std::string& inFileName, const std::string& outFileBase){
+    std::ifstream inFile;
+    try {
+        inFile.open(inFileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::cutByRadius >> Cannot open file" << inFileName << std::endl;
+    }
+    
+   
+
+    std::string fileLine="";    
+    
+    const std::string atomStr="ATOM";
+    const std::string hetatmStr="HETATM";   
+    const std::string modelStr="MODEL";
+    const std::string endmdlStr="ENDMDL";
+
+    bool outFlag=false;
+    std::ofstream outFile;
+    
+    int count=0;
+    
+    while(std::getline(inFile, fileLine)){
+        
+        if(fileLine.compare(0,5, modelStr)==0 && outFlag==false){
+            ++count;
+            std::string outFileName=outFileBase+Sstrm<std::string, int>(count)+".pdb";
+            try {
+                outFile.open(outFileName.c_str());
+            }
+            catch(...){
+                std::cout << "Pdb::splitByModel >> Cannot open file" << outFileName << std::endl;
+            }   
+            outFlag=true;
+        }
+        
+        if(fileLine.compare(0,6, endmdlStr)==0){
+            outFlag=false;
+            outFile.close();
+        }
+
+        if(fileLine.compare(0,4, atomStr)==0 || fileLine.compare(0,6, hetatmStr)==0){
+            if(outFlag){
+                outFile << fileLine << std::endl;
+            }
+        }   
+        
+        
+    }
+    
+    inFile.close();
+    
+    return count;
+    
+    
+}
+
 void Pdb::write(const std::string& fileName, Complex* pComplex)
 {
     std::ofstream outFile;

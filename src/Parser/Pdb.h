@@ -36,6 +36,8 @@ public:
     void renameAtom(const std::string& inFileName, const std::string& outFileName);
     void strip(const std::string& inFileName, const std::string& outFileName);
     void cutByRadius(const std::string& inFileName, const std::string& outFileName, Coor3d& center, double radius);
+    
+    int splitByModel(const std::string& inFileName, const std::string& outFileBase);
 //    void write(const std::string& fileName, boost::shared_ptr<Conformer> pConformer);
 //    void write(const std::string& fileName, Conformer* pConformer);
 private:

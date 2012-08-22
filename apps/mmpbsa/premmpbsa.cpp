@@ -14,6 +14,7 @@
 #include "src/MM/Amber.h"
 #include "src/Structure/Sstrm.hpp"
 #include "src/Common/Tokenize.hpp"
+#include "src/Common/LBindException.h"
 
 #include <boost/scoped_ptr.hpp>
 
@@ -36,7 +37,7 @@ void premmpbsa(std::string& dir) {
     system(cmd.c_str());
 
     std::string pdbFile="ligrn.pdb";
-    std::string tmpFile="tmp.pdb";
+    std::string tmpFile="ligstrp.pdb";
     
     boost::scoped_ptr<Pdb> pPdb(new Pdb());    
     
@@ -75,6 +76,36 @@ void premmpbsa(std::string& dir) {
     
     pAmber->tleapInput(output,ligName,tleapFile);
     pAmber->tleap(tleapFile); 
+    
+    std::string minFName="LIG_min.in";
+    {
+        std::ofstream minFile;
+        try {
+            minFile.open(minFName.c_str());
+        }
+        catch(...){
+            std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
+            throw LBindException(mesg);
+        }   
+
+        minFile << "title.." << std::endl;
+        minFile << "&cntrl" << std::endl;
+        minFile << "  imin   = 1," << std::endl;
+        minFile << "  maxcyc = 2000," << std::endl;
+        minFile << "  ncyc   = 1000," << std::endl;
+        minFile << "  ntpr   = 200," << std::endl;
+        minFile << "  ntb    = 0," << std::endl;
+        minFile << "  igb    = 5," << std::endl;
+        minFile << "  cut    = 15," << std::endl;
+        minFile << " /" << std::endl;
+
+        minFile.close();    
+    }          
+    
+    cmd="sander  -O -i LIG_min.in -o LIG_min.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());      
+    
     
     chdir("../");
     
