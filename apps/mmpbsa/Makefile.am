@@ -5,7 +5,7 @@ else
 endif
 
 if USE_MPI
-    bin_PROGRAMS = amberTools premmpbsa mmpbsa preVinaLC
+    bin_PROGRAMS = amberTools premmpbsa mmpbsa preVinaLC processVinaLC
 else
 endif
 
@@ -21,6 +21,9 @@ if USE_MPI
 
     preVinaLC_SOURCES = preVinaLC.cpp
     preVinaLC_LDADD = -L$(top_srcdir)/src -lLBind -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
+
+    processVinaLC_SOURCES = processVinaLC.cpp
+    processVinaLC_LDADD = -L$(top_srcdir)/src -lLBind -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx  -lz
 
 
 else

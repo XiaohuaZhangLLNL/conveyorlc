@@ -31,6 +31,7 @@ MM/Namd.cpp \
 MM/VinaLC.cpp  \
 Parser/BaseParser.cpp  \
 Parser/ElementParser.cpp  \
+Parser/GZstream.cpp   \
 Parser/Pdb.cpp  \
 Parser/Sdf.cpp  \
 Structure/Atom.cpp \
@@ -73,7 +74,9 @@ BackBone/Ligand.h \
 BackBone/Pathway.h \
 BackBone/Protein.h \
 Common/Control.h \
+Common/File.hpp  \
 Common/LBindException.h \
+Common/Tokenize.hpp \
 MM/Amber.h \
 MM/AutoDock.h \
 MM/Gromacs.h \
@@ -81,6 +84,7 @@ MM/Namd.h \
 MM/VinaLC.h  \
 Parser/BaseParser.h  \
 Parser/ElementParser.h  \
+Parser/GZstream.h   \
 Parser/Pdb.h  \
 Parser/Sdf.h  \
 Structure/Atom.h \
