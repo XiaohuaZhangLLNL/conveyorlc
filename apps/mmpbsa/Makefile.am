@@ -11,19 +11,19 @@ endif
 
 if USE_MPI
     amberTools_SOURCES = amberTools.cpp
-    amberTools_LDADD = -L$(top_srcdir)/src -lLBind -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
+    amberTools_LDADD = $(top_srcdir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
 
     premmpbsa_SOURCES = premmpbsa.cpp
-    premmpbsa_LDADD = -L$(top_srcdir)/src -lLBind -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
+    premmpbsa_LDADD = $(top_srcdir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
 
     mmpbsa_SOURCES = mmpbsa.cpp
-    mmpbsa_LDADD = -L$(top_srcdir)/src -lLBind -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
+    mmpbsa_LDADD = $(top_srcdir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
 
     preVinaLC_SOURCES = preVinaLC.cpp
-    preVinaLC_LDADD = -L$(top_srcdir)/src -lLBind -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
+    preVinaLC_LDADD = $(top_srcdir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
 
     processVinaLC_SOURCES = processVinaLC.cpp
-    processVinaLC_LDADD = -L$(top_srcdir)/src -lLBind -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx  -lz
+    processVinaLC_LDADD = $(top_srcdir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx  -lz
 
 
 else

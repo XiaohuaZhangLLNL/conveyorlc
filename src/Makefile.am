@@ -6,9 +6,9 @@ else
 INCLUDES = -I$(top_srcdir)/src -I/@mm_dir@/include -I@boost_dir@/include 
 endif
 
-BOOST_LIB = -L/@boost_dir@/lib/ -lboost_regex
+BOOST_LIB = -L/@boost_dir@/lib/ -lboost_regex  -lz 
 
-MM_LIB= -L/@mm_dir@/lib/ -lpcm
+#MM_LIB= -L/@mm_dir@/lib/ -lpcm
 
 if USE_MPI
 MPI_LIB= -L/@mpi_path@/lib/ -lmpi -lmpi_cxx

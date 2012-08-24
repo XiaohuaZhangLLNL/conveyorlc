@@ -2,6 +2,7 @@
 
 #remove the old configure files.
 rm -rf autom4te.cache configure config.* aclocal.* install-sh libtool ltmain.sh missing stamp-h1
+rm -rf configure Makefile Makefile.in
 
 aclocal
 autoheader
