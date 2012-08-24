@@ -1,0 +1,56 @@
+/*!
+\mainpage MedChem Molecular Simulation Package on HPC
+\htmlonly
+<table cellpadding="10" cellspacing="0" border="0" width="100%">
+<tr>
+<td valign="top" width="15%" align="left">
+
+<small>
+
+<b>Author:</b><br>
+<a href="mailto:zhang30@llnl.gov"> Xiaohua Zhang </a><br>
+<br>
+
+<b>Getting Started:</b><br>
+<a href="installation.html">Installation</a><br>
+<a href="UsersGuide.html">Users' Guide</a><br>
+<a href="tutorial.html">Tutorial</a><br>
+<br>
+
+
+<b>External Libraries:</b><br>
+<a href="http://www.boost.org/"> BOOST </a><br>
+<a href="http://www.mcs.anl.gov/research/projects/mpi/"> MPI </a><br>
+<br>
+
+<b>What's New</b><br>
+<a href="changeLog.html">ChangeLog</a><br>
+<br>
+
+<b>What's Next</b><br>
+<a href="FutureWork.html">Future Work</a><br>
+<br>
+
+<b>Bugs</b><br>
+<a href="bugs.html">Known Bugs</a><br>
+<br>
+
+<b>Acknowledgements</b><br>
+<a href="Acknowledgements.html"> Acknowledgements</a><br>
+<br>
+
+</small>
+
+</td>
+<td valign="top">
+
+<h3> Introduction </h3>
+
+<p align="justify"> MedChem is a molecular simulation package will run the calculations on HPC machines, interfacing with popular molecular simulation packages such as AMBER, AutoDock Vina, etc</p>
+
+</td>
+
+</table>
+\endhtmlonly
+*/
+

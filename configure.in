@@ -77,6 +77,41 @@ if test "$test_mpi" = "yes"; then
   defines_string=$defines_string" -DUSE_MPI"
 fi
 
+dnl ----------------------------------------------------------------------------
+dnl                         DOXYGEN (www.doxygen.org)
+dnl ----------------------------------------------------------------------------
+html_doc=no
+AC_ARG_ENABLE(doxygen,
+[  --enable-doxygen        build library documentation using doxygen],
+        html_doc=yes
+)
+
+AC_CHECK_PROG(doxygen_ok, doxygen, yes, no)
+AC_CHECK_PROG(dot_ok, dot, yes, no)
+
+if test "$html_doc" != no; then
+  if test "$doxygen_ok" != yes; then
+    echo " doxygen-enabled: However doxygen cannot be found."
+    echo " Take a look at http://www.doxygen.org/"
+    html_doc=no
+  fi 
+fi
+AM_CONDITIONAL([DOC_ON], [test "$html_doc" = yes])
+AM_CONDITIONAL([GOT_DOT], [test "$dot_ok" = yes])
+
+dnl ----------------------------------------------------------------------------
+dnl                         DOCUMENTATION DIRECTORY
+dnl ----------------------------------------------------------------------------
+AC_ARG_WITH(docdir,
+        [AS_HELP_STRING([--with-docdir=DIR], [set documentation directory to DIR])],
+        [DOC_DIR="$withval"], [DOC_DIR=""])
+if test "x$DOC_DIR" != x; then
+        docdir="$DOC_DIR"
+else
+        docdir="${prefix}/doc"
+fi
+AC_SUBST(docdir)
+
 dnl ----------------------------------------------
 dnl                  DEBUG
 dnl ----------------------------------------------
@@ -198,6 +233,9 @@ AC_FUNC_STRTOD
 AC_CHECK_FUNCS([pow sqrt])
 AC_OUTPUT(Makefile \
           doc/Makefile \
+		  doc/Doxyfile \
+          doc/pics/Makefile \
+          doc/local/Makefile \
           src/Makefile \
           apps/Makefile  \
           apps/mmpbsa/Makefile \
@@ -221,6 +259,10 @@ Directories:
 
 Switches:
   - debug ........ : ${debug}
+  - html ......... : ${html_doc}
+
+Documentation tools:
+  - Doxygen ...... : ${doxygen_ok}
 
 Testing tools:
   - Diff ......... : ${diff_ok}

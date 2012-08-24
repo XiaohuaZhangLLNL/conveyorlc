@@ -40,3 +40,10 @@
 /apps/mmpbsa/mmpbsa
 /apps/mmpbsa/preVinaLC
 /apps/mmpbsa/processVinaLC
+/doc/html/
+/doc/local/Makefile
+/doc/local/Makefile.in
+/doc/pics/Makefile
+/doc/pics/Makefile.in
+/doc/pics/llnl_logo.gif
+/doc/Doxyfile
