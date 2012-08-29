@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([MedChem], [0.0.1], [xhzhang1978@gmail.com], [MedChem])
+AC_INIT([MedCM], [0.0.1], [xhzhang1978@gmail.com], [MedCM])
 
 AM_INIT_AUTOMAKE
 

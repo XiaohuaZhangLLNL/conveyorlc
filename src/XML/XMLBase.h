@@ -18,6 +18,11 @@
 
 #include "XMLUtils.hpp"
 
+/**
+ * XML Parser in this package is converted from TinyXml. 
+ 
+ */
+
 
 namespace LBIND{
 

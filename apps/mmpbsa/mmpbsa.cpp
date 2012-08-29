@@ -20,11 +20,25 @@
 
 using namespace LBIND;
 
-/*
+/*!
+ * \breif mmpbsa MM-PB(GB)SA calculations on HPC using amber forcefield
+ * \param argc
+ * \param argv
+ * \return success 
+ * \defgroup mmpbsa_Commands mmpbsa Commands
  * 
+ * Usage: mmpbsa <input-file>
  */
 
-void recRun(std::string& dir){
+
+/**
+ * \breif recRun prepare pdbqt, tleap and run GB/PB minimization for receptor
+ * \param dir the directory/receptor name under the WORKDIR
+ * \param calcPB flag to switch between PB and GB calculation
+ * 
+ 
+ */
+void recRun(std::string& dir, bool calcPB){
     
     // RECEPTOR
     std::string pdbqtFile="../../n_"+dir+"_vina/"+dir+".pdbqt";
@@ -99,7 +113,16 @@ void recRun(std::string& dir){
     cmd="grep -v END Rec_min_0.pdb > Rec_min.pdb ";
 }
 
-void ligRun(std::string& ligand, std::string& ligLibDir){
+/**
+ * \breif ligRun prepare parameter files and run GB/PB minimization for ligand
+ * \param ligand the ligand name under the ligLibDir
+ * \param ligLibDir directory (WORKDIR/../ligLib) to save ligand parameter files 
+ * \param calcPB flag to switch between PB and GB calculation
+ * 
+ 
+ */
+
+void ligRun(std::string& ligand, std::string& ligLibDir, bool calcPB){
         
     //LIGAND
     std::string cmd="ln -s "+ligLibDir+ligand+"/LIG.prmtop";
@@ -107,6 +130,16 @@ void ligRun(std::string& ligand, std::string& ligLibDir){
 //    cmd="ln -s "+ligLibDir+ligand+"/LIG_min.rst";
 //    system(cmd.c_str());  
 }
+
+/**
+ * \breif comRun prepare tleap and run GB/PB minimization for complex
+ * \param ligand the ligand name under the ligLibDir
+ * \param poseID the pose ID (Model number in Vina pdbqt output)
+ * \param ligLibDir directory (WORKDIR/../ligLib) to save ligand parameter files
+ * \param calcPB flag to switch between PB and GB calculation
+ * 
+ 
+ */
 
 void ComRun(std::string& ligand, int poseID, std::string& ligLibDir, bool calcPB){
         
@@ -231,6 +264,14 @@ void ComRun(std::string& ligand, int poseID, std::string& ligLibDir, bool calcPB
     
 }
 
+/**
+ * \breif mmpbsa run re-scoring for one receptor together with one ligand
+ * \param dir the directory/receptor name under the WORKDIR
+ * \param ligand the ligand name under the ligLibDir
+ * \param calcPB flag to switch between PB and GB calculation
+ * 
+ */
+
 void mmpbsa(std::string& dir, std::string& ligand, bool calcPB){
     std::string WORKDIR=getenv("WORKDIR");
     chdir(WORKDIR.c_str());
@@ -245,11 +286,11 @@ void mmpbsa(std::string& dir, std::string& ligand, bool calcPB){
     system(cmd.c_str());
     chdir(ligand.c_str());
     
-    recRun(dir);
+    recRun(dir,calcPB);
     
     std::string ligLibDir=WORKDIR+"/../ligLib/";
     
-    ligRun(ligand,ligLibDir);
+    ligRun(ligand,ligLibDir,calcPB);
     
     //Processing poses
     std::string poses="../../n_"+dir+"_vina/poses/"+ligand+".pdbqt";

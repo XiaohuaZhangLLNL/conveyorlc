@@ -1,11 +1,10 @@
 /*!
-\mainpage MedChem Molecular Simulation Package on HPC
+\mainpage MedCM Medical Countermeasure Development Pipeline on HPC
 \htmlonly
 <table cellpadding="10" cellspacing="0" border="0" width="100%">
 <tr>
-<td valign="top" width="15%" align="left">
+<td valign="top" width="18%" align="left">
 
-<small>
 
 <b>Author:</b><br>
 <a href="mailto:zhang30@llnl.gov"> Xiaohua Zhang </a><br>
@@ -18,7 +17,7 @@
 <br>
 
 
-<b>External Libraries:</b><br>
+<b>Dependent Libraries:</b><br>
 <a href="http://www.boost.org/"> BOOST </a><br>
 <a href="http://www.mcs.anl.gov/research/projects/mpi/"> MPI </a><br>
 <br>
@@ -39,14 +38,13 @@
 <a href="Acknowledgements.html"> Acknowledgements</a><br>
 <br>
 
-</small>
 
 </td>
 <td valign="top">
 
-<h3> Introduction </h3>
+<h2> Introduction </h2>
 
-<p align="justify"> MedChem is a molecular simulation package will run the calculations on HPC machines, interfacing with popular molecular simulation packages such as AMBER, AutoDock Vina, etc</p>
+<p align="justify"> A very popular PC-based molecular docking program, AutoDock Vina, was modified and parallelized, using an MPI and multithreading hybrid scheme, and potentially can be used in the future on exascale machines, without sacrificing accuracy. The resulting program scales up to more than 15K CPUs with a very low overhead cost. </p>
 
 </td>
 

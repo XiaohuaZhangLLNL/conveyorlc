@@ -24,6 +24,30 @@
 
 using namespace LBIND;
 
+/*!
+ * \breif preVinaLC calculation receptor grid dimension from CSA sitemap output
+ * \param argc
+ * \param argv argv[1] takes the input file name
+ * \return success 
+ * \defgroup preVinaLC_Commands preVinaLC Commands
+ *
+ * 
+ * Usage on HPC slurm
+ * 
+ * \verbatim
+ 
+    export AMBERHOME=/usr/gapps/medchem/amber/amber12
+    export PATH=$AMBERHOME/bin/:$PATH
+    export WORKDIR=`pwd`/workspace/
+
+    srun -N4 -n48 -ppdebug /g/g92/zhang30/medchem/NetBeansProjects/MedCM/apps/mmpbsa/preVinaLC  <input-file>
+
+    <input-file>: contain a list of receptor subdirectory names.
+
+    Requires: define WORKDIR 
+   \endverbatim
+ */
+
 void preVinaLC(std::string& dir){
     
     std::string WORKDIR=getenv("WORKDIR");
