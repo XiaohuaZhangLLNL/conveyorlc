@@ -33,6 +33,7 @@ Parser/BaseParser.cpp  \
 Parser/ElementParser.cpp  \
 Parser/GZstream.cpp   \
 Parser/Pdb.cpp  \
+Parser/SanderOutput.cpp \
 Parser/Sdf.cpp  \
 Structure/Atom.cpp \
 Structure/BaseStruct.cpp \
@@ -86,6 +87,7 @@ Parser/BaseParser.h  \
 Parser/ElementParser.h  \
 Parser/GZstream.h   \
 Parser/Pdb.h  \
+Parser/SanderOutput.h \
 Parser/Sdf.h  \
 Structure/Atom.h \
 Structure/BaseStruct.h \

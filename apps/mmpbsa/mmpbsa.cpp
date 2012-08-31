@@ -15,6 +15,7 @@
 #include "src/Structure/Sstrm.hpp"
 #include "src/Common/Tokenize.hpp"
 #include "src/Common/LBindException.h"
+#include "src/Parser/SanderOutput.h"
 
 #include <boost/scoped_ptr.hpp>
 
@@ -45,10 +46,12 @@ void recRun(std::string& dir, bool calcPB){
     std::string cmd="pdbqt_to_pdb.py -f " + pdbqtFile+" -o rec_qt.pdb";
     system(cmd.c_str());
     
-    cmd="reduce -Trim rec_qt.pdb > rec_noh.pdb";
+    cmd="reduce -Trim rec_qt.pdb > rec_noh.pdb >& reduce.log";
+    std::cout <<cmd <<std::endl;
     system(cmd.c_str());
     
-    cmd="reduce rec_noh.pdb > rec_rd.pdb";
+    cmd="reduce rec_noh.pdb > rec_rd.pdb>& reduce.log";
+    std::cout <<cmd <<std::endl;
     system(cmd.c_str());    
 
     std::string tleapFName="rec_leap.in";
@@ -61,18 +64,19 @@ void recRun(std::string& dir, bool calcPB){
         catch(...){
             std::string mesg="mmpbsa::receptor()\n\t Cannot open tleap file: "+tleapFName;
             throw LBindException(mesg);
-        }   
-
-        tleapFile << "source leaprc.ff99SB" << std::endl;
-        tleapFile << "source leaprc.gaff" << std::endl;
-        tleapFile << "REC = loadpdb rec_rd.pdb"<< std::endl;
-        tleapFile << "saveamberparm REC REC.prmtop REC.inpcrd"<< std::endl;            
-        tleapFile << "quit " << std::endl;
-
+        }
+        
+        tleapFile << "source leaprc.ff99SB\n"                
+                  << "source leaprc.gaff\n"
+                  << "REC = loadpdb rec_rd.pdb\n"
+                  << "saveamberparm REC REC.prmtop REC.inpcrd\n"
+                  << "quit\n";
+        
         tleapFile.close();
     }
     
     cmd="tleap -f rec_leap.in >& rec_leap.log";
+    std::cout <<cmd <<std::endl;
     system(cmd.c_str());
 
     std::string minFName="Rec_min.in";
@@ -86,31 +90,82 @@ void recRun(std::string& dir, bool calcPB){
             throw LBindException(mesg);
         }   
 
-        minFile << "title.." << std::endl;
-        minFile << "&cntrl" << std::endl;
-        minFile << "  imin   = 1," << std::endl;
-        minFile << "  maxcyc = 2000," << std::endl;
-        minFile << "  ncyc   = 1000," << std::endl;
-        minFile << "  ntpr   = 200," << std::endl;
-        minFile << "  ntb    = 0," << std::endl;
-        minFile << "  igb    = 5," << std::endl;
-        minFile << "  cut    = 15," << std::endl;
-        minFile << "  ntr=1," << std::endl;
-        minFile << "  restraint_wt=5.0," << std::endl;
-        minFile << "  restraintmask='!@H='," << std::endl;       
-        minFile << " /" << std::endl;
-
+        minFile << "title..\n" 
+                << "&cntrl\n" 
+                << "  imin   = 1,\n" 
+                << "  ntmin   = 3,\n" 
+                << "  maxcyc = 2000,\n" 
+                << "  ncyc   = 1000,\n" 
+                << "  ntpr   = 200,\n" 
+                << "  ntb    = 0,\n" 
+                << "  igb    = 5,\n" 
+                << "  cut    = 15,\n" 
+                << "  ntr=1,\n" 
+                << "  restraint_wt=5.0,\n" 
+                << "  restraintmask='!@H=',\n"        
+                << " /\n" << std::endl;
         minFile.close();    
     }
     
     cmd="sander -O -i Rec_min.in -o Rec_min.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
     std::cout <<cmd <<std::endl;
-//    system(cmd.c_str());    
+    system(cmd.c_str());  
+    
+    std::string sanderOut="Rec_min.out";
+    boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
+    double energy=pSanderOutput->getEAmber(sanderOut);
+    std::cout << "Receptorn GB Minimization Energy: " << energy <<" kcal/mol."<< std::endl;
        
     cmd="ambpdb -p REC.prmtop < Rec_min.rst > Rec_min_0.pdb";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());      
     cmd="grep -v END Rec_min_0.pdb > Rec_min.pdb ";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());  
+    
+    if(!calcPB) return; //! return if not going to calculation PB energy.
+    
+    //! The following section is to calculate PB energy.
+    minFName="Rec_minPB.in";
+    {
+        std::ofstream minFile;
+        try {
+            minFile.open(minFName.c_str());
+        }
+        catch(...){
+            std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
+            throw LBindException(mesg);
+        }   
+
+        minFile << "title..\n" 
+                << " &cntrl\n" 
+                << "  imin   = 1,\n" 
+                << "  ntmin   = 3,\n" 
+                << "  maxcyc = 2000,\n" 
+                << "  ncyc   = 1000,\n" 
+                << "  ntpr   = 200,\n" 
+                << "  ntb    = 0,\n" 
+                << "  igb    = 10,\n" 
+                << "  cut    = 15,\n" 
+                << "  ntr=1,\n" 
+                << "  restraint_wt=5.0,\n" 
+                << "  restraintmask='!@H='\n"        
+                << " /\n"
+                << " &pb\n"
+                << "  npbverb=0, epsout=80.0, radiopt=1, space=0.5,\n"
+                << "  accept=1e-4, fillratio=6, sprob=1.6\n"
+                << " / \n" << std::endl;
+                
+        minFile.close();    
+    } 
+    cmd="sander -O -i Rec_minPB.in -o Rec_minPB.out -p REC.prmtop -c Rec_min.rst -ref Rec_min.rst -x REC.mdcrd -r Rec_min1.rst";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str()); 
+    
+    
+    sanderOut="Rec_minPB.out";
+    energy=pSanderOutput->getEAmber(sanderOut);
+    std::cout << "Receptor PB Minimization Energy: " << energy <<" kcal/mol."<< std::endl;    
 }
 
 /**
@@ -126,9 +181,88 @@ void ligRun(std::string& ligand, std::string& ligLibDir, bool calcPB){
         
     //LIGAND
     std::string cmd="ln -s "+ligLibDir+ligand+"/LIG.prmtop";
+    std::cout <<cmd <<std::endl;
     system(cmd.c_str());
-//    cmd="ln -s "+ligLibDir+ligand+"/LIG_min.rst";
-//    system(cmd.c_str());  
+    cmd="ln -s "+ligLibDir+ligand+"/LIG_min.rst";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str()); 
+    
+    std::string minFName="LIG_minGB.in";
+    {
+        std::ofstream minFile;
+        try {
+            minFile.open(minFName.c_str());
+        }
+        catch(...){
+            std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
+            throw LBindException(mesg);
+        }   
+
+        minFile << "title..\n" 
+                << "&cntrl\n" 
+                << "  imin   = 1,\n" 
+                << "  ntmin   = 3,\n" 
+                << "  maxcyc = 2000,\n" 
+                << "  ncyc   = 1000,\n" 
+                << "  ntpr   = 200,\n" 
+                << "  ntb    = 0,\n" 
+                << "  igb    = 5,\n" 
+                << "  cut    = 15,\n"       
+                << " /\n" << std::endl;
+        minFile.close();    
+    }
+    
+    cmd="sander -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG_min.rst -ref LIG_min.rst -x REC.mdcrd -r LIG_min0.rst";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());  
+    
+    
+    std::string sanderOut="LIG_minGB.out";
+    boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
+    double energy=pSanderOutput->getEnergy(sanderOut);
+    std::cout << "LIGAND GB Minimization Energy: " << energy <<" kcal/mol."<< std::endl;
+       
+    
+    if(!calcPB) return; //! return if not going to calculation PB energy.
+    
+    //! The following section is to calculate PB energy.
+    minFName="LIG_minPB.in";
+    {
+        std::ofstream minFile;
+        try {
+            minFile.open(minFName.c_str());
+        }
+        catch(...){
+            std::string mesg="mmpbsa::ligRun()\n\t Cannot open min file: "+minFName;
+            throw LBindException(mesg);
+        }   
+
+        minFile << "title..\n" 
+                << " &cntrl\n" 
+                << "  imin   = 1,\n" 
+                << "  ntmin   = 3,\n" 
+                << "  maxcyc = 2000,\n" 
+                << "  ncyc   = 1000,\n" 
+                << "  ntpr   = 200,\n" 
+                << "  ntb    = 0,\n" 
+                << "  igb    = 10,\n" 
+                << "  cut    = 15,\n"         
+                << " /\n"
+                << " &pb\n"
+                << "  npbverb=0, epsout=80.0, radiopt=1, space=0.5,\n"
+                << "  accept=1e-4, fillratio=6, sprob=1.6\n"
+                << " / \n" << std::endl;
+                
+        minFile.close();    
+    } 
+    cmd="sander -O -i LIG_minPB.in -o LIG_minPB.out -p LIG.prmtop -c LIG_min0.rst -ref LIG_min0.rst -x REC.mdcrd -r LIG_min1.rst";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str()); 
+    
+    
+    sanderOut="LIG_minPB.out";
+    energy=pSanderOutput->getEnergy(sanderOut);
+    std::cout << "Ligand GB Minimization Energy: " << energy <<" kcal/mol."<< std::endl;        
 }
 
 /**
@@ -142,7 +276,7 @@ void ligRun(std::string& ligand, std::string& ligLibDir, bool calcPB){
  */
 
 void ComRun(std::string& ligand, int poseID, std::string& ligLibDir, bool calcPB){
-        
+    
     std::string tleapFName="Lig_leap.in";
     {
         std::ofstream tleapFile;
@@ -208,21 +342,21 @@ void ComRun(std::string& ligand, int poseID, std::string& ligLibDir, bool calcPB
             std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
             throw LBindException(mesg);
         }   
-
-        minFile << "title.." << std::endl;
-        minFile << "&cntrl" << std::endl;
-        minFile << "  imin   = 1," << std::endl;
-        minFile << "  maxcyc = 2000," << std::endl;
-        minFile << "  ncyc   = 1000," << std::endl;
-        minFile << "  ntpr   = 200," << std::endl;
-        minFile << "  ntb    = 0," << std::endl;
-        minFile << "  igb    = 5," << std::endl;
-        minFile << "  cut    = 15," << std::endl;
-        minFile << "  ntr=1," << std::endl;
-        minFile << "  restraint_wt=5.0," << std::endl;
-        minFile << "  restraintmask='!:LIG'," << std::endl;          
-        minFile << " /" << std::endl;
-
+        minFile << "title..\n" 
+                << "&cntrl\n" 
+                << "  imin   = 1,\n" 
+                << "  ntmin   = 3,\n" 
+                << "  maxcyc = 2000,\n" 
+                << "  ncyc   = 1000,\n" 
+                << "  ntpr   = 200,\n" 
+                << "  ntb    = 0,\n" 
+                << "  igb    = 5,\n" 
+                << "  cut    = 15,\n" 
+                << "  ntr=1,\n" 
+                << "  restraint_wt=5.0,\n" 
+                << "  restraintmask='!:LIG'\n"        
+                << " /\n" << std::endl;
+        
         minFile.close();    
     }          
     
@@ -230,37 +364,54 @@ void ComRun(std::string& ligand, int poseID, std::string& ligLibDir, bool calcPB
             +Sstrm<std::string, int>(poseID)+".mdcrd"+" -r Com_min.rst";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
-        
-    std::string pbsaFName="mmpbsa.in";
+
+    std::string sanderOut="Com_min.out";
+    boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
+    double energy=pSanderOutput->getEAmber(sanderOut);
+    std::cout << "Complex GB Minimization Energy: " << energy <<" kcal/mol."<< std::endl;    
+    
+    if(!calcPB) return; //! return if not going to calculation PB energy.
+    
+    //! The following section is to calculate PB energy.
+    minFName="Com_minPB.in";
     {
-        std::ofstream pbsaFile;
+        std::ofstream minFile;
         try {
-            pbsaFile.open(pbsaFName.c_str());
+            minFile.open(minFName.c_str());
         }
         catch(...){
-            std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+pbsaFName;
+            std::string mesg="mmpbsa::runCom()\n\t Cannot open min file: "+minFName;
             throw LBindException(mesg);
         }   
 
-        pbsaFile << "Input file for running PB and GB" << std::endl;
-        pbsaFile << "&general" << std::endl;
-        pbsaFile << "   endframe=50, keep_files=2," << std::endl;
-        pbsaFile << "/" << std::endl;
-        pbsaFile << "&gb" << std::endl;
-        pbsaFile << "  igb=2, saltcon=0.100," << std::endl;
-        pbsaFile << "/" << std::endl;
-        if(calcPB){
-            pbsaFile << "&pb" << std::endl;
-            pbsaFile << "  istrng=0.100," << std::endl;
-            pbsaFile << "/" << std::endl;
-        }
-        pbsaFile.close();    
+        minFile << "title..\n" 
+                << " &cntrl\n" 
+                << "  imin   = 1,\n" 
+                << "  ntmin   = 3,\n" 
+                << "  maxcyc = 2000,\n" 
+                << "  ncyc   = 1000,\n" 
+                << "  ntpr   = 200,\n" 
+                << "  ntb    = 0,\n" 
+                << "  igb    = 10,\n" 
+                << "  cut    = 15,\n" 
+                << "  ntr=1,\n" 
+                << "  restraint_wt=5.0,\n" 
+                << "  restraintmask='!:LIG'\n"        
+                << " /\n"
+                << " &pb\n"
+                << "  npbverb=0, epsout=80.0, radiopt=1, space=0.5,\n"
+                << "  accept=1e-4, fillratio=6, sprob=1.6\n"
+                << " / \n" << std::endl;
+                
+        minFile.close();    
     } 
-    cmd="MMPBSA.py -O -i mmpbsa.in -o mmpbsa_"+Sstrm<std::string, int>(poseID)
-            +".dat -sp Com.prmtop -cp Com.prmtop -rp REC.prmtop -lp LIG.prmtop -y Com_"
-            +Sstrm<std::string, int>(poseID)+".mdcrd";
+    cmd="sander -O -i Com_minPB.in -o Com_minPB.out -p Com.prmtop -c Com_min.rst -ref Com_min.rst -x Com.mdcrd -r Com_min1.rst";
     std::cout <<cmd <<std::endl;
-//    system(cmd.c_str());
+    system(cmd.c_str()); 
+       
+    sanderOut="Com_minPB.out";
+    energy=pSanderOutput->getEAmber(sanderOut);
+    std::cout << "Complex PB Minimization Energy: " << energy <<" kcal/mol."<< std::endl;            
     
 }
 
@@ -305,6 +456,7 @@ void mmpbsa(std::string& dir, std::string& ligand, bool calcPB){
     
     std::cout << "Number of Poses: " << numPose << std::endl;       
     numPose=1;
+         
     for(int i=1; i<=numPose; ++i){
         ComRun(ligand, i, ligLibDir, calcPB);
     }
@@ -313,8 +465,8 @@ void mmpbsa(std::string& dir, std::string& ligand, bool calcPB){
 
 int main(int argc, char** argv) {
 
-    std::string dir="1A02";
-    std::string ligand="1";
+    std::string dir="1EDM";
+    std::string ligand="206";
     bool calcPB=true;
     mmpbsa(dir, ligand, calcPB);
     return 0;
