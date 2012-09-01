@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <cstring>
 
 #include "src/Parser/Sdf.h"
 #include "src/Parser/Pdb.h"
