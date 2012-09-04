@@ -1,5 +1,5 @@
 /* 
- * File:   preVinaLC.cpp
+ * File:   preReceptors.cpp
  * Author: zhang30
  *
  * Created on August 16, 2012, 1:28 PM
@@ -25,11 +25,11 @@
 using namespace LBIND;
 
 /*!
- * \breif preVinaLC calculation receptor grid dimension from CSA sitemap output
+ * \breif preReceptors calculation receptor grid dimension from CSA sitemap output
  * \param argc
  * \param argv argv[1] takes the input file name
  * \return success 
- * \defgroup preVinaLC_Commands preVinaLC Commands
+ * \defgroup preReceptors_Commands preReceptors Commands
  *
  * 
  * Usage on HPC slurm
@@ -40,7 +40,7 @@ using namespace LBIND;
     export PATH=$AMBERHOME/bin/:$PATH
     export WORKDIR=`pwd`/workspace/
 
-    srun -N4 -n48 -ppdebug /g/g92/zhang30/medchem/NetBeansProjects/MedCM/apps/mmpbsa/preVinaLC  <input-file>
+    srun -N4 -n48 -ppdebug /g/g92/zhang30/medchem/NetBeansProjects/MedCM/apps/mmpbsa/preReceptors  <input-file>
 
     <input-file>: contain a list of receptor subdirectory names.
 
@@ -48,7 +48,7 @@ using namespace LBIND;
    \endverbatim
  */
 
-void preVinaLC(std::string& dir){
+void preReceptors(std::string& dir){
     
     std::string WORKDIR=getenv("WORKDIR");
     chdir(WORKDIR.c_str());
@@ -216,7 +216,7 @@ int main(int argc, char** argv) {
             MPI_Recv(&jobInput, sizeof(JobInputData), MPI_CHAR, 0, inpTag, MPI_COMM_WORLD, &status1);
                         
             std::string dir=jobInput.dirBuffer;
-            preVinaLC(dir);
+            preReceptors(dir);
            
         }
     }

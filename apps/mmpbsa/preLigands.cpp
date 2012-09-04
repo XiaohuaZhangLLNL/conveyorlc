@@ -1,5 +1,5 @@
 /* 
- * File:   premmpbsa.cpp
+ * File:   preLigands.cpp
  * Author: zhang30
  *
  * Created on August 13, 2012, 4:08 PM
@@ -23,10 +23,33 @@
 
 using namespace LBIND;
 
-/*
+
+/*!
+ * \breif preReceptors calculation receptor grid dimension from CSA sitemap output
+ * \param argc
+ * \param argv argv[1] takes the input file name
+ * \return success 
+ * \defgroup preReceptors_Commands preReceptors Commands
+ *
  * 
+ * Usage on HPC slurm
+ * 
+ * \verbatim
+ 
+    export AMBERHOME=/usr/gapps/medchem/amber/amber12
+    export PATH=$AMBERHOME/bin/:$PATH
+    export WORKDIR=`pwd`/workspace/
+
+    srun -N4 -n48 -ppdebug /g/g92/zhang30/medchem/NetBeansProjects/MedCM/apps/mmpbsa/preReceptors  <input-file>
+
+    <input-file>: contain a list of receptor subdirectory names.
+
+    Requires: define WORKDIR 
+   \endverbatim
  */
-void premmpbsa(std::string& dir) {
+
+
+void preLigands(std::string& dir) {
     
     chdir(dir.c_str());
 
@@ -45,11 +68,7 @@ void premmpbsa(std::string& dir) {
     pPdb->renameAtom(pdb1File, pdbFile);
     
     pPdb->strip(pdbFile, tmpFile);
-    
-    cmd="prepare_ligand4.py -l "+pdbFile+" -A hydrogens";
-    std::cout << cmd << std::endl;
-    system(cmd.c_str());
-    
+        
     std::string keyword="PUBCHEM_TOTAL_CHARGE";
     
     boost::scoped_ptr<Sdf> pSdf(new Sdf());
@@ -78,7 +97,7 @@ void premmpbsa(std::string& dir) {
     pAmber->tleapInput(output,ligName,tleapFile);
     pAmber->tleap(tleapFile); 
     
-    std::string minFName="LIG_min.in";
+    std::string minFName="LIG_minGB.in";
     {
         std::ofstream minFile;
         try {
@@ -89,23 +108,69 @@ void premmpbsa(std::string& dir) {
             throw LBindException(mesg);
         }   
 
-        minFile << "title.." << std::endl;
-        minFile << "&cntrl" << std::endl;
-        minFile << "  imin   = 1," << std::endl;
-        minFile << "  maxcyc = 2000," << std::endl;
-        minFile << "  ncyc   = 1000," << std::endl;
-        minFile << "  ntpr   = 200," << std::endl;
-        minFile << "  ntb    = 0," << std::endl;
-        minFile << "  igb    = 5," << std::endl;
-        minFile << "  cut    = 15," << std::endl;
-        minFile << " /" << std::endl;
+        minFile << "title..\n" 
+                << "&cntrl\n" 
+                << "  imin   = 1,\n" 
+                << "  ntmin   = 3,\n" 
+                << "  maxcyc = 2000,\n" 
+                << "  ncyc   = 1000,\n" 
+                << "  ntpr   = 200,\n" 
+                << "  ntb    = 0,\n" 
+                << "  igb    = 5,\n" 
+                << "  cut    = 15,\n"       
+                << " /\n" << std::endl;
 
         minFile.close();    
     }          
     
-    cmd="sander  -O -i LIG_min.in -o LIG_min.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst";
+    cmd="sander  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst";
     std::cout <<cmd <<std::endl;
-    system(cmd.c_str());      
+    system(cmd.c_str()); 
+    
+    //! Use ambpdb generated PDB file for PDBQT.
+    cmd="ambpdb -p LIG.prmtop < LIG_min.rst > LIG_min.pdb";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());    
+    
+    cmd="prepare_ligand4.py -l LIG_min.pdb -A hydrogens";
+    std::cout << cmd << std::endl;
+    system(cmd.c_str());
+    
+ 
+    minFName="LIG_minPB.in";
+    {
+        std::ofstream minFile;
+        try {
+            minFile.open(minFName.c_str());
+        }
+        catch(...){
+            std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
+            throw LBindException(mesg);
+        }   
+
+        minFile << "title..\n" 
+                << " &cntrl\n" 
+                << "  imin   = 1,\n" 
+                << "  ntmin   = 3,\n" 
+                << "  maxcyc = 2000,\n" 
+                << "  ncyc   = 1000,\n" 
+                << "  ntpr   = 200,\n" 
+                << "  ntb    = 0,\n" 
+                << "  igb    = 10,\n" 
+                << "  cut    = 15,\n"         
+                << " /\n"
+                << " &pb\n"
+                << "  npbverb=0, epsout=80.0, radiopt=1, space=0.5,\n"
+                << "  accept=1e-4, fillratio=6, sprob=1.6\n"
+                << " / \n" << std::endl;
+
+        minFile.close();    
+    }          
+    
+    cmd="sander  -O -i LIG_minPB.in -o LIG_minPB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());   
+
     
     
     chdir("../");
@@ -182,6 +247,8 @@ int main(int argc, char** argv) {
     std::cout << "Number of tasks= " << nproc << " My rank= " << rank << std::endl;
 
     if (rank == 0) {
+        
+        std::string LIGDIR=getenv("LIGDIR");
        
         std::vector<std::string> dirList;        
         
@@ -218,7 +285,7 @@ int main(int argc, char** argv) {
             MPI_Recv(&jobInput, sizeof(JobInputData), MPI_CHAR, 0, inpTag, MPI_COMM_WORLD, &status1);
                         
             std::string dir=jobInput.dirBuffer;
-            premmpbsa(dir);
+            preLigands(dir);
            
         }
     }

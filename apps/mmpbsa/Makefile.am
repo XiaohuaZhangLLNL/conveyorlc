@@ -5,7 +5,7 @@ else
 endif
 
 if USE_MPI
-    bin_PROGRAMS = amberTools premmpbsa mmpbsa preVinaLC processVinaLC
+    bin_PROGRAMS = amberTools preLigands mmpbsa preReceptors processVinaLC
 else
 endif
 
@@ -13,14 +13,14 @@ if USE_MPI
     amberTools_SOURCES = amberTools.cpp
     amberTools_LDADD = $(top_srcdir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
 
-    premmpbsa_SOURCES = premmpbsa.cpp
-    premmpbsa_LDADD = $(top_srcdir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
+    preLigands_SOURCES = preLigands.cpp
+    preLigands_LDADD = $(top_srcdir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
 
     mmpbsa_SOURCES = mmpbsa.cpp
     mmpbsa_LDADD = $(top_srcdir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
 
-    preVinaLC_SOURCES = preVinaLC.cpp
-    preVinaLC_LDADD = $(top_srcdir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
+    preReceptors_SOURCES = preReceptors.cpp
+    preReceptors_LDADD = $(top_srcdir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
 
     processVinaLC_SOURCES = processVinaLC.cpp
     processVinaLC_LDADD = $(top_srcdir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx  -lz
