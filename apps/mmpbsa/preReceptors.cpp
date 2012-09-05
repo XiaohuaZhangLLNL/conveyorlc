@@ -12,6 +12,7 @@
 #include <sstream>
 
 #include "src/Parser/Pdb.h"
+#include "src/Parser/SanderOutput.h"
 #include "src/MM/VinaLC.h"
 #include "src/Structure/Sstrm.hpp"
 #include "src/Structure/Coor3d.h"
@@ -61,10 +62,7 @@ void preReceptors(std::string& dir){
     chdir(vinaDir.c_str());
     
     std::string csaPdbFile=siteDir+dir+"_00_ref_cent_1.pdb";
-    
-    cmd="prepare_receptor4.py -r "+csaPdbFile+" -o "+dir+".pdbqt";
-    system(cmd.c_str());
-    
+        
     boost::scoped_ptr<VinaLC> pVinaLC(new VinaLC());
     
     std::string sumFile=siteDir+dir+"_00_ref.sum";
@@ -107,9 +105,154 @@ void preReceptors(std::string& dir){
     }     
        
     geoFile.close();
+
+    //! begin energy minimization of receptor 
+    cmd="reduce -Quiet -Trim "+csaPdbFile+" > rec_noh.pdb ";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());
     
+    cmd="reduce -Quiet -BUILD rec_noh.pdb > rec_rd.pdb";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());        
     
-    return;
+    std::string tleapFName="rec_leap.in";
+    
+    {
+        std::ofstream tleapFile;
+        try {
+            tleapFile.open(tleapFName.c_str());
+        }
+        catch(...){
+            std::string mesg="mmpbsa::receptor()\n\t Cannot open tleap file: "+tleapFName;
+            throw LBindException(mesg);
+        }
+        
+        tleapFile << "source leaprc.ff99SB\n"                
+                  << "source leaprc.gaff\n"
+                  << "REC = loadpdb rec_rd.pdb\n"
+                  << "saveamberparm REC REC.prmtop REC.inpcrd\n"
+                  << "quit\n";
+        
+        tleapFile.close();
+    }
+    
+    cmd="tleap -f rec_leap.in >& rec_leap.log";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());
+
+    std::string minFName="Rec_minGB.in";
+    {
+        std::ofstream minFile;
+        try {
+            minFile.open(minFName.c_str());
+        }
+        catch(...){
+            std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
+            throw LBindException(mesg);
+        }   
+
+        minFile << "title..\n" 
+                << "&cntrl\n" 
+                << "  imin   = 1,\n" 
+                << "  ntmin   = 3,\n" 
+                << "  maxcyc = 2000,\n" 
+                << "  ncyc   = 1000,\n" 
+                << "  ntpr   = 200,\n" 
+                << "  ntb    = 0,\n" 
+                << "  igb    = 5,\n" 
+                << "  cut    = 15,\n" 
+                << "  ntr=1,\n" 
+                << "  restraint_wt=5.0,\n" 
+                << "  restraintmask='!@H=',\n"        
+                << " /\n" << std::endl;
+        minFile.close();    
+    }
+    
+    cmd="sander -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());  
+    
+    minFName="Rec_minGB2.in";
+    {
+        std::ofstream minFile;
+        try {
+            minFile.open(minFName.c_str());
+        }
+        catch(...){
+            std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
+            throw LBindException(mesg);
+        }   
+
+        minFile << "title..\n" 
+                << "&cntrl\n" 
+                << "  imin   = 1,\n" 
+                << "  ntmin   = 3,\n" 
+                << "  maxcyc = 2000,\n" 
+                << "  ncyc   = 1000,\n" 
+                << "  ntpr   = 200,\n" 
+                << "  ntb    = 0,\n" 
+                << "  igb    = 5,\n" 
+                << "  cut    = 15,\n"        
+                << " /\n" << std::endl;
+        minFile.close();    
+    }
+    
+    cmd="sander -O -i Rec_minGB2.in -o Rec_minGB2.out  -p Rec_min.rst -c Rec_min.rst -ref REC.inpcrd -x REC.mdcrd -r Rec_min2.rst";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str()); 
+    
+    std::string sanderOut="Rec_minGB2.out";
+    boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
+    double recGBen=pSanderOutput->getEAmber(sanderOut);
+    std::cout << "Receptorn GB Minimization Energy: " << recGBen <<" kcal/mol."<< std::endl;
+       
+    cmd="ambpdb -p REC.prmtop < Rec_min2.rst > Rec_min_0.pdb";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());      
+    cmd="grep -v END Rec_min_0.pdb > Rec_min.pdb ";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());  
+    
+    cmd="prepare_receptor4.py -r Rec_min.pdb -o "+dir+".pdbqt";
+    system(cmd.c_str());
+        
+    //! The following section is to calculate PB energy.
+    minFName="Rec_minPB.in";
+    {
+        std::ofstream minFile;
+        try {
+            minFile.open(minFName.c_str());
+        }
+        catch(...){
+            std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
+            throw LBindException(mesg);
+        }   
+
+        minFile << "title..\n" 
+                << " &cntrl\n" 
+                << "  imin   = 1,\n" 
+                << "  ntmin   = 3,\n" 
+                << "  maxcyc = 2000,\n" 
+                << "  ncyc   = 1000,\n" 
+                << "  ntpr   = 200,\n" 
+                << "  ntb    = 0,\n" 
+                << "  igb    = 10,\n" 
+                << "  cut    = 15,\n"        
+                << " /\n"
+                << " &pb\n"
+                << "  npbverb=0, epsout=80.0, radiopt=1, space=0.5,\n"
+                << "  accept=1e-4, fillratio=6, sprob=1.6\n"
+                << " / \n" << std::endl;
+                
+        minFile.close();    
+    } 
+    cmd="sander -O -i Rec_minPB.in -o Rec_minPB.out -p REC.prmtop -c Rec_min2.rst -ref Rec_min2.rst -x REC.mdcrd -r Rec_min3.rst";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str()); 
+       
+    sanderOut="Rec_minPB.out";
+    double recPBen=pSanderOutput->getEAmber(sanderOut);
+    std::cout << "Receptor PB Minimization Energy: " << recPBen <<" kcal/mol."<< std::endl;
 }
 
 void saveStrList(std::string& fileName, std::vector<std::string>& strList){
