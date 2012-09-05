@@ -38,20 +38,21 @@ using namespace LBIND;
  
     export AMBERHOME=/usr/gapps/medchem/amber/amber12
     export PATH=$AMBERHOME/bin/:$PATH
-    export WORKDIR=`pwd`/workspace/
+    export LIGDIR=`pwd`
 
-    srun -N4 -n48 -ppdebug /g/g92/zhang30/medchem/NetBeansProjects/MedCM/apps/mmpbsa/preReceptors  <input-file>
+    srun -N4 -n48 -ppdebug /g/g92/zhang30/medchem/NetBeansProjects/MedCM/apps/mmpbsa/preLignds  <input-file.sdf>
 
-    <input-file>: contain a list of receptor subdirectory names.
+    <input-file.sdf>: multi-structure SDF file contains all ligands information.
 
-    Requires: define WORKDIR 
+    Requires: define LIGDIR 
    \endverbatim
  */
 
 
 void preLigands(std::string& dir) {
-    
-    chdir(dir.c_str());
+    std::string LIGDIR=getenv("LIGDIR");
+    std::string subDir=LIGDIR+"/"+dir;   
+    chdir(subDir.c_str());
 
     std::string sdfFile="ligand.sdf";
     std::string pdb1File="ligand.pdb";
@@ -59,7 +60,7 @@ void preLigands(std::string& dir) {
     std::string cmd="babel -isdf " + sdfFile + " -opdb " +pdb1File;
     std::cout << cmd << std::endl;
     system(cmd.c_str());
-
+    
     std::string pdbFile="ligrn.pdb";
     std::string tmpFile="ligstrp.pdb";
     
@@ -167,38 +168,34 @@ void preLigands(std::string& dir) {
         minFile.close();    
     }          
     
-    cmd="sander  -O -i LIG_minPB.in -o LIG_minPB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst";
+    cmd="sander  -O -i LIG_minPB.in -o LIG_minPB.out  -p LIG.prmtop -c LIG_min.rst -ref LIG_min.rst  -x LIG.mdcrd -r LIG_min2.rst";
     std::cout <<cmd <<std::endl;
-    system(cmd.c_str());   
-
-    
-    
-    chdir("../");
+    system(cmd.c_str());       
     
     return;
 }
 
 
-void saveStrList(std::string& fileName, std::vector<std::string>& strList){
-    std::ifstream inFile;
-    try {
-        inFile.open(fileName.c_str());
-    }
-    catch(...){
-        std::cout << "Cannot open file: " << fileName << std::endl;
-    } 
-
-    std::string fileLine;
-    while(inFile){
-        std::getline(inFile, fileLine);
-        std::vector<std::string> tokens;
-        tokenize(fileLine, tokens); 
-        if(tokens.size() > 0){
-            strList.push_back(tokens[0]);
-        }        
-    }
-    
-}
+//void saveStrList(std::string& fileName, std::vector<std::string>& strList){
+//    std::ifstream inFile;
+//    try {
+//        inFile.open(fileName.c_str());
+//    }
+//    catch(...){
+//        std::cout << "Cannot open file: " << fileName << std::endl;
+//    } 
+//
+//    std::string fileLine;
+//    while(inFile){
+//        std::getline(inFile, fileLine);
+//        std::vector<std::string> tokens;
+//        tokenize(fileLine, tokens); 
+//        if(tokens.size() > 0){
+//            strList.push_back(tokens[0]);
+//        }        
+//    }
+//    
+//}
 
 struct JobInputData{        
     char dirBuffer[100];
@@ -240,7 +237,7 @@ int main(int argc, char** argv) {
     std::string inputFName=argv[1];
     
     if(inputFName.size()==0){
-        std::cerr << "Usage: amberTools <dirListFileName>" << std::endl;
+        std::cerr << "Usage: preLigands <input.sdf>" << std::endl;
         return 1;        
     }
 
@@ -249,22 +246,68 @@ int main(int argc, char** argv) {
     if (rank == 0) {
         
         std::string LIGDIR=getenv("LIGDIR");
-       
-        std::vector<std::string> dirList;        
-        
-        saveStrList(inputFName, dirList);
-           
-        for(unsigned i=0; i<dirList.size(); ++i){
-            std::cout << "Working on " << dirList[i] << std::endl;
-            int freeProc;
-            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
-            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
+        chdir(LIGDIR.c_str());
+        int count=1;
 
-            strcpy(jobInput.dirBuffer, dirList[i].c_str());
-
-            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);
-
+        std::ifstream inFile;
+        try {
+            inFile.open(inputFName.c_str());
         }
+        catch(...){
+            std::cout << "preLigands >> Cannot open file" << inputFName << std::endl;
+        }
+
+
+        const std::string delimter="$$$$";
+        std::string fileLine="";
+        std::string contents="";
+
+        while(inFile){
+            std::getline(inFile, fileLine);
+            contents=contents+fileLine+"\n";
+            if(fileLine.size()>=4 && fileLine.compare(0,4, delimter)==0){
+                std::string dir=Sstrm<std::string, int>(count);
+                ++count;
+                std::string cmd="mkdir -p " +dir;
+                std::cout << cmd << std::endl;
+                system(cmd.c_str());
+                
+                std::string outputFName=dir+"/ligand.sdf";
+                std::ofstream outFile;
+                try {
+                    outFile.open(outputFName.c_str());
+                }
+                catch(...){
+                    std::cout << "preLigands >> Cannot open file" << outputFName << std::endl;
+                }
+                
+                outFile <<contents;
+                outFile.close(); 
+                
+                contents=""; //! clean up the contents for the next structure.
+                
+                std::cout << "Working on " << dir << std::endl;
+                int freeProc;
+                MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
+                MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
+
+                strcpy(jobInput.dirBuffer, dir.c_str());
+
+                MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);                
+                               
+            }          
+        }        
+//        for(unsigned i=0; i<dirList.size(); ++i){
+//            std::cout << "Working on " << dirList[i] << std::endl;
+//            int freeProc;
+//            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
+//            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
+//
+//            strcpy(jobInput.dirBuffer, dirList[i].c_str());
+//
+//            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);
+//
+//        }
         
         for(unsigned i=1; i < nproc; ++i){
             int freeProc;
