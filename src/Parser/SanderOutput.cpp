@@ -53,6 +53,7 @@ double SanderOutput::getEAmber(std::string sanderOutFile){
                 std::vector<std::string> tokens;
                 tokenize(fileLine, tokens);
                 energy=Sstrm<double, std::string>(tokens[2]);
+                return energy;
             }            
         }
     }
