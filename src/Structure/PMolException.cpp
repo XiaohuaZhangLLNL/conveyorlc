@@ -13,8 +13,12 @@ namespace LBIND{
 PMolException::PMolException() {
 }
 
-PMolException::PMolException(std::string message) {
-    this->message=message;
+PMolException::PMolException(const std::string mesg) {
+    this->message=mesg;
+}
+
+PMolException::PMolException(const char* mesg){
+    this->message=mesg;
 }
 
 PMolException::PMolException(const PMolException& orig) {

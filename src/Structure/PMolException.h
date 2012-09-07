@@ -16,7 +16,8 @@ namespace LBIND{
 class PMolException : public boost::exception {
 public:
     PMolException();
-    PMolException(std::string message);
+    PMolException(const std::string mesg);
+    PMolException(const char* mesg);
     PMolException(const PMolException& orig);
     virtual ~PMolException() throw();
     std::string what();

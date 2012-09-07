@@ -40,7 +40,6 @@ T SsMatch(boost::smatch inValue, int i){
     return(outValue);
 }
 
-
 }//namespace LBIND 
 
 #endif	/* _SSTRM_HPP */

@@ -48,3 +48,6 @@
 /doc/pics/llnl_logo.gif
 /doc/Doxyfile
 /doc/Doxyfile.bak
+/apps/mmpbsa/preLigands
+/apps/mmpbsa/preReceptors
+/tests/StdResContainerSplTest

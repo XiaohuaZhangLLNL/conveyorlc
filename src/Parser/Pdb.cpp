@@ -12,16 +12,20 @@
 #include "Structure/Atom.h"
 #include "Structure/Sstrm.hpp"
 #include "Structure/Element.h"
+#include "Structure/StdResContainer.h"
 //#include "Conformer.h"
 #include "Structure/Coordinates.h"
+#include "Structure/PMolException.h"
 
 #include <string>
 #include <sstream>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <algorithm>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <boost/regex.hpp>
 
 namespace LBIND{
@@ -706,5 +710,166 @@ void Pdb::write(const std::string& fileName, Molecule* pMol){
 //
 //    }
 //}
+
+void Pdb::standardlize(const std::string& inFileName, const std::string& outFileName){
+    
+    boost::scoped_ptr<StdResContainer> pStdResContainer(new StdResContainer());
+    
+    std::ifstream inFile;
+    try {
+        inFile.open(inFileName.c_str());
+    }
+    catch(...){
+        std::string mesg="PDB::standardlize >> Cannot open file" + inFileName;
+        throw PMolException(mesg); 
+    }
+    
+    std::ofstream outFile;
+    try {
+        outFile.open(outFileName.c_str());
+    }
+    catch(...){
+        std::string mesg="PDB::standardlize >> Cannot open file" + outFileName;
+        throw PMolException(mesg); 
+    }  
+    
+//    std::ofstream outFile2;
+//    try {
+//        outFile2.open("out.pdb");
+//    }
+//    catch(...){
+//        std::string mesg="PDB::standardlize >> Cannot open file" + outFileName;
+//        throw PMolException(mesg); 
+//    }     
+       
+    const std::string atomStr="ATOM";
+    const std::string hetatmStr="HETATM";
+    std::string fileLine="";
+    
+    bool printOUT=false;
+
+    std::string oldResName="";
+    int oldResID=0;
+ 
+    std::vector<std::string> lines;
+
+    while(std::getline(inFile, fileLine)){
+
+        if(fileLine.compare(0,4, atomStr)==0 || fileLine.compare(0,6, hetatmStr)==0){
+//            outFile2 << fileLine << std::endl;
+            std::string resName= fileLine.substr(17,3);
+            std::string rIDstr= fileLine.substr(23,4);
+            int rID=atoi(rIDstr.c_str());
+            
+            if((oldResName != resName) ||(oldResID != rID)){
+                if(pStdResContainer->find(resName)){
+                    printOUT=true;
+                }else{
+                    std::cout << resName << " is not standard residue"<<std::endl;
+                    printOUT=false;
+                }                
+            }
+            
+            if(printOUT){
+                lines.push_back(fileLine);
+                
+            }
+            
+            oldResName = resName;
+            oldResID = rID;            
+           
+        }
+
+    }
+    
+    inFile.close(); 
+ 
+    const std::string nAtom="N";
+    const std::string cAtom="C";
+    
+    double nx=0;
+    double ny=0;
+    double nz=0;
+    double cx=0;
+    double cy=0;
+    double cz=0; 
+    
+    oldResName="";
+    oldResID=0;   
+    
+    std::vector<std::string> resLines;
+    std::vector<std::string> oldResLines;
+    
+    int count=0;
+    
+    for(unsigned i=0; i<lines.size(); ++i){
+   
+        std::string resName= lines[i].substr(17,3);
+        std::string rIDstr= lines[i].substr(23,4);
+        int rID=atoi(rIDstr.c_str());        
+        
+        if((oldResName != resName) ||(oldResID != rID)){
+            for(unsigned j=0; j<resLines.size(); ++j){
+                std::string atomName=resLines[j].substr(13,4);
+                atomName.erase(std::remove_if(atomName.begin(), atomName.end(), isspace), atomName.end());
+
+//                std::cout << "N Atom Name =|" << atomName <<"|"<< std::endl;
+                if(atomName==nAtom){
+                    ++count;
+                    if(count>1){
+                        std::string xstr= resLines[j].substr(30,8);
+                        nx=atof(xstr.c_str());
+                        std::string ystr= resLines[j].substr(38,8);
+                        ny=atof(ystr.c_str());
+                        std::string zstr= resLines[j].substr(46,8);
+                        nz=atof(zstr.c_str());
+                    }
+                } 
+            } 
+            if(count>1){
+                double dist2=(nx-cx)*(nx-cx)+(ny-cy)*(ny-cy)+(nz-cz)*(nz-cz);
+                std::cout << "C--N Distance Square =" << dist2 << std::endl;
+                if(dist2>9){ //!bond distance large than 3 angstrom               
+                    outFile<<"TER" << std::endl;
+                    count=0;
+                }
+            }
+            
+            for(unsigned j=0; j<resLines.size(); ++j){
+                outFile<<resLines[j]<< std::endl;
+            }
+            
+            oldResLines=resLines;
+            resLines.clear();
+            for(unsigned j=0; j<oldResLines.size(); ++j){
+                std::string atomName=resLines[j].substr(13,4);
+                atomName.erase(std::remove_if(atomName.begin(), atomName.end(), isspace), atomName.end());
+                
+                if(atomName==cAtom){
+                    std::string xstr= oldResLines[j].substr(30,8);
+                    cx=atof(xstr.c_str());
+                    std::string ystr= oldResLines[j].substr(38,8);
+                    cy=atof(ystr.c_str());
+                    std::string zstr= oldResLines[j].substr(46,8);
+                    cz=atof(zstr.c_str());
+                } 
+            }
+            
+
+        }
+        
+        resLines.push_back(lines[i]);
+        
+        oldResName = resName;
+        oldResID = rID;        
+            
+    }
+    
+    for(unsigned j=0; j<resLines.size(); ++j){
+        outFile<<resLines[j]<< std::endl;
+    }
+    outFile << "END"<< std::endl;
+         
+}
 
 }// namespace LBIND

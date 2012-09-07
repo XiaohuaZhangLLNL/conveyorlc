@@ -1,0 +1,114 @@
+<residuelist comment="Standard and pre-defined residues">
+   <residue>
+       <name>ACE</name>
+       <fullname>Acetyl beginning group</fullname>
+   </residue>    
+   <residue>
+       <name>NHE</name>
+       <fullname>Amine ending group</fullname>
+   </residue>    
+   <residue>
+       <name>NME</name>
+       <fullname>N-methylamine ending group</fullname>
+   </residue>    
+   <residue>
+       <name>ALA</name>
+       <fullname>Alanine</fullname>
+   </residue>    
+   <residue>
+       <name>ACE</name>
+       <fullname>Acetyl beginning group</fullname>
+   </residue>    
+   <residue>
+       <name>ARG</name>
+       <fullname>Arginine</fullname>
+   </residue>    
+   <residue>
+       <name>ASN</name>
+       <fullname>Asparagine</fullname>
+   </residue>    
+   <residue>
+       <name>ASP</name>
+       <fullname>Aspartic acid</fullname>
+   </residue>    
+   <residue>
+       <name>CYS</name>
+       <fullname>Cysteine</fullname>
+   </residue>    
+   <residue>
+       <name>CYX</name>
+       <fullname>Cystine, S--S crosslink</fullname>
+   </residue>    
+   <residue>
+       <name>GLU</name>
+       <fullname>Glutamic acid</fullname>
+   </residue>    
+   <residue>
+       <name>GLN</name>
+       <fullname>Glutamine</fullname>
+   </residue>    
+   <residue>
+       <name>GLY</name>
+       <fullname>Glycine</fullname>
+   </residue>    
+   <residue>
+       <name>HIS</name>
+       <fullname>Histidine</fullname>
+   </residue>    
+   <residue>
+       <name>HID</name>
+       <fullname>Histidine, delta H</fullname>
+   </residue>    
+   <residue>
+       <name>HIE</name>
+       <fullname>Histidine, epsilon H</fullname>
+   </residue>    
+   <residue>
+       <name>HIP</name>
+       <fullname>Histidine, protonated</fullname>
+   </residue>    
+   <residue>
+       <name>ILE</name>
+       <fullname>Isoleucine</fullname>
+   </residue>    
+   <residue>
+       <name>LEU</name>
+       <fullname>Leucine</fullname>
+   </residue>    
+   <residue>
+       <name>LYS</name>
+       <fullname>Lysine</fullname>
+   </residue>    
+   <residue>
+       <name>MET</name>
+       <fullname>Methionine</fullname>
+   </residue>    
+   <residue>
+       <name>PHE</name>
+       <fullname>Phenylalanine</fullname>
+   </residue>    
+   <residue>
+       <name>PRO</name>
+       <fullname>Proline</fullname>
+   </residue>    
+   <residue>
+       <name>SER</name>
+       <fullname>Serine</fullname>
+   </residue>    
+   <residue>
+       <name>THR</name>
+       <fullname>Threonine</fullname>
+   </residue>    
+   <residue>
+       <name>TRP</name>
+       <fullname>Tryptophan</fullname>
+   </residue>    
+   <residue>
+       <name>TYR</name>
+       <fullname>Tyrosine</fullname>
+   </residue>    
+   <residue>
+       <name>VAL</name>
+       <fullname>Valine</fullname>
+   </residue>    
+</residuelist>

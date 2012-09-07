@@ -38,10 +38,11 @@ public:
     void cutByRadius(const std::string& inFileName, const std::string& outFileName, Coor3d& center, double radius);
     
     int splitByModel(const std::string& inFileName, const std::string& outFileBase);
+    
+    void standardlize(const std::string& inFileName, const std::string& outFileName);
 //    void write(const std::string& fileName, boost::shared_ptr<Conformer> pConformer);
 //    void write(const std::string& fileName, Conformer* pConformer);
 private:
-    
     std::string newAtomName(const std::string& atomType, int seq);
 
 };

@@ -1,9 +1,9 @@
 CFLAGS = -Wall 
 
 if USE_MPI
-INCLUDES = -I$(top_srcdir)/src -I/@mm_dir@/include -I@boost_dir@/include -I/@mpi_path@/include
+INCLUDES = -I$(top_srcdir)/src -I@boost_dir@/include -I/@mpi_path@/include
 else
-INCLUDES = -I$(top_srcdir)/src -I/@mm_dir@/include -I@boost_dir@/include 
+INCLUDES = -I$(top_srcdir)/src -I@boost_dir@/include 
 endif
 
 BOOST_LIB = -L/@boost_dir@/lib/ -lboost_regex  -lz 
@@ -53,6 +53,7 @@ Structure/ParmContainer.cpp \
 Structure/PMolException.cpp \
 Structure/RingContainer.cpp \
 Structure/Ring.cpp \
+Structure/StdResContainer.cpp   \
 XML/XMLAttribute.cpp \
 XML/XMLAttributeSet.cpp \
 XML/XMLBase.cpp \
@@ -110,6 +111,7 @@ Structure/ParmContainer.h \
 Structure/PMolException.h \
 Structure/RingContainer.h \
 Structure/Ring.h \
+Structure/StdResContainer.h   \
 XML/XMLAttribute.h \
 XML/XMLAttributeSet.h \
 XML/XMLBase.h \
