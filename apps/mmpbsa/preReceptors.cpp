@@ -7,6 +7,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <sstream>
@@ -16,8 +17,11 @@
 #include "src/MM/VinaLC.h"
 #include "src/Structure/Sstrm.hpp"
 #include "src/Structure/Coor3d.h"
+#include "src/Structure/Constants.h"
+#include "src/Common/File.hpp"
 #include "src/Common/Tokenize.hpp"
 #include "src/Common/LBindException.h"
+#include "src/XML/XMLHeader.hpp"
 
 #include <boost/scoped_ptr.hpp>
 
@@ -49,7 +53,8 @@ using namespace LBIND;
    \endverbatim
  */
 
-void preReceptors(std::string& dir){
+bool preReceptors(std::string& dir){
+    bool jobStatus=true;
     
     std::string WORKDIR=getenv("WORKDIR");
     chdir(WORKDIR.c_str());
@@ -62,16 +67,24 @@ void preReceptors(std::string& dir){
     chdir(vinaDir.c_str());
     
     std::string csaPdbFile=siteDir+dir+"_00_ref_cent_1.pdb";
+
+    std::string checkFName=csaPdbFile;
+    if(!fileExist(checkFName)){
+        std::string message=checkFName+" does not exist.";
+        throw LBindException(message); 
+        jobStatus=false; 
+        return jobStatus;        
+    }    
         
     boost::scoped_ptr<VinaLC> pVinaLC(new VinaLC());
     
     std::string sumFile=siteDir+dir+"_00_ref.sum";
     Coor3d center;
     pVinaLC->centroid(sumFile,center);
-    std::cout << "Center coordinates: X=" << center.getX() 
-              << " Y=" << center.getY()
-              << " Z=" << center.getZ() 
-              << std::endl;
+//    std::cout << "Center coordinates: X=" << center.getX() 
+//              << " Y=" << center.getY()
+//              << " Z=" << center.getZ() 
+//              << std::endl;
 
     boost::scoped_ptr<Pdb> pPdb(new Pdb());    
     
@@ -82,10 +95,10 @@ void preReceptors(std::string& dir){
     Coor3d gridDims;
     pVinaLC->vinalcGridDims(cutPdbFile, center, gridDims);
 
-    std::cout << "Box Dimension: X=" << gridDims.getX() 
-              << " Y=" << gridDims.getY()
-              << " Z=" << gridDims.getZ() 
-              << std::endl;   
+//    std::cout << "Box Dimension: X=" << gridDims.getX() 
+//              << " Y=" << gridDims.getY()
+//              << " Z=" << gridDims.getZ() 
+//              << std::endl;   
     
     std::string geoFileName="geo.txt";
     std::ofstream geoFile;
@@ -105,16 +118,40 @@ void preReceptors(std::string& dir){
     }     
        
     geoFile.close();
-
+    
+    //! Remove ANISOU
+    cmd="grep -v ANISOU "+csaPdbFile+" > rec_noa.pdb";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());    
     //! begin energy minimization of receptor 
-    cmd="reduce -Quiet -Trim "+csaPdbFile+" > rec_noh.pdb ";
+    cmd="reduce -Quiet -Trim  rec_noa.pdb >& rec_noh.pdb ";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());
     
-    cmd="reduce -Quiet -BUILD rec_noh.pdb > rec_rd.pdb";
+    checkFName="rec_noh.pdb";
+    if(!fileExist(checkFName)){
+        std::string message=checkFName+" does not exist.";
+        throw LBindException(message); 
+        jobStatus=false; 
+        return jobStatus;        
+    }     
+    
+    cmd="reduce -Quiet -BUILD rec_noh.pdb >& rec_rd.pdb";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());        
-    
+
+    checkFName="rec_rd.pdb";
+    if(!fileExist(checkFName)){
+        std::string message=checkFName+" does not exist.";
+        throw LBindException(message); 
+        jobStatus=false; 
+        return jobStatus;        
+    }  
+
+    std::string stdPdbFile="rec_std.pdb";
+    pPdb->standardlize(checkFName, stdPdbFile);
+
+        
     std::string tleapFName="rec_leap.in";
     
     {
@@ -129,7 +166,7 @@ void preReceptors(std::string& dir){
         
         tleapFile << "source leaprc.ff99SB\n"                
                   << "source leaprc.gaff\n"
-                  << "REC = loadpdb rec_rd.pdb\n"
+                  << "REC = loadpdb rec_std.pdb\n"
                   << "saveamberparm REC REC.prmtop REC.inpcrd\n"
                   << "quit\n";
         
@@ -172,6 +209,17 @@ void preReceptors(std::string& dir){
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
     
+    boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
+    std::string sanderOut="Rec_minGB.out";
+    double recGBen=pSanderOutput->getEnergy(sanderOut);
+    
+    if(abs(recGBen)<NEARZERO){
+        std::string message="Receptor 1st GB minimization fails.";
+        throw LBindException(message); 
+        jobStatus=false; 
+        return jobStatus;          
+    }
+    
     minFName="Rec_minGB2.in";
     {
         std::ofstream minFile;
@@ -197,24 +245,47 @@ void preReceptors(std::string& dir){
         minFile.close();    
     }
     
-    cmd="sander -O -i Rec_minGB2.in -o Rec_minGB2.out  -p Rec_min.rst -c Rec_min.rst -ref REC.inpcrd -x REC.mdcrd -r Rec_min2.rst";
+    cmd="sander -O -i Rec_minGB2.in -o Rec_minGB2.out  -p REC.prmtop -c Rec_min.rst -ref Rec_min.rst -x REC.mdcrd -r Rec_min2.rst";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str()); 
     
-    std::string sanderOut="Rec_minGB2.out";
-    boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
-    double recGBen=pSanderOutput->getEAmber(sanderOut);
+    sanderOut="Rec_minGB2.out";
+    recGBen=pSanderOutput->getEnergy(sanderOut);
     std::cout << "Receptorn GB Minimization Energy: " << recGBen <<" kcal/mol."<< std::endl;
-       
+
+    if(abs(recGBen)<NEARZERO){
+        std::string message="Receptor 2nd GB minimization fails.";
+        throw LBindException(message); 
+        jobStatus=false; 
+        return jobStatus;          
+    }    
+    
     cmd="ambpdb -p REC.prmtop < Rec_min2.rst > Rec_min_0.pdb";
     std::cout <<cmd <<std::endl;
-    system(cmd.c_str());      
+    system(cmd.c_str());  
+
+    checkFName="Rec_min_0.pdb";
+    if(!fileExist(checkFName)){
+        std::string message=checkFName+" does not exist.";
+        throw LBindException(message); 
+        jobStatus=false; 
+        return jobStatus;        
+    }  
+    
     cmd="grep -v END Rec_min_0.pdb > Rec_min.pdb ";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
     
     cmd="prepare_receptor4.py -r Rec_min.pdb -o "+dir+".pdbqt";
     system(cmd.c_str());
+    
+    checkFName=dir+".pdbqt";
+    if(!fileExist(checkFName)){
+        std::string message=checkFName+" does not exist.";
+        throw LBindException(message); 
+        jobStatus=false; 
+        return jobStatus;        
+    }      
         
     //! The following section is to calculate PB energy.
     minFName="Rec_minPB.in";
@@ -251,8 +322,16 @@ void preReceptors(std::string& dir){
     system(cmd.c_str()); 
        
     sanderOut="Rec_minPB.out";
-    double recPBen=pSanderOutput->getEAmber(sanderOut);
+    double recPBen=pSanderOutput->getEnergy(sanderOut);
     std::cout << "Receptor PB Minimization Energy: " << recPBen <<" kcal/mol."<< std::endl;
+    if(abs(recPBen)<NEARZERO){
+        std::string message="Receptor PB minimization fails.";
+        throw LBindException(message); 
+        jobStatus=false; 
+        return jobStatus;          
+    }    
+    
+    return jobStatus;
 }
 
 void saveStrList(std::string& fileName, std::vector<std::string>& strList){
@@ -280,6 +359,12 @@ struct JobInputData{
     char dirBuffer[100];
 };
 
+struct JobOutData{  
+    bool error;
+    char dirBuffer[100];
+    char message[100];
+};
+
 int main(int argc, char** argv) {
     
     int nproc, rank, rc;
@@ -287,6 +372,7 @@ int main(int argc, char** argv) {
     int jobFlag=1; // 1: doing job,  0: done job
     
     JobInputData jobInput;
+    JobOutData jobOut;
     
     MPI_Status status1, status2;
         
@@ -294,7 +380,7 @@ int main(int argc, char** argv) {
     int jobTag=2;
 
     int inpTag=3;
-
+    int outTag=4;
 
     rc = MPI_Init(&argc, &argv);
     if (rc != MPI_SUCCESS) {
@@ -323,22 +409,82 @@ int main(int argc, char** argv) {
     std::cout << "Number of tasks= " << nproc << " My rank= " << rank << std::endl;
 
     if (rank == 0) {
+        
+        //! Tracking error using XML file
+	XMLDocument doc;  
+ 	XMLDeclaration* decl = new XMLDeclaration( "1.0", "", "" );  
+	doc.LinkEndChild( decl );  
+ 
+	XMLElement * root = new XMLElement( "Errors" );  
+	doc.LinkEndChild( root );  
+
+	XMLComment * comment = new XMLComment();
+	comment->SetValue(" Tracking calculation error using XML file " );  
+	root->LinkEndChild( comment );          
+         
+        FILE* xmlGoodFile=fopen("JobTrackingGood.xml", "w"); 
+        FILE* xmlBadFile=fopen("JobTrackingBad.xml", "w"); 
+        //! END of XML header        
        
         std::vector<std::string> dirList;        
         
         saveStrList(inputFName, dirList);
+        int count=0;
            
         for(unsigned i=0; i<dirList.size(); ++i){
-            std::cout << "Working on " << dirList[i] << std::endl;
+            
+            if(count >nproc-1){
+                MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
+                XMLElement * element = new XMLElement("error"); 
+                element->SetAttribute("receptor", jobOut.dirBuffer);
+                element->SetAttribute("mesg", jobOut.message);  
+                root->LinkEndChild(element);
+                if(!jobOut.error){
+                    element->Print(xmlBadFile,2);
+                    fputs("\n",xmlBadFile);
+                    fflush(xmlBadFile);                      
+                }else{
+                    element->Print(xmlGoodFile,2);
+                    fputs("\n",xmlGoodFile);
+                    fflush(xmlGoodFile);                    
+                }
+                  
+            }   
+            
             int freeProc;
             MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
+            std::cout << "At Process: " << freeProc << " working on: " << dirList[i]  << std::endl;
             MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
 
             strcpy(jobInput.dirBuffer, dirList[i].c_str());
 
             MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);
-
+            
+            ++count;
         }
+
+        int nJobs=count-1;
+        int ndata=(nJobs<nproc-1)? nJobs: nproc-1;
+        std::cout << "ndata=" << ndata << " nJobs=" << nJobs << std::endl;
+    
+        for(unsigned i=0; i < ndata; ++i){
+            MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
+            XMLElement * element = new XMLElement("error"); 
+            element->SetAttribute("receptor", jobOut.dirBuffer);
+            element->SetAttribute("mesg", jobOut.message);  
+            root->LinkEndChild(element);
+            if(!jobOut.error){
+                element->Print(xmlBadFile,2);
+                fputs("\n",xmlBadFile);
+                fflush(xmlBadFile);                      
+            }else{
+                element->Print(xmlGoodFile,2);
+                fputs("\n",xmlGoodFile);
+                fflush(xmlGoodFile);                    
+            }
+        } 
+        
+        doc.SaveFile( "JobTracking.xml" );        
         
         for(unsigned i=1; i < nproc; ++i){
             int freeProc;
@@ -358,8 +504,18 @@ int main(int argc, char** argv) {
 
             MPI_Recv(&jobInput, sizeof(JobInputData), MPI_CHAR, 0, inpTag, MPI_COMM_WORLD, &status1);
                         
-            std::string dir=jobInput.dirBuffer;
-            preReceptors(dir);
+            std::string dir=jobInput.dirBuffer;  
+            strcpy(jobOut.message, "Finished!");
+            try{
+                bool jobStatus=preReceptors(dir);            
+                jobOut.error=jobStatus;
+            } catch (LBindException& e){
+                std::string message= e.what();  
+                strcpy(jobOut.message, message.c_str());
+            }            
+            
+            strcpy(jobOut.dirBuffer, dir.c_str());
+            MPI_Send(&jobOut, sizeof(JobOutData), MPI_CHAR, 0, outTag, MPI_COMM_WORLD);            
            
         }
     }

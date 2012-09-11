@@ -37,6 +37,7 @@ public:
     void normalize();
     double dist(const Coor3d* coord);
     double dist2(const Coor3d* coord);
+    double dist2(const Coor3d& coord);
    inline void operator+=(const Coor3d &rhs) {
             x += rhs.z;
             y += rhs.y;

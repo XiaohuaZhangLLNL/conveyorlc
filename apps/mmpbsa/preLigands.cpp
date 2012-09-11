@@ -365,11 +365,10 @@ int main(int argc, char** argv) {
                 
                 contents=""; //! clean up the contents for the next structure.
                 
-                std::cout << "Working on " << dir << std::endl;
                 
                 if(count >nproc-1){
                     MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
-                    if(!jobOut.error){
+//                    if(!jobOut.error){
                         XMLElement * element = new XMLElement("error"); 
                         element->SetAttribute("ligand", jobOut.dirBuffer);
                         element->SetAttribute("mesg", jobOut.message);
@@ -377,11 +376,12 @@ int main(int argc, char** argv) {
                         fputs("\n",xmlFile);
                         fflush(xmlFile);
                         root->LinkEndChild(element);    
-                    }
+//                    }
                 } 
                 
                 int freeProc;
                 MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
+                std::cout << "At Process: " << freeProc << " working on: " << dir << std::endl;
                 MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
 
                 strcpy(jobInput.dirBuffer, dir.c_str());
@@ -408,7 +408,7 @@ int main(int argc, char** argv) {
     
         for(unsigned i=0; i < ndata; ++i){
             MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
-            if(!jobOut.error){
+//            if(!jobOut.error){
                 XMLElement * element = new XMLElement("error"); 
                 element->SetAttribute("ligand", jobOut.dirBuffer);
                 element->SetAttribute("mesg", jobOut.message);
@@ -416,7 +416,7 @@ int main(int argc, char** argv) {
                 fputs("\n",xmlFile);
                 fflush(xmlFile);
                 root->LinkEndChild(element);                  
-            }
+//            }
         } 
         
         doc.SaveFile( "JobTracking.xml" );
@@ -440,6 +440,7 @@ int main(int argc, char** argv) {
             MPI_Recv(&jobInput, sizeof(JobInputData), MPI_CHAR, 0, inpTag, MPI_COMM_WORLD, &status1);
                         
             std::string dir=jobInput.dirBuffer;
+            strcpy(jobOut.message, "Finished!");
             try{
                 bool jobStatus=preLigands(dir);            
                 jobOut.error=jobStatus;

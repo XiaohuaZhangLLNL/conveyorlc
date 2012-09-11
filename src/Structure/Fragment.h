@@ -25,7 +25,8 @@ public:
     virtual ~Fragment();
 
     virtual std::vector<Atom*> getChildren();
-
+    virtual void setChildren(std::vector<Atom*>& atomList);
+    
     virtual Atom* addAtom();
     
     Molecule* getParent();

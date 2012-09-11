@@ -61,6 +61,10 @@ std::vector<Atom*> Molecule::getGrdChildren()
     return this->itsGrdChildren;
 }
 
+void Molecule::setChildren(std::vector<Fragment*>& fragList){
+    this->itsChildren=fragList;
+}
+
 Atom* Molecule::addAtom()
 {
     Atom* pAtom=new Atom(this);
@@ -74,6 +78,12 @@ Fragment* Molecule::addFragment()
     Fragment* pFragment=new Fragment(this);
     this->itsChildren.push_back(pFragment);
     return pFragment;
+}
+
+void Molecule::addFragment(Fragment* pFragment)
+{
+    this->itsChildren.push_back(pFragment);
+
 }
 
 BondContainer* Molecule::getPBondContainer(){

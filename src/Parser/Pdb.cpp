@@ -221,7 +221,7 @@ void Pdb::parse(const std::string& fileName, Complex* pComplex){
 
         if(fileLine.compare(0,4, atomStr)==0 || fileLine.compare(0,6, hetatmStr)==0){
 
-            std::string fileIDstr=fileLine.substr(7,5);
+            std::string fileIDstr=fileLine.substr(6,5);
             int fileID = atoi(fileIDstr.c_str());
             
         // 	tmp.id           = convert_substring<unsigned>   (str,  7, 11);
@@ -235,15 +235,15 @@ void Pdb::parse(const std::string& fileName, Complex* pComplex){
         //	tmp.element      = convert_substring<std::string>(str, 77, 78);           
             
             
-            std::string atomName= fileLine.substr(13,4);
+            std::string atomName= fileLine.substr(12,4);
             std::string resName= fileLine.substr(17,3);
 
 //            std::cout << fileID << " " << atomName << " " << resName << std::endl;
 
-            std::string MoleculeName=fileLine.substr(22,1);
+            std::string MoleculeName=fileLine.substr(21,1);
 //            std::cout << MoleculeName << std::endl;
             
-            std::string rIDstr= fileLine.substr(23,4);
+            std::string rIDstr= fileLine.substr(22,4);
             int rID=atoi(rIDstr.c_str());
             std::string xstr= fileLine.substr(30,8);
             double x=atof(xstr.c_str());
@@ -253,9 +253,10 @@ void Pdb::parse(const std::string& fileName, Complex* pComplex){
             double z=atof(zstr.c_str());
 
 //            std::cout << rID << " " << x << " " << y << " " << z << std::endl;
-
-            std::string typeName=fileLine.substr(77,1);
-            
+            std::string typeName="  ";
+            if(fileLine.size()>77){
+                typeName=fileLine.substr(76,2);
+            }
 //            std::cout << typeName << std::endl;
 
             if(newMolecule){
@@ -297,6 +298,52 @@ void Pdb::parse(const std::string& fileName, Complex* pComplex){
 
     inFile.close();    
     
+}
+
+void Pdb::parseOut(const std::string& fileName, Complex* pComplex){
+    std::ofstream outFile;
+    try {
+        outFile.open(fileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::read >> Cannot open file" << fileName << std::endl;
+    }
+
+    outFile << "REMARK PDB FILE CONVERTED BY PMOL" << std::endl;
+
+    std::vector<Molecule*> molList=pComplex->getChildren();
+    for(unsigned i=0;i<molList.size();i++){
+        
+        std::vector<Fragment*> resList=molList[i]->getChildren();
+
+        for(unsigned j=0;j<resList.size();j++){
+            
+        
+            std::vector<Atom*> atomList=resList[j]->getChildren();
+
+            for(unsigned k=0;k<atomList.size();k++){
+
+                outFile << "ATOM  "<< std::setw(5)<< atomList[k]->getFileID()
+                        << " " << std::setw(4) << atomList[k]->getName() 
+                        << " " << std::left << std::setw(3) << resList[j]->getName()
+                        << " " << std::setw(1) << molList[i]->getName()
+                        << std::right << std::setw(4) << resList[j]->getID()
+                        << "    "                        
+                        << std::fixed <<std::setprecision(3)
+                        << std::setw(8) << atomList[k]->getX()
+                        << std::setw(8) << atomList[k]->getY()
+                        << std::setw(8) << atomList[k]->getZ() 
+                        <<"                      "
+                        << std::setw(2) << atomList[k]->getSymbol()
+                        << std::endl;
+            }
+        }
+        outFile << "TER" <<std::endl;
+//        std::cout << "i= " << i << std::endl;
+    }
+    outFile << "END" <<std::endl;
+
+    outFile.close();    
 }
 
 std::string Pdb::newAtomName(const std::string& atomType, int seq){
@@ -610,9 +657,9 @@ void Pdb::write(const std::string& fileName, boost::shared_ptr<Complex> pComplex
 
     outFile << "REMARK PDB FILE CONVERTED BY PMOL" << std::endl;
 
-    std::vector<Molecule*> MoleculeList=pComplex->getChildren();
-    for(unsigned i=0;i<MoleculeList.size();i++){
-        std::vector<Fragment*> resList=MoleculeList[i]->getChildren();
+    std::vector<Molecule*> moleculeList=pComplex->getChildren();
+    for(unsigned i=0;i<moleculeList.size();i++){
+        std::vector<Fragment*> resList=moleculeList[i]->getChildren();
 
         for(unsigned j=0;j<resList.size();j++){
             std::vector<Atom*> atomList=resList[j]->getChildren();
@@ -627,7 +674,7 @@ void Pdb::write(const std::string& fileName, boost::shared_ptr<Complex> pComplex
                 }
 
                 outFile << " " << std::left << std::setw(3) <<resList[j]->getName()
-                        << " " << std::setw(1) <<MoleculeList[i]->getName()
+                        << " " << std::setw(1) <<moleculeList[i]->getName()
                         << std::right << std::setw(4) <<resList[j]->getID()
                         << "    "
                         << std::fixed <<std::setprecision(3)
@@ -711,7 +758,7 @@ void Pdb::write(const std::string& fileName, Molecule* pMol){
 //    }
 //}
 
-void Pdb::standardlize(const std::string& inFileName, const std::string& outFileName){
+void Pdb::standardlizeD(const std::string& inFileName, const std::string& outFileName){
     
     boost::scoped_ptr<StdResContainer> pStdResContainer(new StdResContainer());
     
@@ -783,7 +830,7 @@ void Pdb::standardlize(const std::string& inFileName, const std::string& outFile
     }
     
     inFile.close(); 
- 
+    
     const std::string nAtom="N";
     const std::string cAtom="C";
     
@@ -810,7 +857,7 @@ void Pdb::standardlize(const std::string& inFileName, const std::string& outFile
         
         if((oldResName != resName) ||(oldResID != rID)){
             for(unsigned j=0; j<resLines.size(); ++j){
-                std::string atomName=resLines[j].substr(13,4);
+                std::string atomName=resLines[j].substr(12,4);
                 atomName.erase(std::remove_if(atomName.begin(), atomName.end(), isspace), atomName.end());
 
 //                std::cout << "N Atom Name =|" << atomName <<"|"<< std::endl;
@@ -870,6 +917,396 @@ void Pdb::standardlize(const std::string& inFileName, const std::string& outFile
     }
     outFile << "END"<< std::endl;
          
+}
+
+void Pdb::standardlize(const std::string& inFileName, const std::string& outFileName){
+    
+    boost::shared_ptr<Complex> pComplex(new Complex());
+    
+    this->parse(inFileName, pComplex.get());
+        
+    // For HIS rename
+    const std::string HIS="HIS";
+    const std::string HD1="HD1";
+    const std::string HE2="HE2";
+    bool findHD1=false;
+    bool findHE2=false;
+           
+    std::vector<Molecule*> moleculeList=pComplex->getChildren();
+    for(unsigned i=0;i<moleculeList.size();i++){
+        std::vector<Fragment*> resList=moleculeList[i]->getChildren();
+
+        for(unsigned j=0;j<resList.size();j++){
+
+            
+            if(resList[j]->getName()==HIS){
+//                std::cout << "old histidine=" << SresList[j]->getName() <<std::endl;
+                
+                std::vector<Atom*> atomList=resList[j]->getChildren();
+
+                for(unsigned k=0;k<atomList.size();k++){
+                    std::string atomName=atomList[k]->getName();
+                    atomName.erase(std::remove_if(atomName.begin(), atomName.end(), isspace), atomName.end());
+                    if(atomName==HD1){
+                        findHD1=true;
+                    }
+                    if(atomName==HE2){
+                        findHE2=true;
+                    }
+                }
+
+                if(findHD1 && !findHE2){
+//                    std::cout << "setting HID"  <<std::endl;
+                    resList[j]->setName("HID");
+                }
+                if(!findHD1 && findHE2){
+//                    std::cout << "setting HIE"  <<std::endl;
+                    resList[j]->setName("HIE");
+                }
+                if(findHD1 && findHE2){
+//                    std::cout << "setting HIP"  <<std::endl;
+                    resList[j]->setName("HIP");
+                }
+//                std::cout << "new histidine=" << resList[j]->getName() <<std::endl;
+                findHD1=false;
+                findHE2=false;                
+
+            }
+
+        }
+    }
+
+    // Remove non-standard residues and ter by create only a copy molecule.
+    boost::scoped_ptr<StdResContainer> pStdResContainer(new StdResContainer());
+    
+    boost::scoped_ptr<Molecule> pTmpMol(new Molecule());
+    for(unsigned i=0;i<moleculeList.size();i++){
+        
+        std::vector<Fragment*> resList=moleculeList[i]->getChildren();
+//        std::cout << "resList first size=" << resList.size() << std::endl;
+//        for(unsigned j=0;j<resList.size();j++){
+        for(std::vector<Fragment*>::iterator f=resList.begin(); f!=resList.end(); ++f){
+            Fragment* pFrag=*f;
+//            std::cout << "Residue Name="<< pFrag->getName() << std::endl;
+            if(pStdResContainer->find(pFrag->getName())) {   
+                pTmpMol->addFragment(pFrag);
+                resList.erase(f);
+                --f;               // if erase item iterator back up.
+            }
+        }
+        
+//        std::cout << "resList Second size=" << resList.size() << std::endl;
+        
+        moleculeList[i]->setChildren(resList); // To avoid residue pointers double deletion.
+        
+    }  
+
+    for(unsigned i=0;i<moleculeList.size();i++){
+        
+        std::vector<Fragment*> resList=moleculeList[i]->getChildren();
+//        std::cout << "resList final size=" << resList.size() << std::endl;
+        
+    }     
+    
+    // For create new molecular
+    
+    boost::shared_ptr<Complex> pNewCom(new Complex());
+  
+    std::vector<Fragment*> resList=pTmpMol->getChildren();
+    std::vector<Fragment*> zeroResList;
+    pTmpMol->setChildren(zeroResList); //! To avoid residue pointers double deletion.
+    bool newMol=true;
+    
+    Molecule* pMolecule=0;
+    
+    const std::string cAtom="C";
+    const std::string nAtom="N";
+
+    bool foundC=false;
+    bool foundN=false;    
+
+    for(unsigned j=0;j<resList.size()-1;j++){
+        if(newMol){
+            pMolecule=pNewCom->addMolecule();
+            newMol=false;
+        }
+        
+        pMolecule->addFragment(resList[j]);
+        
+
+        
+        Coor3d coorC;
+        Coor3d coorN;
+        
+        std::vector<Atom*> atomList=resList[j]->getChildren();
+        for(unsigned k=0;k<atomList.size();k++){
+            std::string atomName=atomList[k]->getName();
+            atomName.erase(std::remove_if(atomName.begin(), atomName.end(), isspace), atomName.end());
+            if(atomName==cAtom){
+                Coor3d* pCoor=atomList[k]->getCoords();
+                coorC=*pCoor;
+                foundC=true;
+                std::cout  <<resList[j]->getName() << " "<<atomName<< ":" << coorC << std::endl;
+                break;
+            }
+
+        }
+        
+        atomList=resList[j+1]->getChildren();
+        for(unsigned k=0;k<atomList.size();k++){
+            std::string atomName=atomList[k]->getName();
+            atomName.erase(std::remove_if(atomName.begin(), atomName.end(), isspace), atomName.end());
+            if(atomName==nAtom){
+                Coor3d* pCoor=atomList[k]->getCoords();
+                coorN=*pCoor;
+                std::cout  <<resList[j+1]->getName() << " "<<atomName<< ":" << coorN << std::endl;
+                foundN=true;
+                break;
+            }  
+        }
+        
+        std::cout << "C--N distance square=" << coorC.dist2(coorN) <<std::endl;
+        if(foundC && foundN){
+            if(coorC.dist2(coorN)>9){
+                std::cout << "C--N distance square=" << coorC.dist2(coorN) <<std::endl;
+                newMol=true;
+            }
+        }else{
+            newMol=true; 
+        }
+        
+        foundC=false;
+        foundN=false;
+        
+    }
+        
+    // Last residue
+    if(newMol){
+        pMolecule=pNewCom->addMolecule();
+    }
+    pMolecule->addFragment(resList[resList.size()-1]);
+    
+    this->parseOut(outFileName, pNewCom.get());
+    
+    moleculeList=pNewCom->getChildren();
+    for(unsigned i=0;i<moleculeList.size();i++){
+        
+        std::vector<Fragment*> resList=moleculeList[i]->getChildren();
+//        std::cout << "New molecule resList size=" << resList.size() << std::endl;
+        
+    }      
+    return;
+//    delete pComplex;
+}
+
+void Pdb::standardlize2(const std::string& inFileName, const std::string& outFileName){
+    
+    boost::shared_ptr<Complex> pComplex(new Complex());
+    
+    this->parse(inFileName, pComplex.get());
+        
+
+    std::ofstream nonAAfile;
+    nonAAfile.open("nonAAlist");
+    // Remove non-standard residues and ter by create only a copy molecule.
+    boost::scoped_ptr<StdResContainer> pStdResContainer(new StdResContainer());
+    
+    boost::scoped_ptr<Molecule> pTmpMol(new Molecule());
+    std::vector<Molecule*> moleculeList=pComplex->getChildren();
+    
+    for(unsigned i=0;i<moleculeList.size();i++){
+        
+        std::vector<Fragment*> resList=moleculeList[i]->getChildren();
+//        std::cout << "resList first size=" << resList.size() << std::endl;
+//        for(unsigned j=0;j<resList.size();j++){
+        for(std::vector<Fragment*>::iterator f=resList.begin(); f!=resList.end(); ++f){
+            Fragment* pFrag=*f;
+//            std::cout << "Residue Name="<< pFrag->getName() << std::endl;
+            if(pFrag->getName() != "HOH") {   
+                // if erase item iterator back up.
+               if(pStdResContainer->find(pFrag->getName())) {
+                   pTmpMol->addFragment(pFrag);
+                   resList.erase(f);
+                   --f;  
+
+               }else if(isAA(pFrag)){
+                   pTmpMol->addFragment(pFrag);
+                   resList.erase(f);
+                   --f;                     
+                   nonAAfile << pFrag->getName() << " convert to ALA" <<std::endl;
+               }else{
+                   nonAAfile << pFrag->getName() <<std::endl;
+               }
+                
+            }
+        }
+        
+//        std::cout << "resList Second size=" << resList.size() << std::endl;
+        
+        moleculeList[i]->setChildren(resList); // To avoid residue pointers double deletion.
+        
+    }  
+
+    for(unsigned i=0;i<moleculeList.size();i++){
+        
+        std::vector<Fragment*> resList=moleculeList[i]->getChildren();
+//        std::cout << "resList final size=" << resList.size() << std::endl;
+        
+    }     
+    
+    // For create new molecular
+    
+    boost::shared_ptr<Complex> pNewCom(new Complex());
+  
+    std::vector<Fragment*> resList=pTmpMol->getChildren();
+    std::vector<Fragment*> zeroResList;
+    pTmpMol->setChildren(zeroResList); //! To avoid residue pointers double deletion.
+    bool newMol=true;
+    
+    Molecule* pMolecule=0;
+    
+    const std::string cAtom="C";
+    const std::string nAtom="N";
+
+    bool foundC=false;
+    bool foundN=false;    
+
+    for(unsigned j=0;j<resList.size()-1;j++){
+        if(newMol){
+            pMolecule=pNewCom->addMolecule();
+            newMol=false;
+        }
+        
+        pMolecule->addFragment(resList[j]);
+        
+
+        
+        Coor3d coorC;
+        Coor3d coorN;
+        
+        std::vector<Atom*> atomList=resList[j]->getChildren();
+        for(unsigned k=0;k<atomList.size();k++){
+            std::string atomName=atomList[k]->getName();
+            atomName.erase(std::remove_if(atomName.begin(), atomName.end(), isspace), atomName.end());
+            if(atomName==cAtom){
+                Coor3d* pCoor=atomList[k]->getCoords();
+                coorC=*pCoor;
+                foundC=true;
+                std::cout  <<resList[j]->getName() << " "<<atomName<< ":" << coorC << std::endl;
+                break;
+            }
+
+        }
+        
+        atomList=resList[j+1]->getChildren();
+        for(unsigned k=0;k<atomList.size();k++){
+            std::string atomName=atomList[k]->getName();
+            atomName.erase(std::remove_if(atomName.begin(), atomName.end(), isspace), atomName.end());
+            if(atomName==nAtom){
+                Coor3d* pCoor=atomList[k]->getCoords();
+                coorN=*pCoor;
+                std::cout  <<resList[j+1]->getName() << " "<<atomName<< ":" << coorN << std::endl;
+                foundN=true;
+                break;
+            }  
+        }
+        
+        std::cout << "C--N distance square=" << coorC.dist2(coorN) <<std::endl;
+        if(foundC && foundN){
+            if(coorC.dist2(coorN)>9){
+                std::cout << "C--N distance square=" << coorC.dist2(coorN) <<std::endl;
+                newMol=true;
+            }
+        }else{
+            newMol=true; 
+        }
+        
+        foundC=false;
+        foundN=false;
+        
+    }
+        
+    // Last residue
+    if(newMol){
+        pMolecule=pNewCom->addMolecule();
+    }
+    pMolecule->addFragment(resList[resList.size()-1]);
+    
+    this->parseOut(outFileName, pNewCom.get());
+    
+//    moleculeList=pNewCom->getChildren();
+//    for(unsigned i=0;i<moleculeList.size();i++){
+//        
+//        std::vector<Fragment*> resList=moleculeList[i]->getChildren();
+////        std::cout << "New molecule resList size=" << resList.size() << std::endl;
+//        
+//    }      
+    return;
+//    delete pComplex;
+}
+
+bool Pdb::isAA(Fragment* pFrag){
+    Coor3d coorN;
+    Coor3d coorCA;
+    Coor3d coorC;
+    Coor3d coorO;  
+    bool findN;
+    bool findCA;
+    bool findC;
+    bool findO;
+
+    std::vector<Atom*> newAtomList;    
+    std::vector<Atom*> atomList=pFrag->getChildren();
+    for(std::vector<Atom*>::iterator a=atomList.begin();a!=atomList.end();++a){
+        Atom* pAtom=*a;
+        std::string atomName=pAtom->getName();
+        atomName.erase(std::remove_if(atomName.begin(), atomName.end(), isspace), atomName.end());
+        if(atomName=="N"){
+            newAtomList.push_back(pAtom);
+            atomList.erase(a);
+            --a;
+            Coor3d* pCoor=pAtom->getCoords();
+            coorN=*pCoor;
+            findN=true;
+        }
+        if(atomName=="CA"){
+            newAtomList.push_back(pAtom);
+            atomList.erase(a);
+            --a;            
+            Coor3d* pCoor=pAtom->getCoords();
+            coorCA=*pCoor;
+            findCA=true;
+        }
+        if(atomName=="C"){
+            newAtomList.push_back(pAtom);
+            atomList.erase(a);
+            --a;            
+            Coor3d* pCoor=pAtom->getCoords();
+            coorC=*pCoor;
+            findC=true;
+        }
+        if(atomName=="O"){
+            newAtomList.push_back(pAtom);
+            atomList.erase(a);
+            --a;            
+            Coor3d* pCoor=pAtom->getCoords();
+            coorO=*pCoor;
+            findO=true;
+        }        
+    } 
+    for(unsigned k=0;k<atomList.size();k++){
+        delete atomList[k];
+    }
+
+    if(findN && findCA && findC && findO){
+        if(coorN.dist2(coorCA)<9 && coorCA.dist2(coorC)<9 && coorC.dist2(coorO)<9){
+            pFrag->setName("ALA");
+            pFrag->setChildren(newAtomList);
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 }// namespace LBIND

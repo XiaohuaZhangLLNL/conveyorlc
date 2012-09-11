@@ -28,6 +28,7 @@ public:
     std::vector<Molecule*> getChildren();
 
     Molecule* addMolecule();
+    void addMolecule(Molecule* pMolecule);
     void assignElement(ElementContainer* pElementContainer);
     void assignCoordinate(std::vector<Coor3d*>& atmCoorList);
     void assignCoordinate(Coordinates* coords);

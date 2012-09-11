@@ -18,6 +18,7 @@ public:
     BaseStruct(const BaseStruct& orig);
     virtual ~BaseStruct();
 
+    void setName(const char* name);
     void setName(const std::string name);
 
     std::string getName();

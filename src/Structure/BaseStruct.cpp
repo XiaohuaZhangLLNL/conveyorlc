@@ -28,6 +28,11 @@ int BaseStruct::getID()
     return this->itsID;
 }
 
+void BaseStruct::setName(const char* name)
+{
+    this->itsName = name;
+}
+
 void BaseStruct::setName(const std::string name)
 {
     this->itsName = name;

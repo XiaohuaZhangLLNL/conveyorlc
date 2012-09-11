@@ -43,6 +43,12 @@ Molecule* Complex::addMolecule()
     return pMolecule;
 }
 
+void Complex::addMolecule(Molecule* pMolecule)
+{
+
+    this->itsChildren.push_back(pMolecule);
+
+}
 
 std::vector<Molecule*> Complex::getChildren()
 {

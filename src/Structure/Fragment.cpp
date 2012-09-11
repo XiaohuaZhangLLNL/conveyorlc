@@ -33,6 +33,10 @@ std::vector<Atom*> Fragment::getChildren(){
     return this->itsChildren;
 }
 
+void Fragment::setChildren(std::vector<Atom*>& atomList){
+    this->itsChildren=atomList;
+}
+
 Molecule* Fragment::getParent(){
     return this->pParent;
 }

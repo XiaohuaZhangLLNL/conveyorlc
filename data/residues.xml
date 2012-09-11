@@ -14,11 +14,7 @@
    <residue>
        <name>ALA</name>
        <fullname>Alanine</fullname>
-   </residue>    
-   <residue>
-       <name>ACE</name>
-       <fullname>Acetyl beginning group</fullname>
-   </residue>    
+   </residue>         
    <residue>
        <name>ARG</name>
        <fullname>Arginine</fullname>

@@ -75,7 +75,7 @@ void VinaLC::dms(std::string& cutPdbFile, std::string& surfFile){
     
     const double radius=1.5; // minimum sphere radius
        
-    std::string cmd="dms "+cutPdbFile+" -o "+surfFile+" -n -w "+Sstrm<std::string,double>(radius);
+    std::string cmd="dms "+cutPdbFile+" -o "+surfFile+" -n -w "+Sstrm<std::string,double>(radius)+" >& dms.log";
     system(cmd.c_str());
 }
 
@@ -101,7 +101,7 @@ void VinaLC::sphgen(std::string& surfFile, std::string& sphFile){
 
     sphgenFile.close();    
     
-    std::string cmd="sphgen";
+    std::string cmd="sphgen >&sphgen";
     system(cmd.c_str());    
 }
 
@@ -186,7 +186,7 @@ void VinaLC::sphere_selector(std::string& sphFile, std::string& selSphFile, Coor
 //    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
 //    std::cout<<"time: "<< duration <<'\n';
   
-    std::cout << "minClustID=" << minClustID << " minCount=" << minCount << std::endl;
+//    std::cout << "minClustID=" << minClustID << " minCount=" << minCount << std::endl;
     //analyze distance distribution 
     //do histogram analysis
     
@@ -454,8 +454,8 @@ void VinaLC::getGridDims(std::string& selSphFile, Coor3d& gridDims){
     
     selSphgenFile.close();   
 
-    std::cout << "xMax=" << xMax << "yMax=" << yMax << "zMax=" << zMax << std::endl;
-    std::cout << "xMin=" << xMin << "yMin=" << yMin << "zMin=" << zMin << std::endl;
+//    std::cout << "xMax=" << xMax << "yMax=" << yMax << "zMax=" << zMax << std::endl;
+//    std::cout << "xMin=" << xMin << "yMin=" << yMin << "zMin=" << zMin << std::endl;
     double xDimen=xMax-xMin+10;
     double yDimen=yMax-yMin+10;
     double zDimen=zMax-zMin+10;

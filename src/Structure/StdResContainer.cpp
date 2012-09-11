@@ -50,7 +50,7 @@ void StdResContainer::parseXML(std::string& fileName) {
 //        std::cout << "Residue text="<<text->Value() << " " << text->ValueStr() << std::endl;
     }
     
-     std::cout << "Residue List Size=" << stdResidues.size() << std::endl;
+//     std::cout << "Residue List Size=" << stdResidues.size() << std::endl;
 }
 
 bool StdResContainer::find(const char* resName){

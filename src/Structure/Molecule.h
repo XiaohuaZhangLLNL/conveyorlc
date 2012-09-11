@@ -40,8 +40,10 @@ public:
     BondContainer* getPBondContainer();    
     RingContainer* getPRingContainer();
 
+    void setChildren(std::vector<Fragment*>& fragList);
     Atom* addAtom();
     Fragment* addFragment();
+    void addFragment(Fragment* pFragment);
 
     int getTotNumAtom();
 
