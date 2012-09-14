@@ -44,7 +44,9 @@
 
 <h2> Introduction </h2>
 
-<p align="justify"> A very popular PC-based molecular docking program, AutoDock Vina, was modified and parallelized, using an MPI and multithreading hybrid scheme, and potentially can be used in the future on exascale machines, without sacrificing accuracy. The resulting program scales up to more than 15K CPUs with a very low overhead cost. </p>
+<p align="justify">This software focuses on developing a computational approach that accelerates and lowers the cost of the development of medical countermeasures against biological threats of human or natural origin. It falls within LLNL's biosecurity thrust area. MedCM stands for Medical CounterMeasures.</p>
+
+<p align="justify">The software take advantage of LLNL's high performance computing capabilities to assess the pharmacokinetic and safety profile of proposed medical countermeasures (therapeutic drugs) in silico. The applications included in this software are: </p>
 
 </td>
 
