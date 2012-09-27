@@ -33,6 +33,7 @@ MM/VinaLC.cpp  \
 Parser/BaseParser.cpp  \
 Parser/ElementParser.cpp  \
 Parser/GZstream.cpp   \
+Parser/Mol2.cpp  \
 Parser/Pdb.cpp  \
 Parser/SanderOutput.cpp \
 Parser/Sdf.cpp  \
@@ -89,6 +90,7 @@ MM/VinaLC.h  \
 Parser/BaseParser.h  \
 Parser/ElementParser.h  \
 Parser/GZstream.h   \
+Parser/Mol2.h  \
 Parser/Pdb.h  \
 Parser/SanderOutput.h \
 Parser/Sdf.h  \

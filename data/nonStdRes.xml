@@ -1,0 +1,104 @@
+<residuelist comment="Non-Standard residues that are not included in Amber forcefield library">
+    <residue>
+       <name>GDP</name>
+       <fullname>guanine diphosphate</fullname>
+       <parm>frcmod.phos</parm>
+       <lib>GDP.prep</lib>        
+    </residue>
+    <residue>
+       <name>GTP</name>
+       <fullname>guanine triphosphate</fullname>
+       <parm>frcmod.phos</parm>
+       <lib>GTP.prep</lib>        
+    </residue>
+    <residue>
+       <name>ADP</name>
+       <fullname>adenosine diphosphate</fullname>
+       <parm>frcmod.phos</parm>
+       <lib>ADP.prep</lib>        
+    </residue>
+    <residue>
+       <name>ATP</name>
+       <fullname>adenosine triphosphate</fullname>
+       <parm>frcmod.phos</parm>
+       <lib>ATP.prep</lib>        
+    </residue>
+    <residue>
+       <name>FMN</name>
+       <fullname>flavin mononucleotide (fully oxidized)</fullname>
+       <parm>FMN.frcfld</parm>
+       <lib>FMN.off</lib>        
+    </residue>  
+    <residue>
+       <name>FAD</name>
+       <fullname>flavin adenine dinucleotide anion, FADH(-)</fullname>
+       <parm>FAD.frcfld</parm>
+       <lib>FAD.lib</lib>        
+    </residue> 
+    <residue>
+       <name>NDP</name>
+       <fullname>NAD(+)</fullname>
+       <parm>frcmod.NDP</parm>
+       <lib>NDP.lib</lib>        
+    </residue>                   
+    <residue>
+       <name>NAD</name>
+       <fullname>NADH</fullname>
+       <parm>frcmod.NAD</parm>
+       <lib>NAD.lib</lib>        
+    </residue>
+    <residue>
+       <name>NPD</name>
+       <fullname>NADP(+)</fullname>
+       <parm>nad.frcmod</parm>
+       <lib>NPD.prep</lib>        
+    </residue>
+    <residue>
+       <name>NPH</name>
+       <fullname>NADPH</fullname>
+       <parm>nad.frcmod</parm>
+       <lib>NPH.prep</lib>        
+    </residue>
+    <residue>
+       <name>ARP</name>
+       <fullname>NADP(+)</fullname>
+       <parm>frcmod.ARP</parm>
+       <lib>ARP.prep</lib>        
+    </residue> 
+    <residue>
+       <name>HEM</name>
+       <fullname>heme (all-atom)</fullname>
+       <parm>frcmod.hemall</parm>
+       <lib>HEM.prep</lib>        
+    </residue>  
+    <residue>
+       <name>HEME</name>
+       <fullname>heme (united-atom)</fullname>
+       <parm>frcmod.hemuni</parm>
+       <lib>HEME.prep</lib>        
+    </residue>                 
+    <residue>
+       <name>M3L</name>
+       <fullname>trimethylated lysine (KMe3)</fullname>
+       <parm></parm>
+       <lib>M3L.prep</lib>        
+    </residue>                 
+    <residue>
+       <name>CC4</name>
+       <fullname>tert-butyl norleucine (tBuNle)</fullname>
+       <parm></parm>
+       <lib>CC4.prep</lib>        
+    </residue>                 
+    <residue>
+       <name>CH4</name>
+       <fullname>neutral analogue of Lys (MeNle)</fullname>
+       <parm></parm>
+       <lib>CH4.prep</lib>        
+    </residue>                 
+    <residue>
+       <name>K3M</name>
+       <fullname>trimethyllysine (K3M)</fullname>
+       <parm>K3M.frcmod</parm>
+       <lib>K3M.prep</lib>        
+    </residue>                 
+</residuelist>

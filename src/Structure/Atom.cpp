@@ -143,6 +143,14 @@ int Atom::getType(){
     return this->itsType;
 }
 
+void Atom::setCharge(double charge){
+    this->itscharge=charge;
+}
+
+double Atom::getCharge(){
+    return this->itscharge;
+}
+
 void Atom::setFormalCharge(int fCharge){
     this->itsFormalCharge=fCharge;
 }

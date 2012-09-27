@@ -10,6 +10,7 @@
 #include "Fragment.h"
 #include "BondContainer.h"
 #include "RingContainer.h"
+#include "Coor3d.h"
 
 namespace LBIND{
 
@@ -39,7 +40,7 @@ Molecule::~Molecule()
     }
     itsChildren.clear();
 
-    for(unsigned i=0; i<itsChildren.size(); i++){
+    for(unsigned i=0; i<itsGrdChildren.size(); i++){
         delete itsGrdChildren[i];
     }
     itsGrdChildren.clear();
@@ -98,9 +99,30 @@ int Molecule::getTotNumAtom(){
     return this->itsGrdChildren.size();
 }
 
+
+void Molecule::setCharge(double charge){
+    this->itscharge=charge;
+}
+
+double Molecule::getCharge(){
+    return this->itscharge;
+}
+
+void Molecule::center(Coor3d& coor){
+    double xSum=0;
+    double ySum=0;
+    double zSum=0;
+    for(unsigned i=0; i<itsGrdChildren.size(); i++){
+        Coor3d* pACoor=itsGrdChildren[i]->getCoords();
+//        std::cout << "pCoor "<< pACoor->getX() << " " <<  pACoor->getY() << " " <<  pACoor->getZ() << std::endl;
+        xSum=xSum+pACoor->getX();
+        ySum=ySum+pACoor->getY();
+        zSum=zSum+pACoor->getZ();
+    } 
+    xSum/=itsGrdChildren.size();
+    ySum/=itsGrdChildren.size();
+    zSum/=itsGrdChildren.size();
+    coor.set(xSum,ySum,zSum);
+}
+
 } //namespace LBIND
-
-
-
-
-

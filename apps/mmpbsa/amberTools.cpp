@@ -30,11 +30,11 @@
 using namespace LBIND;
 
 /*!
- * \breif preReceptors calculation receptor grid dimension from CSA sitemap output
+ * \breif amberTools Calculate receptor GB/PB minimization energy from download PDB files.
  * \param argc
  * \param argv argv[1] takes the input file name
  * \return success 
- * \defgroup preReceptors_Commands preReceptors Commands
+ * \defgroup amberTools_Commands amberTools Commands
  *
  * 
  * Usage on HPC slurm
@@ -47,9 +47,11 @@ using namespace LBIND;
 
     srun -N4 -n48 -ppdebug /g/g92/zhang30/medchem/NetBeansProjects/MedCM/apps/mmpbsa/amberTools  <input-file> <GetPDB|No>
 
-    <input-file>: contain a list of receptor subdirectory names.
+    <input-file>: contain a list of receptor PDB IDs.
 
     Requires: define WORKDIR 
+ * 
+ * Note: the non-standard residues are changed to ALA due to lack of amber forcefield.
    \endverbatim
  */
 
@@ -65,22 +67,25 @@ bool preReceptors(std::string& dir, bool getPDBflg){
     system(cmd.c_str());
     
     chdir(amberDir.c_str());
-    
-    std::string pdbFile=dir+".pdb";
-    cmd="wget http://www.rcsb.org/pdb/files/"+pdbFile;
-    system(cmd.c_str());
-    
-    boost::scoped_ptr<Pdb> pPdb(new Pdb()); 
-    std::string pdbOutFile=dir+"-out.pdb";
-    pPdb->standardlize2(pdbFile, pdbOutFile);   
 
-    std::string checkFName=dir+".pdb";
+    std::string pdbFile=dir+".pdb";
+    std::string checkFName=pdbFile;
+    if(!fileExist(checkFName)){
+        cmd="wget http://www.rcsb.org/pdb/files/"+pdbFile;
+        system(cmd.c_str());       
+    }
+
     if(!fileExist(checkFName)){
         std::string message=checkFName+" does not exist.";
         throw LBindException(message); 
         jobStatus=false; 
         return jobStatus;        
     }    
+
+    boost::scoped_ptr<Pdb> pPdb(new Pdb()); 
+    std::string pdbOutFile=dir+"-out.pdb";
+    pPdb->standardlize2(pdbFile, pdbOutFile);   
+    
     
     std::string csaPdbFile=siteDir+dir+"_00_ref_cent_1.pdb";
 
@@ -162,6 +167,9 @@ bool preReceptors(std::string& dir, bool getPDBflg){
     std::string stdPdbFile="rec_std.pdb";
     pPdb->standardlize(checkFName, stdPdbFile);
 
+    cmd="reduce -Quiet -Trim  "+stdPdbFile+" >& rec.pdb ";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());
         
     std::string tleapFName="rec_leap.in";
     
@@ -177,7 +185,7 @@ bool preReceptors(std::string& dir, bool getPDBflg){
         
         tleapFile << "source leaprc.ff99SB\n"                
                   << "source leaprc.gaff\n"
-                  << "REC = loadpdb rec_std.pdb\n"
+                  << "REC = loadpdb rec.pdb\n"
                   << "saveamberparm REC REC.prmtop REC.inpcrd\n"
                   << "quit\n";
         

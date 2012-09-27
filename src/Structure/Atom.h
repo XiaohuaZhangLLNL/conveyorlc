@@ -68,6 +68,10 @@ public:
     
     int getType();
     
+    void setCharge(double charge);
+    
+    double getCharge();
+    
     void setFormalCharge(int fcharge);
     
     int getFormalCharge();    

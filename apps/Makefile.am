@@ -1,2 +1,2 @@
-SUBDIRS = mmpbsa
+SUBDIRS = mmpbsa tools
 

@@ -1046,7 +1046,7 @@ void Pdb::standardlize(const std::string& inFileName, const std::string& outFile
                 Coor3d* pCoor=atomList[k]->getCoords();
                 coorC=*pCoor;
                 foundC=true;
-                std::cout  <<resList[j]->getName() << " "<<atomName<< ":" << coorC << std::endl;
+//                std::cout  <<resList[j]->getName() << " "<<atomName<< ":" << coorC << std::endl;
                 break;
             }
 
@@ -1059,16 +1059,16 @@ void Pdb::standardlize(const std::string& inFileName, const std::string& outFile
             if(atomName==nAtom){
                 Coor3d* pCoor=atomList[k]->getCoords();
                 coorN=*pCoor;
-                std::cout  <<resList[j+1]->getName() << " "<<atomName<< ":" << coorN << std::endl;
+//                std::cout  <<resList[j+1]->getName() << " "<<atomName<< ":" << coorN << std::endl;
                 foundN=true;
                 break;
             }  
         }
         
-        std::cout << "C--N distance square=" << coorC.dist2(coorN) <<std::endl;
+//        std::cout << "C--N distance square=" << coorC.dist2(coorN) <<std::endl;
         if(foundC && foundN){
             if(coorC.dist2(coorN)>9){
-                std::cout << "C--N distance square=" << coorC.dist2(coorN) <<std::endl;
+//                std::cout << "C--N distance square=" << coorC.dist2(coorN) <<std::endl;
                 newMol=true;
             }
         }else{
@@ -1130,6 +1130,7 @@ void Pdb::standardlize2(const std::string& inFileName, const std::string& outFil
                    --f;  
 
                }else if(isAA(pFrag)){
+                   toALA(pFrag);
                    pTmpMol->addFragment(pFrag);
                    resList.erase(f);
                    --f;                     
@@ -1145,14 +1146,15 @@ void Pdb::standardlize2(const std::string& inFileName, const std::string& outFil
         
         moleculeList[i]->setChildren(resList); // To avoid residue pointers double deletion.
         
-    }  
+    } 
+    
 
-    for(unsigned i=0;i<moleculeList.size();i++){
-        
-        std::vector<Fragment*> resList=moleculeList[i]->getChildren();
-//        std::cout << "resList final size=" << resList.size() << std::endl;
-        
-    }     
+//    for(unsigned i=0;i<moleculeList.size();i++){
+//        
+//        std::vector<Fragment*> resList=moleculeList[i]->getChildren();
+////        std::cout << "resList final size=" << resList.size() << std::endl;
+//        
+//    }     
     
     // For create new molecular
     
@@ -1192,7 +1194,7 @@ void Pdb::standardlize2(const std::string& inFileName, const std::string& outFil
                 Coor3d* pCoor=atomList[k]->getCoords();
                 coorC=*pCoor;
                 foundC=true;
-                std::cout  <<resList[j]->getName() << " "<<atomName<< ":" << coorC << std::endl;
+//                std::cout  <<resList[j]->getName() << " "<<atomName<< ":" << coorC << std::endl;
                 break;
             }
 
@@ -1205,16 +1207,16 @@ void Pdb::standardlize2(const std::string& inFileName, const std::string& outFil
             if(atomName==nAtom){
                 Coor3d* pCoor=atomList[k]->getCoords();
                 coorN=*pCoor;
-                std::cout  <<resList[j+1]->getName() << " "<<atomName<< ":" << coorN << std::endl;
+//                std::cout  <<resList[j+1]->getName() << " "<<atomName<< ":" << coorN << std::endl;
                 foundN=true;
                 break;
             }  
         }
         
-        std::cout << "C--N distance square=" << coorC.dist2(coorN) <<std::endl;
+//        std::cout << "C--N distance square=" << coorC.dist2(coorN) <<std::endl;
         if(foundC && foundN){
             if(coorC.dist2(coorN)>9){
-                std::cout << "C--N distance square=" << coorC.dist2(coorN) <<std::endl;
+//                std::cout << "C--N distance square=" << coorC.dist2(coorN) <<std::endl;
                 newMol=true;
             }
         }else{
@@ -1240,7 +1242,7 @@ void Pdb::standardlize2(const std::string& inFileName, const std::string& outFil
 //        std::vector<Fragment*> resList=moleculeList[i]->getChildren();
 ////        std::cout << "New molecule resList size=" << resList.size() << std::endl;
 //        
-//    }      
+//    }  
     return;
 //    delete pComplex;
 }
@@ -1254,6 +1256,44 @@ bool Pdb::isAA(Fragment* pFrag){
     bool findCA;
     bool findC;
     bool findO;
+    
+    std::vector<Atom*> atomList=pFrag->getChildren();
+    for(std::vector<Atom*>::iterator a=atomList.begin();a!=atomList.end();++a){
+        Atom* pAtom=*a;
+        std::string atomName=pAtom->getName();
+        atomName.erase(std::remove_if(atomName.begin(), atomName.end(), isspace), atomName.end());
+        if(atomName=="N"){
+            Coor3d* pCoor=pAtom->getCoords();
+            coorN=*pCoor;
+            findN=true;
+        }
+        if(atomName=="CA"){        
+            Coor3d* pCoor=pAtom->getCoords();
+            coorCA=*pCoor;
+            findCA=true;
+        }
+        if(atomName=="C"){           
+            Coor3d* pCoor=pAtom->getCoords();
+            coorC=*pCoor;
+            findC=true;
+        }
+        if(atomName=="O"){           
+            Coor3d* pCoor=pAtom->getCoords();
+            coorO=*pCoor;
+            findO=true;
+        }        
+    } 
+
+    if(findN && findCA && findC && findO){
+        if(coorN.dist2(coorCA)<9 && coorCA.dist2(coorC)<9 && coorC.dist2(coorO)<9){
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+void Pdb::toALA(Fragment* pFrag){
 
     std::vector<Atom*> newAtomList;    
     std::vector<Atom*> atomList=pFrag->getChildren();
@@ -1265,48 +1305,31 @@ bool Pdb::isAA(Fragment* pFrag){
             newAtomList.push_back(pAtom);
             atomList.erase(a);
             --a;
-            Coor3d* pCoor=pAtom->getCoords();
-            coorN=*pCoor;
-            findN=true;
         }
         if(atomName=="CA"){
             newAtomList.push_back(pAtom);
             atomList.erase(a);
             --a;            
-            Coor3d* pCoor=pAtom->getCoords();
-            coorCA=*pCoor;
-            findCA=true;
         }
         if(atomName=="C"){
             newAtomList.push_back(pAtom);
             atomList.erase(a);
             --a;            
-            Coor3d* pCoor=pAtom->getCoords();
-            coorC=*pCoor;
-            findC=true;
         }
         if(atomName=="O"){
             newAtomList.push_back(pAtom);
             atomList.erase(a);
             --a;            
-            Coor3d* pCoor=pAtom->getCoords();
-            coorO=*pCoor;
-            findO=true;
         }        
-    } 
+    }
+    
     for(unsigned k=0;k<atomList.size();k++){
         delete atomList[k];
     }
-
-    if(findN && findCA && findC && findO){
-        if(coorN.dist2(coorCA)<9 && coorCA.dist2(coorC)<9 && coorC.dist2(coorO)<9){
-            pFrag->setName("ALA");
-            pFrag->setChildren(newAtomList);
-            return true;
-        }
-    }
     
-    return false;
+    pFrag->setName("ALA");
+    pFrag->setChildren(newAtomList);
+
 }
 
 }// namespace LBIND

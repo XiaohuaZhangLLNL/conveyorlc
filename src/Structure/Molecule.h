@@ -23,6 +23,7 @@ namespace LBIND{
     class BondContainer;
     class Ring;
     class RingContainer;
+    class Coor3d;
 
 //class Molecule : public boost::enable_shared_from_this<Molecule>{
 class Molecule : public BaseStruct {
@@ -46,6 +47,12 @@ public:
     void addFragment(Fragment* pFragment);
 
     int getTotNumAtom();
+    
+    void setCharge(double charge);
+    
+    double getCharge();
+
+    void center(Coor3d& coor);
 
 private:
 
