@@ -38,8 +38,34 @@ SpMMPBSA::SpMMPBSA(const SpMMPBSA& orig) {
 SpMMPBSA::~SpMMPBSA() {
 }
 
+bool SpMMPBSA::energy(const std::string& dir, const std::string& ligand){
+    std::string amberDir=WORKDIR+"/"+dir+"/m_"+dir+"_amber/";
+    
+    boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
+    
+    std::string sanderOut=amberDir+"Rec_minGB2.out";
+    recGBen=0;
+    bool success;
+    success=pSanderOutput->getEnergy(sanderOut,recGBen);
+    
+    sanderOut=amberDir+"Rec_minPB.out";   
+    recPBen=0;
+    success=pSanderOutput->getEnergy(sanderOut,recPBen);
+    
+    std::string ligDir=ligLibDir+"/"+ligand+"/";
+    
+    sanderOut=ligDir+"LIG_minGB.out";
+    ligGBen=0;
+    success=pSanderOutput->getEnergy(sanderOut,ligGBen);
+    
+    sanderOut=ligDir+"LIG_minPB.out";
+    ligPBen=0;
+    success=pSanderOutput->getEnergy(sanderOut,ligPBen);
 
-void SpMMPBSA::recRun(std::string& dir){
+    return true;
+}
+
+void SpMMPBSA::recRun(const std::string& dir){
     
     // RECEPTOR
     std::string pdbqtFile="../../n_"+dir+"_vina/"+dir+".pdbqt";
@@ -113,7 +139,8 @@ void SpMMPBSA::recRun(std::string& dir){
     
     std::string sanderOut="Rec_min.out";
     boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
-    recGBen=pSanderOutput->getEAmber(sanderOut);
+    recGBen=0;
+    bool success=pSanderOutput->getEAmber(sanderOut, recGBen);
     std::cout << "Receptorn GB Minimization Energy: " << recGBen <<" kcal/mol."<< std::endl;
        
     cmd="ambpdb -p REC.prmtop < Rec_min.rst > Rec_min_0.pdb";
@@ -164,12 +191,13 @@ void SpMMPBSA::recRun(std::string& dir){
     
     
     sanderOut="Rec_minPB.out";
-    recPBen=pSanderOutput->getEAmber(sanderOut);
+    recPBen=0;
+    success=pSanderOutput->getEAmber(sanderOut,recPBen);
     std::cout << "Receptor PB Minimization Energy: " << recPBen <<" kcal/mol."<< std::endl;    
 }
 
 
-void SpMMPBSA::ligRun(std::string& ligand){
+void SpMMPBSA::ligRun(const std::string& ligand){
         
     //LIGAND
     std::string cmd="ln -s "+ligLibDir+ligand+"/LIG.prmtop";
@@ -211,7 +239,8 @@ void SpMMPBSA::ligRun(std::string& ligand){
     
     std::string sanderOut="LIG_minGB.out";
     boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
-    ligGBen=pSanderOutput->getEnergy(sanderOut);
+    ligGBen=0;
+    bool success=pSanderOutput->getEnergy(sanderOut,ligGBen);
     std::cout << "LIGAND GB Minimization Energy: " << ligGBen <<" kcal/mol."<< std::endl;
        
     
@@ -253,13 +282,14 @@ void SpMMPBSA::ligRun(std::string& ligand){
     
     
     sanderOut="LIG_minPB.out";
-    ligPBen=pSanderOutput->getEnergy(sanderOut);
+    ligPBen=0;
+    success=pSanderOutput->getEnergy(sanderOut,ligPBen);
     std::cout << "Ligand GB Minimization Energy: " << ligPBen <<" kcal/mol."<< std::endl;        
 }
 
 
 
-void SpMMPBSA::comRun(std::string& ligand, int poseID){
+void SpMMPBSA::comRun(const std::string& ligand, int poseID){
     
     std::string tleapFName="Lig_leap.in";
     {
@@ -285,7 +315,7 @@ void SpMMPBSA::comRun(std::string& ligand, int poseID){
     std::string cmd="tleap -f "+tleapFName+" >& Lig_leap.log";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str()); 
-    
+      
     cmd="cat Rec_min.pdb Lig_lp_"+Sstrm<std::string, int>(poseID)+
             ".pdb > Com_"+Sstrm<std::string, int>(poseID)+".pdb";
     system(cmd.c_str());
@@ -351,7 +381,8 @@ void SpMMPBSA::comRun(std::string& ligand, int poseID){
 
     std::string sanderOut="Com_min.out";
     boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
-    double energy=pSanderOutput->getEAmber(sanderOut);
+    double energy=0;
+    bool success=pSanderOutput->getEAmber(sanderOut,energy);
     comGBen.push_back(energy);
     std::cout << "Complex GB Minimization Energy: " << energy <<" kcal/mol."<< std::endl;    
     
@@ -395,7 +426,8 @@ void SpMMPBSA::comRun(std::string& ligand, int poseID){
     system(cmd.c_str()); 
        
     sanderOut="Com_minPB.out";
-    energy=pSanderOutput->getEAmber(sanderOut);
+    energy=0;
+    success=pSanderOutput->getEAmber(sanderOut,energy);
     comPBen.push_back(energy);
     std::cout << "Complex PB Minimization Energy: " << energy <<" kcal/mol."<< std::endl;            
     
@@ -413,7 +445,9 @@ void SpMMPBSA::calBind(){
 }
 
 
-void SpMMPBSA::run(std::string& dir, std::string& ligand){
+void SpMMPBSA::run(const std::string& dir, const std::string& ligand){
+    //! first get the GB PB energy of receptor and ligand.
+    bool calcEn=this->energy(dir, ligand);    
     
     chdir(WORKDIR.c_str());
     chdir(dir.c_str());
@@ -426,10 +460,12 @@ void SpMMPBSA::run(std::string& dir, std::string& ligand){
     cmd="mkdir -p "+ligand;
     system(cmd.c_str());
     chdir(ligand.c_str());
-    
-    this->recRun(dir);
-    
-    this->ligRun(ligand);
+   
+//    this->recRun(dir);
+//    
+//    this->ligRun(ligand);
+    cmd="ln -s ../../m_"+dir+"_amber/Rec_min.pdb";
+    system(cmd.c_str());
     
     //! Processing poses
     std::string poses="../../n_"+dir+"_vina/poses/"+ligand+".pdbqt";

@@ -33,6 +33,14 @@ void testStdResContainer(){
     delete pStdResContainer;    
 }
 
+void testPDBfixElement(char** argv){
+    Pdb* pPdb=new Pdb();
+    std::string input=argv[1];
+    std::cout << "input=" << input << std::endl;
+//    pPdb->standardlize(input, output);
+    pPdb->fixElement(input, "test-fix.pdb");    
+}
+
 void testPDBstandardlize(char** argv){
     Pdb* pPdb=new Pdb();
     std::string input=argv[1];
@@ -234,9 +242,10 @@ bool preReceptors(std::string& dir, bool getPDBflg){
     
     boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
     std::string sanderOut="Rec_minGB.out";
-    double recGBen=pSanderOutput->getEnergy(sanderOut);
+    double recGBen=0;
+    bool success=pSanderOutput->getEnergy(sanderOut, recGBen);
     
-    if(abs(recGBen)<NEARZERO){
+    if(!success){
         std::string message="Receptor 1st GB minimization fails.";
         throw LBindException(message); 
         jobStatus=false; 
@@ -273,10 +282,11 @@ bool preReceptors(std::string& dir, bool getPDBflg){
     system(cmd.c_str()); 
     
     sanderOut="Rec_minGB2.out";
-    recGBen=pSanderOutput->getEnergy(sanderOut);
+    recGBen=0;
+    success=pSanderOutput->getEnergy(sanderOut,recGBen);
     std::cout << "Receptorn GB Minimization Energy: " << recGBen <<" kcal/mol."<< std::endl;
 
-    if(abs(recGBen)<NEARZERO){
+    if(!success){
         std::string message="Receptor 2nd GB minimization fails.";
         throw LBindException(message); 
         jobStatus=false; 
@@ -345,9 +355,10 @@ bool preReceptors(std::string& dir, bool getPDBflg){
     system(cmd.c_str()); 
        
     sanderOut="Rec_minPB.out";
-    double recPBen=pSanderOutput->getEnergy(sanderOut);
+    double recPBen=0;
+    success=pSanderOutput->getEnergy(sanderOut,recPBen);
     std::cout << "Receptor PB Minimization Energy: " << recPBen <<" kcal/mol."<< std::endl;
-    if(abs(recPBen)<NEARZERO){
+    if(!success){
         std::string message="Receptor PB minimization fails.";
         throw LBindException(message); 
         jobStatus=false; 
@@ -367,7 +378,8 @@ int main(int argc, char** argv) {
     std::string dir="1A3Q";
     bool getPDBflg=true;
     try{
-        bool sucess=preReceptors(dir, getPDBflg);
+//        bool sucess=preReceptors(dir, getPDBflg);
+        testPDBfixElement(argv);
     }catch(LBindException &e){
         std::cout << "Error: " << e.what() << std::endl;
     }

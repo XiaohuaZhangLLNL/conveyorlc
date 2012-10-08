@@ -11,11 +11,8 @@
 #include <string>
 
 struct POdata{
-    std::string xmlFile;
-    std::string listFile;
+    std::string sdfFile;
     std::string outputFile;
-    std::string keyword;
-    bool isTmpFile;
 };
 
 bool preLigandsPO(int argc, char** argv, POdata& podata);

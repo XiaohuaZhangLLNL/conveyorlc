@@ -1332,4 +1332,52 @@ void Pdb::toALA(Fragment* pFrag){
 
 }
 
+void Pdb::fixElement(const std::string& inFileName, const std::string& outFileName){
+
+    std::ifstream inFile;
+    try {
+        inFile.open(inFileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::fixElement >> Cannot open file" << inFileName << std::endl;
+    }
+    
+    std::ofstream outFile;
+    try {
+        outFile.open(outFileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::fixElement >> Cannot open file" << outFileName << std::endl;
+    }    
+
+    std::string fileLine="";    
+    
+    const std::string atomStr="ATOM";
+    const std::string hetatmStr="HETATM";   
+    
+    
+    while(std::getline(inFile, fileLine)){
+
+        if(fileLine.compare(0,4, atomStr)==0 || fileLine.compare(0,6, hetatmStr)==0){
+            if(fileLine.size()>=79){
+                if(fileLine.compare(78,1, " ")!=0){
+                    outFile << fileLine.substr(0,76) << fileLine.substr(77,2) << std::endl;
+                }else{
+                    outFile << fileLine << std::endl;
+                }
+                
+            }else{
+                outFile << fileLine << std::endl;
+            }
+                
+        }else{
+            outFile << fileLine << std::endl;
+        }   
+    }
+    
+    inFile.close();
+    outFile.close();
+        
+}
+
 }// namespace LBIND

@@ -23,7 +23,7 @@ SanderOutput::~SanderOutput() {
 }
 
 
-double SanderOutput::getEAmber(std::string sanderOutFile){
+bool SanderOutput::getEAmber(std::string sanderOutFile, double energy){
     std::ifstream inFile;
     try {
         inFile.open(sanderOutFile.c_str());
@@ -39,7 +39,6 @@ double SanderOutput::getEAmber(std::string sanderOutFile){
     std::string fileLine="";
     
     bool finalFlag=false;
-    double energy=0;
 
     while(inFile){
         std::getline(inFile, fileLine);
@@ -53,15 +52,15 @@ double SanderOutput::getEAmber(std::string sanderOutFile){
                 std::vector<std::string> tokens;
                 tokenize(fileLine, tokens);
                 energy=Sstrm<double, std::string>(tokens[2]);
-                return energy;
+                return true;
             }            
         }
     }
     
-    return energy;
+    return false;
 }
 
-double SanderOutput::getEnergy(std::string sanderOutFile){
+bool SanderOutput::getEnergy(std::string sanderOutFile, double energy){
     std::ifstream inFile;
     try {
         inFile.open(sanderOutFile.c_str());
@@ -77,8 +76,6 @@ double SanderOutput::getEnergy(std::string sanderOutFile){
     std::string fileLine="";
     
     bool finalFlag=false;
-    bool enFlag=false;
-    double energy=0;
 
     while(inFile){
         std::getline(inFile, fileLine);
@@ -87,21 +84,18 @@ double SanderOutput::getEnergy(std::string sanderOutFile){
             finalFlag=true;
         }
         
-        if(enFlag){
-            std::vector<std::string> tokens;
-            tokenize(fileLine, tokens);
-            energy=Sstrm<double, std::string>(tokens[1]);            
-            return energy;
-        }
-        
         if(finalFlag){
             if(boost::regex_search(fileLine,what,enRegex)){
-                enFlag=true;
+                std::getline(inFile, fileLine);
+                std::vector<std::string> tokens;
+                tokenize(fileLine, tokens);
+                energy=Sstrm<double, std::string>(tokens[1]);
+                return true;                
             }            
         }
     }
     
-    return energy;
+    return false;
 }
 
 }//namespace LBIND

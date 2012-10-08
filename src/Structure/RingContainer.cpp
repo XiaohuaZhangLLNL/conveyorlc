@@ -1250,9 +1250,9 @@ void RingContainer::kekulize(Ring* r) {
         if (dTorsion > largestTorsion) largestTorsion = dTorsion;
 
         // 15 degree cutoff (was 10 degrees, change 12 to 18 below)
-        if ((std::abs(dTorsion - 0) < PI / 12) or
-                (std::abs(dTorsion - PI) < PI / 12) or
-                (std::abs(dTorsion - 2 * PI) < PI / 12)) {
+        if ((std::fabs(dTorsion - 0) < PI / 12) or
+                (std::fabs(dTorsion - PI) < PI / 12) or
+                (std::fabs(dTorsion - 2 * PI) < PI / 12)) {
             
             ss << ringAtoms[i]->getFileID()   << "-"
                       << ringAtoms[i+1]->getFileID() << "-"

@@ -98,7 +98,7 @@ public:
             q.normalize();
 
             double pXq = p*q;
-            if (std::abs(pXq) > 1) {
+            if (std::fabs(pXq) > 1) {
               pXq = 1;
             }
             else if (pXq < - 1) {

@@ -27,7 +27,7 @@ public:
      * \param ligand the ligand name under the ligLibDir
      * 
      */    
-    void run(std::string& dir, std::string& ligand);
+    void run(const std::string& dir, const std::string& ligand);
     
     void getbindGB(std::vector<double>& bindgb);
     
@@ -39,23 +39,27 @@ private:
      * \param dir the directory/receptor name under the WORKDIR
      * 
      */    
-    void recRun(std::string& dir);
+    void recRun(const std::string& dir);
     /**
      * \breif ligRun prepare parameter files and run GB/PB minimization for ligand
      * \param ligand the ligand name under the ligLibDir
      * 
      */    
-    void ligRun(std::string& ligand);
+    void ligRun(const std::string& ligand);
     /**
      * \breif comRun prepare tleap and run GB/PB minimization for complex
      * \param ligand the ligand name under the ligLibDir
      * \param poseID the pose ID (Model number in Vina pdbqt output)
      * 
      */    
-    void comRun(std::string& ligand, int poseID); 
+    void comRun(const std::string& ligand, int poseID); 
+    /**
+     * 
+     */
+    bool energy(const std::string& dir,const std::string& ligand);  
     /**
      * \breif calBind calculate binding energies for poses
-     */    
+     */
     void calBind();
     
     /**

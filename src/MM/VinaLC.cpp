@@ -8,6 +8,7 @@
 #include "VinaLC.h"
 
 #include <cstdlib>
+#include <cmath>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -202,7 +203,7 @@ void VinaLC::sphere_selector(std::string& sphFile, std::string& selSphFile, Coor
     
     for(unsigned int i=0; i<curLines.size(); ++i){
 
-        int index=int(std::abs(curLines[i].dist));
+        int index=int(std::fabs(curLines[i].dist));
 //        std::cout << "index=" << index << "   dist=" << curLines[i].dist << std::endl;       
         hist[index]=hist[index]+1.0/(float(index+1)*float(index+1));
     }
@@ -352,7 +353,7 @@ void VinaLC::sphere_selector(std::string& sphFile, std::string& selSphFile, Coor
     
     for(unsigned int i=0; i<curLines.size(); ++i){
 
-        int index=int(std::abs(curLines[i].dist));
+        int index=int(std::fabs(curLines[i].dist));
 //        std::cout << "index=" << index << "   dist=" << curLines[i].dist << std::endl;       
         hist[index]=hist[index]+1.0/(float(index+1)*float(index+1));
     }
@@ -428,7 +429,7 @@ void VinaLC::getGridDims(std::string& selSphFile, Coor3d& gridDims){
             std::vector<std::string> tokens;
             tokenize(fileLine, tokens); 
             if(tokens.size()==8){
-                double radius=std::abs(atof(tokens[4].c_str()));
+                double radius=std::fabs(atof(tokens[4].c_str()));
                 double x=atof(tokens[1].c_str());
                 double xMinTmp=x-radius;
                 double xMaxTmp=x+radius;

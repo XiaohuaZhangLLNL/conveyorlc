@@ -7,9 +7,14 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <cmath>
 #include "src/MM/Amber.h"
 #include "src/BackBone/Protein.h"
 #include "src/BackBone/Ligand.h"
+#include "src/Parser/SanderOutput.h"
+#include "src/Structure/Constants.h"
+
+#include <boost/scoped_ptr.hpp>
 /*
  * Simple C++ Test Suite
  */
@@ -43,12 +48,26 @@ void testRun() {
     }
 }
 
+void testSanderOut(){
+    boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
+    std::string sanderOut="LIG_minGB.out";
+    double ligGBen=0;
+    bool success=pSanderOutput->getEnergy(sanderOut, ligGBen);
+    
+    if(!success){        
+        std::string message="Ligand GB minimization fails.";
+        std::cout << message << std::endl;
+    }    
+    
+}
+
 int main(int argc, char** argv) {
     std::cout << "%SUITE_STARTING% AmberSplTest" << std::endl;
     std::cout << "%SUITE_STARTED%" << std::endl;
 
     std::cout << "%TEST_STARTED% testRun (AmberSplTest)" << std::endl;
-    testRun();
+    //testRun();
+    testSanderOut();
     std::cout << "%TEST_FINISHED% time=0 testRun (AmberSplTest)" << std::endl;
 
     std::cout << "%SUITE_FINISHED% time=0" << std::endl;

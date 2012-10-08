@@ -20,6 +20,8 @@
 #include "src/Common/LBindException.h"
 #include "src/XML/XMLHeader.hpp"
 
+#include "mmpbsaPO.h"
+
 #include <boost/scoped_ptr.hpp>
 
 #include <mpi.h>
@@ -58,7 +60,7 @@ bool mmpbsa(std::string& dir, std::string& ligand, bool calcPB) {
     
     outFile <<"MM-GBSA:" << std::endl;
     for(unsigned i=0; i < bindGB.size(); ++i){
-        outFile <<"Pose " << i << ": " <<bindGB[i] << "kcal/mol" << std::endl;
+        outFile <<"Pose " << i << ": " <<bindGB[i] << " kcal/mol" << std::endl;
     }
     
     std::vector<double> bindPB;
@@ -66,7 +68,7 @@ bool mmpbsa(std::string& dir, std::string& ligand, bool calcPB) {
        
     outFile <<"\nMM-PBSA:" << std::endl;
     for(unsigned i=0; i < bindPB.size(); ++i){
-        outFile <<"Pose " << i << ": " <<bindPB[i] << "kcal/mol" << std::endl;
+        outFile <<"Pose " << i << ": " <<bindPB[i] << " kcal/mol" << std::endl;
     }
     
     outFile.close();
@@ -104,6 +106,7 @@ struct JobInputData{
 struct JobOutData{  
     bool error;
     char dirBuffer[100];
+    char ligBuffer[100];
     char message[100];
 };
 
@@ -142,13 +145,25 @@ int main(int argc, char** argv) {
         return 1;
     }
     
+    POdata podata;
+    int error=0;
+    
+    if (rank == 0) {        
+        bool success=mmpbsaPO(argc, argv, podata);
+        if(!success){
+            error=1;           
+        }        
+    }
+
+    MPI_Bcast(&error, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    if (error !=0) {
+        MPI_Finalize();
+        return 1;
+    }    
+    
     std::cout << "Number of tasks= " << nproc << " My rank= " << rank << std::endl;
 
     if (rank == 0) {
-        if(argc <3){
-            std::cerr << "Usage: amberTools <dirListFileName> <ligListFileName>" << std::endl;
-            return 1;        
-        }  
         
         //! Tracking error using XML file
 	XMLDocument doc;  
@@ -166,20 +181,18 @@ int main(int argc, char** argv) {
         FILE* xmlBadFile=fopen("JobTrackingBad.xml", "w"); 
         //! END of XML header
         
-        std::string recListFName=argv[1];
-        std::string ligListFName=argv[2];
 
         jobInput.pbFlag=1;
-        if(argc >3){
-            jobInput.pbFlag=atoi(argv[3]);
+        if(!podata.pbFlag){
+            jobInput.pbFlag=0;
         }
 
      
         std::vector<std::string> dirList;               
-        saveStrList(recListFName, dirList);
+        saveStrList(podata.recFile, dirList);
         
         std::vector<std::string> ligList;               
-        saveStrList(ligListFName, ligList); 
+        saveStrList(podata.ligFile, ligList); 
         
         int count=0;
            
@@ -189,6 +202,7 @@ int main(int argc, char** argv) {
                     MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
                     XMLElement * element = new XMLElement("error"); 
                     element->SetAttribute("receptor", jobOut.dirBuffer);
+                    element->SetAttribute("ligand", jobOut.ligBuffer);
                     element->SetAttribute("mesg", jobOut.message);  
                     root->LinkEndChild(element);
                     if(!jobOut.error){
@@ -225,6 +239,7 @@ int main(int argc, char** argv) {
             MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
             XMLElement * element = new XMLElement("error"); 
             element->SetAttribute("receptor", jobOut.dirBuffer);
+            element->SetAttribute("ligand", jobOut.ligBuffer);
             element->SetAttribute("mesg", jobOut.message);  
             root->LinkEndChild(element);
             if(!jobOut.error){

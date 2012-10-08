@@ -1,11 +1,11 @@
 /* 
- * File:   preLigandsPO.cpp
+ * File:   mmpbsaPO.cpp
  * Author: zhang30
  * 
- * Created on September 24, 2012, 11:33 AM
+ * Created on October 2, 2012, 10:55 AM
  */
 
-#include "preLigandsPO.h"
+#include "mmpbsaPO.h"
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -16,7 +16,7 @@ using namespace boost::program_options;
 /*
  * 
  */
-bool preLigandsPO(int argc, char** argv, POdata& podata) {
+bool mmpbsaPO(int argc, char** argv, POdata& podata) {
     
     bool help;
     positional_options_description positional;
@@ -24,8 +24,10 @@ bool preLigandsPO(int argc, char** argv, POdata& podata) {
     try {
         options_description inputs("Required:");
         inputs.add_options()
-                ("sdf", value<std::string > (&podata.sdfFile), "input SDF file name")
+                ("recList", value<std::string > (&podata.recFile), "receptor directory file name")
+                ("ligList", value<std::string > (&podata.ligFile), "ligand directory file name")
                 ("output", value<std::string > (&podata.outputFile), "output filename")
+                ("PB", value<bool>(&podata.pbFlag)->default_value(true), "Turn on/off PB calculation (Default on).")
                 ;   
         options_description info("Optional:");
         info.add_options()
@@ -51,13 +53,18 @@ bool preLigandsPO(int argc, char** argv, POdata& podata) {
         
         if (help) {
             std::cout << desc << '\n';
-            return false;
+            return 0;
         }
 
-        if (vm.count("sdf") <= 0) {
-            std::cerr << "Missing input SDF file name.\n" << "\nCorrect usage:\n" << desc << '\n';
+        if (vm.count("recList") <= 0) {
+            std::cerr << "Missing receptor directory file name.\n" << "\nCorrect usage:\n" << desc << '\n';
             return false;
         }          
+
+        if (vm.count("ligList") <= 0) {
+            std::cerr << "Missing ligand directory file name.\n" << "\nCorrect usage:\n" << desc << '\n';
+            return false;
+        } 
         
     }catch (boost::filesystem::filesystem_error& e) {
         std::cerr << "\n\nFile system error: " << e.what() << '\n';
@@ -71,5 +78,7 @@ bool preLigandsPO(int argc, char** argv, POdata& podata) {
     
     return true;
 }
+
+
 
 

@@ -6,6 +6,7 @@
  */
 
 #include <cstdlib>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -17,10 +18,14 @@
 #include "src/Parser/SanderOutput.h"
 #include "src/Structure/Sstrm.hpp"
 #include "src/Structure/Constants.h"
+#include "src/Structure/Molecule.h"
+#include "src/Parser/Mol2.h"
 #include "src/Common/File.hpp"
 #include "src/Common/Tokenize.hpp"
 #include "src/Common/LBindException.h"
 #include "src/XML/XMLHeader.hpp"
+
+#include "preLigandsPO.h"
 
 #include <boost/scoped_ptr.hpp>
 
@@ -80,19 +85,15 @@ bool preLigands(std::string& dir) {
     pPdb->strip(pdbFile, tmpFile);
     
     //! Get ligand charge from SDF file.
-    std::string keyword="PUBCHEM_TOTAL_CHARGE";
+    std::string keyword="TOTAL_CHARGE";
     
     boost::scoped_ptr<Sdf> pSdf(new Sdf());
     std::string info=pSdf->getInfo(sdfFile, keyword);
-        
+    
     std::cout << "Charge:" << info << std::endl;
     int charge=Sstrm<int, std::string>(info);
     std::string chargeStr=Sstrm<std::string,int>(charge);
     
-    std::stringstream ss;
-    
-    ss << charge;
-
     //! Start antechamber calculation
     std::string output="ligand.mol2";
     std::string options=" -c bcc -nc "+ chargeStr;
@@ -149,9 +150,10 @@ bool preLigands(std::string& dir) {
     system(cmd.c_str()); 
     boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
     std::string sanderOut="LIG_minGB.out";
-    double ligGBen=pSanderOutput->getEnergy(sanderOut);
+    double ligGBen=0;
+    bool success=pSanderOutput->getEnergy(sanderOut,ligGBen);
     
-    if(abs(ligGBen)<NEARZERO){
+    if(!success){
         std::string message="Ligand GB minimization fails.";
         throw LBindException(message); 
         jobStatus=false; 
@@ -159,11 +161,11 @@ bool preLigands(std::string& dir) {
     }
     
     //! Use ambpdb generated PDB file for PDBQT.
-    cmd="ambpdb -p LIG.prmtop < LIG_min.rst > LIG_min.pdb";
+    cmd="ambpdb -p LIG.prmtop < LIG_min.rst > LIG_minTmp.pdb";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());    
 
-    checkFName="LIG_min.pdb";
+    checkFName="LIG_minTmp.pdb";
     if(!fileExist(checkFName)){
         std::string message="LIG_min.pdb minimization PDB file does not exist.";
         throw LBindException(message); 
@@ -171,7 +173,8 @@ bool preLigands(std::string& dir) {
         return jobStatus;        
     }
     
-    
+    pPdb->fixElement("LIG_minTmp.pdb", "LIG_min.pdb"); 
+        
     //! Get DPBQT file for ligand from minimized structure.
     cmd="prepare_ligand4.py -l LIG_min.pdb -A hydrogens";
     std::cout << cmd << std::endl;
@@ -221,9 +224,10 @@ bool preLigands(std::string& dir) {
     system(cmd.c_str());       
 
     sanderOut="LIG_minPB.out";
-    double ligPBen=pSanderOutput->getEnergy(sanderOut);
+    double ligPBen=0;
+    success=pSanderOutput->getEnergy(sanderOut,ligPBen);
     
-    if(abs(ligPBen)<NEARZERO){
+    if(!success){
         std::string message="Ligand PB minimization fails.";
         throw LBindException(message); 
         jobStatus=false; 
@@ -297,16 +301,25 @@ int main(int argc, char** argv) {
         std::cerr << "Error: Total process less than 2" << std::endl;
         return 1;
     }
+       
+    POdata podata;
+    int error=0;
     
-    std::string inputFName=argv[1];
-    
-    if(inputFName.size()==0){
-        std::cerr << "Usage: preLigands <input.sdf>" << std::endl;
-        return 1;        
+    if (rank == 0) {        
+        bool success=preLigandsPO(argc, argv, podata);
+        if(!success){
+            error=1;           
+        }        
     }
 
-    std::cout << "Number of tasks= " << nproc << " My rank= " << rank << std::endl;
-
+    MPI_Bcast(&error, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    if (error !=0) {
+        MPI_Finalize();
+        return 1;
+    }  
+    
+    std::cout << "Number of tasks= " << nproc << " My rank= " << rank << std::endl;    
+        
     if (rank == 0) {
         
         std::string LIGDIR=getenv("LIGDIR");
@@ -315,10 +328,10 @@ int main(int argc, char** argv) {
 
         std::ifstream inFile;
         try {
-            inFile.open(inputFName.c_str());
+            inFile.open(podata.sdfFile.c_str());
         }
         catch(...){
-            std::cout << "preLigands >> Cannot open file" << inputFName << std::endl;
+            std::cout << "preLigands >> Cannot open file" << podata.sdfFile << std::endl;
         }
         
 //! Tracking error using XML file

@@ -1,11 +1,11 @@
 /* 
- * File:   preLigandsPO.cpp
+ * File:   amberToolsPO.cpp
  * Author: zhang30
  * 
- * Created on September 24, 2012, 11:33 AM
+ * Created on September 27, 2012, 12:06 PM
  */
 
-#include "preLigandsPO.h"
+#include "amberToolsPO.h"
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -16,7 +16,7 @@ using namespace boost::program_options;
 /*
  * 
  */
-bool preLigandsPO(int argc, char** argv, POdata& podata) {
+bool amberToolsPO(int argc, char** argv, POdata& podata) {
     
     bool help;
     positional_options_description positional;
@@ -24,8 +24,9 @@ bool preLigandsPO(int argc, char** argv, POdata& podata) {
     try {
         options_description inputs("Required:");
         inputs.add_options()
-                ("sdf", value<std::string > (&podata.sdfFile), "input SDF file name")
+                ("input", value<std::string > (&podata.inputFile), "input directory file name")
                 ("output", value<std::string > (&podata.outputFile), "output filename")
+                ("getPDB", value<bool>(&podata.getPDBflg)->default_value(false), "Flag to switch for PDB download")
                 ;   
         options_description info("Optional:");
         info.add_options()
@@ -51,11 +52,11 @@ bool preLigandsPO(int argc, char** argv, POdata& podata) {
         
         if (help) {
             std::cout << desc << '\n';
-            return false;
+            return 0;
         }
 
-        if (vm.count("sdf") <= 0) {
-            std::cerr << "Missing input SDF file name.\n" << "\nCorrect usage:\n" << desc << '\n';
+        if (vm.count("input") <= 0) {
+            std::cerr << "Missing input dir file name.\n" << "\nCorrect usage:\n" << desc << '\n';
             return false;
         }          
         
@@ -71,5 +72,6 @@ bool preLigandsPO(int argc, char** argv, POdata& podata) {
     
     return true;
 }
+
 
 

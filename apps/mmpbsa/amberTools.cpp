@@ -6,6 +6,7 @@
  */
 
 #include <cstdlib>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -22,6 +23,8 @@
 #include "src/Common/Tokenize.hpp"
 #include "src/Common/LBindException.h"
 #include "src/XML/XMLHeader.hpp"
+
+#include "amberToolsPO.h"
 
 #include <boost/scoped_ptr.hpp>
 
@@ -87,15 +90,15 @@ bool preReceptors(std::string& dir, bool getPDBflg){
     pPdb->standardlize2(pdbFile, pdbOutFile);   
     
     
-    std::string csaPdbFile=siteDir+dir+"_00_ref_cent_1.pdb";
-
-    checkFName=csaPdbFile;
-    if(!fileExist(checkFName)){
-        std::string message=checkFName+" does not exist.";
-        throw LBindException(message); 
-        jobStatus=false; 
-        return jobStatus;        
-    }    
+//    std::string csaPdbFile=siteDir+dir+"_00_ref_cent_1.pdb";
+//
+//    checkFName=csaPdbFile;
+//    if(!fileExist(checkFName)){
+//        std::string message=checkFName+" does not exist.";
+//        throw LBindException(message); 
+//        jobStatus=false; 
+//        return jobStatus;        
+//    }    
         
     boost::scoped_ptr<VinaLC> pVinaLC(new VinaLC());
     
@@ -109,7 +112,7 @@ bool preReceptors(std::string& dir, bool getPDBflg){
 
       
     std::string cutPdbFile=dir+"_00_ref_cut.pdb";
-    pPdb->cutByRadius(csaPdbFile, cutPdbFile, center, 20);
+    pPdb->cutByRadius(pdbOutFile, cutPdbFile, center, 20);
     
     
     Coor3d gridDims;
@@ -230,9 +233,10 @@ bool preReceptors(std::string& dir, bool getPDBflg){
     
     boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
     std::string sanderOut="Rec_minGB.out";
-    double recGBen=pSanderOutput->getEnergy(sanderOut);
+    double recGBen=0;
+    bool success=pSanderOutput->getEnergy(sanderOut, recGBen);
     
-    if(abs(recGBen)<NEARZERO){
+    if(!success){
         std::string message="Receptor 1st GB minimization fails.";
         throw LBindException(message); 
         jobStatus=false; 
@@ -269,10 +273,11 @@ bool preReceptors(std::string& dir, bool getPDBflg){
     system(cmd.c_str()); 
     
     sanderOut="Rec_minGB2.out";
-    recGBen=pSanderOutput->getEnergy(sanderOut);
+    recGBen=0;
+    success=pSanderOutput->getEnergy(sanderOut, recGBen);
     std::cout << "Receptorn GB Minimization Energy: " << recGBen <<" kcal/mol."<< std::endl;
 
-    if(abs(recGBen)<NEARZERO){
+    if(!success){
         std::string message="Receptor 2nd GB minimization fails.";
         throw LBindException(message); 
         jobStatus=false; 
@@ -341,9 +346,10 @@ bool preReceptors(std::string& dir, bool getPDBflg){
     system(cmd.c_str()); 
        
     sanderOut="Rec_minPB.out";
-    double recPBen=pSanderOutput->getEnergy(sanderOut);
+    double recPBen=0;
+    success=pSanderOutput->getEnergy(sanderOut,recPBen);
     std::cout << "Receptor PB Minimization Energy: " << recPBen <<" kcal/mol."<< std::endl;
-    if(abs(recPBen)<NEARZERO){
+    if(!success){
         std::string message="Receptor PB minimization fails.";
         throw LBindException(message); 
         jobStatus=false; 
@@ -374,7 +380,8 @@ void saveStrList(std::string& fileName, std::vector<std::string>& strList){
     
 }
 
-struct JobInputData{        
+struct JobInputData{ 
+    bool getPDBflg;
     char dirBuffer[100];
 };
 
@@ -418,23 +425,27 @@ int main(int argc, char** argv) {
         return 1;
     }
     
-    if(argc!=3){
-        std::cerr << "Usage: amberTools <dirListFileName> <GetPDB|No>" << std::endl;
-        return 1;         
+    POdata podata;
+    int error=0;
+    
+    if (rank == 0) {        
+        bool success=amberToolsPO(argc, argv, podata);
+        if(!success){
+            error=1;           
+        }        
     }
-    std::string inputFName=argv[1];
 
-    std::string getPDBopt=argv[2];
-    
-    bool getPDBflg=false;
-    
-    if(getPDBopt=="GetPDB"){
-        getPDBflg=true;
-    }
+    MPI_Bcast(&error, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    if (error !=0) {
+        MPI_Finalize();
+        return 1;
+    }     
 
     std::cout << "Number of tasks= " << nproc << " My rank= " << rank << std::endl;
 
     if (rank == 0) {
+        
+        jobInput.getPDBflg=podata.getPDBflg;
         
         //! Tracking error using XML file
 	XMLDocument doc;  
@@ -454,7 +465,7 @@ int main(int argc, char** argv) {
        
         std::vector<std::string> dirList;        
         
-        saveStrList(inputFName, dirList);
+        saveStrList(podata.inputFile, dirList);
         int count=0;
            
         for(unsigned i=0; i<dirList.size(); ++i){
@@ -533,7 +544,7 @@ int main(int argc, char** argv) {
             std::string dir=jobInput.dirBuffer;  
             strcpy(jobOut.message, "Finished!");
             try{
-                bool jobStatus=preReceptors(dir, getPDBflg);            
+                bool jobStatus=preReceptors(dir, jobInput.getPDBflg);            
                 jobOut.error=jobStatus;
             } catch (LBindException& e){
                 std::string message= e.what();  
