@@ -374,12 +374,12 @@ void SpMMPBSA::comRun(const std::string& ligand, int poseID){
         minFile.close();    
     }          
     
-    cmd="sander  -O -i Com_min.in -o Com_min.out  -p Com.prmtop -c Com.inpcrd -ref Com.inpcrd  -x Com_" 
+    std::string sanderOut="Com_min_GB_"+Sstrm<std::string, int>(poseID)+".out";
+    cmd="sander  -O -i Com_min.in -o "+sanderOut+" -p Com.prmtop -c Com.inpcrd -ref Com.inpcrd  -x Com_" 
             +Sstrm<std::string, int>(poseID)+".mdcrd"+" -r Com_min.rst";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
-
-    std::string sanderOut="Com_min.out";
+    
     boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
     double energy=0;
     bool success=pSanderOutput->getEAmber(sanderOut,energy);
@@ -421,11 +421,12 @@ void SpMMPBSA::comRun(const std::string& ligand, int poseID){
                 
         minFile.close();    
     } 
-    cmd="sander -O -i Com_minPB.in -o Com_minPB.out -p Com.prmtop -c Com_min.rst -ref Com_min.rst -x Com.mdcrd -r Com_min1.rst";
+    
+    sanderOut="Com_min_PB_"+Sstrm<std::string, int>(poseID)+".out";
+    cmd="sander -O -i Com_minPB.in -o "+sanderOut+" -p Com.prmtop -c Com_min.rst -ref Com_min.rst -x Com.mdcrd -r Com_min1.rst";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str()); 
        
-    sanderOut="Com_minPB.out";
     energy=0;
     success=pSanderOutput->getEAmber(sanderOut,energy);
     comPBen.push_back(energy);

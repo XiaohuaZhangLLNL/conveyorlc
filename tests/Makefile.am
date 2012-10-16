@@ -5,7 +5,7 @@ else
 endif
 
 if USE_MPI
-    bin_PROGRAMS = AmberSplTest StdResContainerSplTest# AutoDockSplTest DrugBankSplTest GromacsSplTest MainSplTest NamdSplTest ProteinSplTest ProteinSplTest SstrmSplTest1
+    bin_PROGRAMS = AmberSplTest StdResContainerSplTest JobTrackSplTest# AutoDockSplTest DrugBankSplTest GromacsSplTest MainSplTest NamdSplTest ProteinSplTest ProteinSplTest SstrmSplTest1
 else
 endif
 
@@ -15,6 +15,9 @@ if USE_MPI
 
     StdResContainerSplTest_SOURCES = StdResContainerSplTest.cpp
     StdResContainerSplTest_LDADD = $(top_srcdir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -lz
+
+    JobTrackSplTest_SOURCES = JobTrackSplTest.cpp
+    JobTrackSplTest_LDADD = $(top_srcdir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -lz
 
 #    AutoDockSplTest_SOURCES = AmberSplTest.cpp
 #    AutoDockSplTest_LDADD = -L$(top_srcdir)/src -lLbind -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_mpi -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx

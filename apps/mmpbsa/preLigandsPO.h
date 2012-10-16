@@ -13,6 +13,9 @@
 struct POdata{
     std::string sdfFile;
     std::string outputFile;
+    std::string xmlOut;
+    std::string xmlRst;
+    bool restart;
 };
 
 bool preLigandsPO(int argc, char** argv, POdata& podata);

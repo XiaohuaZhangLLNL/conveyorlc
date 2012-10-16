@@ -60,7 +60,7 @@ bool mmpbsa(std::string& dir, std::string& ligand, bool calcPB) {
     
     outFile <<"MM-GBSA:" << std::endl;
     for(unsigned i=0; i < bindGB.size(); ++i){
-        outFile <<"Pose " << i << ": " <<bindGB[i] << " kcal/mol" << std::endl;
+        outFile <<"Pose " << i+1 << ": " <<bindGB[i] << " kcal/mol" << std::endl;
     }
     
     std::vector<double> bindPB;
@@ -68,7 +68,7 @@ bool mmpbsa(std::string& dir, std::string& ligand, bool calcPB) {
        
     outFile <<"\nMM-PBSA:" << std::endl;
     for(unsigned i=0; i < bindPB.size(); ++i){
-        outFile <<"Pose " << i << ": " <<bindPB[i] << " kcal/mol" << std::endl;
+        outFile <<"Pose " << i+1 << ": " <<bindPB[i] << " kcal/mol" << std::endl;
     }
     
     outFile.close();
@@ -288,6 +288,7 @@ int main(int argc, char** argv) {
             }            
             
             strcpy(jobOut.dirBuffer, dir.c_str());
+            strcpy(jobOut.ligBuffer, lig.c_str());
             MPI_Send(&jobOut, sizeof(JobOutData), MPI_CHAR, 0, outTag, MPI_COMM_WORLD);            
             
         }

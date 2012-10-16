@@ -18,8 +18,8 @@ public:
     SanderOutput(const SanderOutput& orig);
     virtual ~SanderOutput();
     
-    bool getEAmber(std::string sanderOutFile, double energy);
-    bool getEnergy(std::string sanderOutFile, double energy);
+    bool getEAmber(std::string sanderOutFile, double& energy);
+    bool getEnergy(std::string sanderOutFile, double& energy);
 
 private:
 

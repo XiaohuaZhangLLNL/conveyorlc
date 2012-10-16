@@ -99,7 +99,7 @@ bool preLigands(std::string& dir) {
     std::string options=" -c bcc -nc "+ chargeStr;
         
     boost::scoped_ptr<Amber> pAmber(new Amber());
-    pAmber->antechamber(tmpFile, output, options);
+    pAmber->antechamber(pdbFile, output, options);
     
     pAmber->parmchk(output);
     
@@ -258,6 +258,89 @@ bool preLigands(std::string& dir) {
 //    
 //}
 
+void splitSDF(std::string& sdfFile, std::vector<std::string>& ligList){
+    std::ifstream inFile;
+    try {
+        inFile.open(sdfFile.c_str());
+    }
+    catch(...){
+        std::cout << "preLigands >> Cannot open file" << sdfFile << std::endl;
+    } 
+
+    const std::string delimter="$$$$";
+    std::string fileLine="";
+    std::string contents="";            
+
+    int count=1;
+
+    while(inFile){
+        std::getline(inFile, fileLine);
+        contents=contents+fileLine+"\n";
+        if(fileLine.size()>=4 && fileLine.compare(0,4, delimter)==0){
+            std::string dir=Sstrm<std::string, int>(count);
+
+            std::string cmd="mkdir -p " +dir;
+            std::cout << cmd << std::endl;
+            system(cmd.c_str());
+
+            std::string outputFName=dir+"/ligand.sdf";
+            std::ofstream outFile;
+            try {
+                outFile.open(outputFName.c_str());
+            }
+            catch(...){
+                std::cout << "preLigands >> Cannot open file" << outputFName << std::endl;
+            }
+
+            outFile <<contents;
+            outFile.close(); 
+
+            contents=""; //! clean up the contents for the next structure.
+
+            ligList.push_back(dir);                    
+            ++count;
+        }
+    }    
+    
+}
+
+void xmlEJobs(std::string& xmlFile, std::vector<std::string>& ligList){
+    XMLDocument doc(xmlFile);
+    bool loadOkay = doc.LoadFile();
+
+    if (!loadOkay) {
+        std::string mesg = doc.ErrorDesc();
+        mesg = "Could not load elements.xml file.\nError: " + mesg;
+        throw LBindException(mesg);
+    }
+
+    XMLNode* node = doc.FirstChild("Errors");
+    assert(node);
+    XMLNode* subNode = node->FirstChild("error");
+    assert(subNode);
+
+    for (subNode = node->FirstChild("error"); subNode != 0; subNode = subNode->NextSibling("error")) {
+        XMLElement* itemElement = subNode->ToElement();
+        bool rstFlg=false;
+        std::string dir;
+        for (XMLAttribute* pAttrib = itemElement->FirstAttribute(); pAttrib != 0; pAttrib = pAttrib->Next()) {
+            std::string nameStr = pAttrib->NameTStr();
+            if (nameStr == "ligand") {
+                dir=pAttrib->ValueStr();
+            }
+            if (nameStr == "mesg") {
+                if(pAttrib->ValueStr()=="LIG.prmtop does not exist."){
+                    rstFlg=true;
+                }
+            }
+            
+        }
+        if(rstFlg){
+            ligList.push_back(dir);
+        }
+    }
+}
+
 struct JobInputData{        
     char dirBuffer[100];
 };
@@ -316,24 +399,25 @@ int main(int argc, char** argv) {
     if (error !=0) {
         MPI_Finalize();
         return 1;
-    }  
+    } 
+    
+    std::string LIGDIR=getenv("LIGDIR");
+    chdir(LIGDIR.c_str());
+
+    std::vector<std::string> ligList;
+    // split SDF file
+    if(rank==0){
+        if(!podata.restart){
+            splitSDF(podata.sdfFile, ligList);            
+        }else{
+            xmlEJobs(podata.xmlRst, ligList);
+        }                
+    }
     
     std::cout << "Number of tasks= " << nproc << " My rank= " << rank << std::endl;    
         
     if (rank == 0) {
-        
-        std::string LIGDIR=getenv("LIGDIR");
-        chdir(LIGDIR.c_str());
-        int count=1;
-
-        std::ifstream inFile;
-        try {
-            inFile.open(podata.sdfFile.c_str());
-        }
-        catch(...){
-            std::cout << "preLigands >> Cannot open file" << podata.sdfFile << std::endl;
-        }
-        
+                
 //! Tracking error using XML file
 
 	XMLDocument doc;  
@@ -349,73 +433,35 @@ int main(int argc, char** argv) {
          
         FILE* xmlFile=fopen("JobTrackingTemp.xml", "w"); 
  //! END of XML header
-        
-        const std::string delimter="$$$$";
-        std::string fileLine="";
-        std::string contents="";
 
-        while(inFile){
-            std::getline(inFile, fileLine);
-            contents=contents+fileLine+"\n";
-            if(fileLine.size()>=4 && fileLine.compare(0,4, delimter)==0){
-                std::string dir=Sstrm<std::string, int>(count);
-
-                std::string cmd="mkdir -p " +dir;
-                std::cout << cmd << std::endl;
-                system(cmd.c_str());
-                
-                std::string outputFName=dir+"/ligand.sdf";
-                std::ofstream outFile;
-                try {
-                    outFile.open(outputFName.c_str());
-                }
-                catch(...){
-                    std::cout << "preLigands >> Cannot open file" << outputFName << std::endl;
-                }
-                
-                outFile <<contents;
-                outFile.close(); 
-                
-                contents=""; //! clean up the contents for the next structure.
-                
-                
-                if(count >nproc-1){
-                    MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
+        for(unsigned i=0; i <ligList.size(); ++i){
+            if(i >=nproc-1){
+                MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
 //                    if(!jobOut.error){
-                        XMLElement * element = new XMLElement("error"); 
-                        element->SetAttribute("ligand", jobOut.dirBuffer);
-                        element->SetAttribute("mesg", jobOut.message);
-                        element->Print(xmlFile,2);
-                        fputs("\n",xmlFile);
-                        fflush(xmlFile);
-                        root->LinkEndChild(element);    
+                    XMLElement * element = new XMLElement("error"); 
+                    element->SetAttribute("ligand", jobOut.dirBuffer);
+                    element->SetAttribute("mesg", jobOut.message);
+                    element->Print(xmlFile,2);
+                    fputs("\n",xmlFile);
+                    fflush(xmlFile);
+                    root->LinkEndChild(element);    
 //                    }
-                } 
-                
-                int freeProc;
-                MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
-                std::cout << "At Process: " << freeProc << " working on: " << dir << std::endl;
-                MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
+            } 
 
-                strcpy(jobInput.dirBuffer, dir.c_str());
+            std::string dir=ligList[i];
 
-                MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);   
-               
-                ++count;               
-            }          
-        }        
-//        for(unsigned i=0; i<dirList.size(); ++i){
-//            std::cout << "Working on " << dirList[i] << std::endl;
-//            int freeProc;
-//            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
-//            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
-//
-//            strcpy(jobInput.dirBuffer, dirList[i].c_str());
-//
-//            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);
-//
-//        }
-        int nJobs=count-1;
+            int freeProc;
+            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
+            std::cout << "At Process: " << freeProc << " working on: " << dir << std::endl;
+            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
+
+            strcpy(jobInput.dirBuffer, dir.c_str());
+
+            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);   
+                             
+        }
+
+        int nJobs=ligList.size();
         int ndata=(nJobs<nproc-1)? nJobs: nproc-1;
         std::cout << "ndata=" << ndata << " nJobs=" << nJobs << std::endl;
     
@@ -432,7 +478,7 @@ int main(int argc, char** argv) {
 //            }
         } 
         
-        doc.SaveFile( "JobTracking.xml" );
+        doc.SaveFile(podata.xmlOut);
         
         for(unsigned i=1; i < nproc; ++i){
             int freeProc;

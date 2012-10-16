@@ -23,7 +23,7 @@ SanderOutput::~SanderOutput() {
 }
 
 
-bool SanderOutput::getEAmber(std::string sanderOutFile, double energy){
+bool SanderOutput::getEAmber(std::string sanderOutFile, double& energy){
     std::ifstream inFile;
     try {
         inFile.open(sanderOutFile.c_str());
@@ -60,7 +60,7 @@ bool SanderOutput::getEAmber(std::string sanderOutFile, double energy){
     return false;
 }
 
-bool SanderOutput::getEnergy(std::string sanderOutFile, double energy){
+bool SanderOutput::getEnergy(std::string sanderOutFile, double& energy){
     std::ifstream inFile;
     try {
         inFile.open(sanderOutFile.c_str());
