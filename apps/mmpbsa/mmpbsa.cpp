@@ -58,18 +58,36 @@ bool mmpbsa(std::string& dir, std::string& ligand, bool calcPB) {
     std::vector<double> bindGB;
     pSpMMPBSA->getbindGB(bindGB); 
     
+    double minEn=9999999.0;
+    int minID=0;
+    
     outFile <<"MM-GBSA:" << std::endl;
     for(unsigned i=0; i < bindGB.size(); ++i){
         outFile <<"Pose " << i+1 << ": " <<bindGB[i] << " kcal/mol" << std::endl;
+        if(bindGB[i]<minEn){
+            minEn=bindGB[i];
+            minID=i+1;
+        }
     }
+    
+    outFile <<"Minimum Energy " << minID << ": " <<minEn << " kcal/mol" << std::endl;
     
     std::vector<double> bindPB;
     pSpMMPBSA->getbindPB(bindPB);
-       
+
+    minEn=9999999.0;
+    minID=0;    
+    
     outFile <<"\nMM-PBSA:" << std::endl;
     for(unsigned i=0; i < bindPB.size(); ++i){
         outFile <<"Pose " << i+1 << ": " <<bindPB[i] << " kcal/mol" << std::endl;
+        if(bindGB[i]<minEn){
+            minEn=bindGB[i];
+            minID=i+1;
+        }
     }
+
+    outFile <<"Minimum Energy " << minID << ": " <<minEn << " kcal/mol" << std::endl;    
     
     outFile.close();
       
