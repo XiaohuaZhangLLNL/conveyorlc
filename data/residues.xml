@@ -106,5 +106,9 @@
    <residue>
        <name>VAL</name>
        <fullname>Valine</fullname>
-   </residue>    
+   </residue>   
+   <residue>
+       <name>HOH</name>
+       <fullname>Water</fullname>
+   </residue>      
 </residuelist>

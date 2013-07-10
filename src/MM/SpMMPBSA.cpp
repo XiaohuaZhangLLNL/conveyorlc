@@ -46,7 +46,7 @@ bool SpMMPBSA::energy(const std::string& dir, const std::string& ligand){
     std::string sanderOut=amberDir+"Rec_minGB2.out";
     recGBen=0;
     bool success;
-    success=pSanderOutput->getEnergy(sanderOut,recGBen);
+    success=pSanderOutput->getEAmber(sanderOut,recGBen);
     
     sanderOut=amberDir+"Rec_minPB.out";   
     recPBen=0;
@@ -227,6 +227,7 @@ void SpMMPBSA::ligRun(const std::string& ligand){
                 << "  ntpr   = 200,\n" 
                 << "  ntb    = 0,\n" 
                 << "  igb    = 5,\n" 
+                << "  gbsa   = 1,\n"
                 << "  cut    = 15,\n"       
                 << " /\n" << std::endl;
         minFile.close();    
@@ -365,9 +366,10 @@ void SpMMPBSA::comRun(const std::string& ligand, int poseID){
                 << "  ntpr   = 200,\n" 
                 << "  ntb    = 0,\n" 
                 << "  igb    = 5,\n" 
+                << "  gbsa   = 1,\n"
                 << "  cut    = 15,\n" 
                 << "  ntr=1,\n" 
-                << "  restraint_wt=5.0,\n" 
+                << "  restraint_wt=100.0,\n" 
                 << "  restraintmask='!:LIG'\n"        
                 << " /\n" << std::endl;
         
@@ -376,7 +378,7 @@ void SpMMPBSA::comRun(const std::string& ligand, int poseID){
     
     std::string sanderOut="Com_min_GB_"+Sstrm<std::string, int>(poseID)+".out";
     cmd="sander  -O -i Com_min.in -o "+sanderOut+" -p Com.prmtop -c Com.inpcrd -ref Com.inpcrd  -x Com_" 
-            +Sstrm<std::string, int>(poseID)+".mdcrd"+" -r Com_min.rst";
+            +Sstrm<std::string, int>(poseID)+".mdcrd"+" -r Com_min"+Sstrm<std::string, int>(poseID)+".rst";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
     
@@ -415,15 +417,18 @@ void SpMMPBSA::comRun(const std::string& ligand, int poseID){
                 << "  restraintmask='!:LIG'\n"        
                 << " /\n"
                 << " &pb\n"
-                << "  npbverb=0, epsout=80.0, radiopt=1, space=0.5,\n"
+                << "  npbverb=0, npopt=2, epsout=80.0, radiopt=1, space=0.5,\n"
                 << "  accept=1e-4, fillratio=6, sprob=1.6\n"
                 << " / \n" << std::endl;
                 
         minFile.close();    
     } 
     
+    //bypass the PB calculation.
+    cmd="cp "+sanderOut;
     sanderOut="Com_min_PB_"+Sstrm<std::string, int>(poseID)+".out";
-    cmd="sander -O -i Com_minPB.in -o "+sanderOut+" -p Com.prmtop -c Com_min.rst -ref Com_min.rst -x Com.mdcrd -r Com_min1.rst";
+//    cmd="sander -O -i Com_minPB.in -o "+sanderOut+" -p Com.prmtop -c Com_min.rst -ref Com_min.rst -x Com.mdcrd -r Com_min1.rst";
+    cmd=cmd+" "+sanderOut;
     std::cout <<cmd <<std::endl;
     system(cmd.c_str()); 
        

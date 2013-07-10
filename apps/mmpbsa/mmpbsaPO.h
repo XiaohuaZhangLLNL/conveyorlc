@@ -14,6 +14,7 @@ struct POdata{
     std::string recFile;
     std::string ligFile;
     std::string outputFile;
+    std::string xmlFile;
     bool pbFlag;
 };
 

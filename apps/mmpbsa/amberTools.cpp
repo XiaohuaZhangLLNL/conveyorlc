@@ -219,6 +219,7 @@ bool preReceptors(std::string& dir, bool getPDBflg){
                 << "  ntpr   = 200,\n" 
                 << "  ntb    = 0,\n" 
                 << "  igb    = 5,\n" 
+                << "  gbsa   = 1,\n"
                 << "  cut    = 15,\n" 
                 << "  ntr=1,\n" 
                 << "  restraint_wt=5.0,\n" 
@@ -263,7 +264,11 @@ bool preReceptors(std::string& dir, bool getPDBflg){
                 << "  ntpr   = 200,\n" 
                 << "  ntb    = 0,\n" 
                 << "  igb    = 5,\n" 
-                << "  cut    = 15,\n"        
+                << "  gbsa   = 1,\n"
+                << "  cut    = 15,\n" 
+                << "  ntr=1,\n" 
+                << "  restraint_wt=1.0,\n" 
+                << "  restraintmask='!@H=',\n"        
                 << " /\n" << std::endl;
         minFile.close();    
     }
@@ -312,49 +317,49 @@ bool preReceptors(std::string& dir, bool getPDBflg){
     }      
         
     //! The following section is to calculate PB energy.
-    minFName="Rec_minPB.in";
-    {
-        std::ofstream minFile;
-        try {
-            minFile.open(minFName.c_str());
-        }
-        catch(...){
-            std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
-            throw LBindException(mesg);
-        }   
-
-        minFile << "title..\n" 
-                << " &cntrl\n" 
-                << "  imin   = 1,\n" 
-                << "  ntmin   = 3,\n" 
-                << "  maxcyc = 2000,\n" 
-                << "  ncyc   = 1000,\n" 
-                << "  ntpr   = 200,\n" 
-                << "  ntb    = 0,\n" 
-                << "  igb    = 10,\n" 
-                << "  cut    = 15,\n"        
-                << " /\n"
-                << " &pb\n"
-                << "  npbverb=0, epsout=80.0, radiopt=1, space=0.5,\n"
-                << "  accept=1e-4, fillratio=6, sprob=1.6\n"
-                << " / \n" << std::endl;
-                
-        minFile.close();    
-    } 
-    cmd="sander -O -i Rec_minPB.in -o Rec_minPB.out -p REC.prmtop -c Rec_min2.rst -ref Rec_min2.rst -x REC.mdcrd -r Rec_min3.rst";
-    std::cout <<cmd <<std::endl;
-    system(cmd.c_str()); 
-       
-    sanderOut="Rec_minPB.out";
-    double recPBen=0;
-    success=pSanderOutput->getEnergy(sanderOut,recPBen);
-    std::cout << "Receptor PB Minimization Energy: " << recPBen <<" kcal/mol."<< std::endl;
-    if(!success){
-        std::string message="Receptor PB minimization fails.";
-        throw LBindException(message); 
-        jobStatus=false; 
-        return jobStatus;          
-    }    
+//    minFName="Rec_minPB.in";
+//    {
+//        std::ofstream minFile;
+//        try {
+//            minFile.open(minFName.c_str());
+//        }
+//        catch(...){
+//            std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
+//            throw LBindException(mesg);
+//        }   
+//
+//        minFile << "title..\n" 
+//                << " &cntrl\n" 
+//                << "  imin   = 1,\n" 
+//                << "  ntmin   = 3,\n" 
+//                << "  maxcyc = 2000,\n" 
+//                << "  ncyc   = 1000,\n" 
+//                << "  ntpr   = 200,\n" 
+//                << "  ntb    = 0,\n" 
+//                << "  igb    = 10,\n" 
+//                << "  cut    = 15,\n"        
+//                << " /\n"
+//                << " &pb\n"
+//                << "  npbverb=0, npopt=2, epsout=80.0, radiopt=1, space=0.5,\n"
+//                << "  accept=1e-4, fillratio=6, sprob=1.6\n"
+//                << " / \n" << std::endl;
+//                
+//        minFile.close();    
+//    } 
+//    cmd="sander -O -i Rec_minPB.in -o Rec_minPB.out -p REC.prmtop -c Rec_min2.rst -ref Rec_min2.rst -x REC.mdcrd -r Rec_min3.rst";
+//    std::cout <<cmd <<std::endl;
+//    system(cmd.c_str()); 
+//       
+//    sanderOut="Rec_minPB.out";
+//    double recPBen=0;
+//    success=pSanderOutput->getEnergy(sanderOut,recPBen);
+//    std::cout << "Receptor PB Minimization Energy: " << recPBen <<" kcal/mol."<< std::endl;
+//    if(!success){
+//        std::string message="Receptor PB minimization fails.";
+//        throw LBindException(message); 
+//        jobStatus=false; 
+//        return jobStatus;          
+//    }    
     
     return jobStatus;
 }
@@ -457,8 +462,8 @@ int main(int argc, char** argv) {
 
 	XMLComment * comment = new XMLComment();
 	comment->SetValue(" Tracking calculation error using XML file " );  
-	root->LinkEndChild( comment );          
-         
+	root->LinkEndChild( comment );     
+        
         FILE* xmlGoodFile=fopen("JobTrackingGood.xml", "w"); 
         FILE* xmlBadFile=fopen("JobTrackingBad.xml", "w"); 
         //! END of XML header        

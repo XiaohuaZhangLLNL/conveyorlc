@@ -56,7 +56,7 @@ void Amber::antechamber(std::string& input, std::string& output, std::string& op
 //    snprintf(buffer, sizeof(buffer), "%g", totCharge);
 //    std::string strTotalCharge=buffer;
     std::string cmd=AMBERPATH +"/bin/antechamber -i " +input + " -fi pdb -o "
-            + output + " -fo mol2 -s 0"+options+" >& antechamber.out"; 
+            + output + " -fo mol2 -s 0 -pf yes "+options+" >& antechamber.out"; 
     std::cout << cmd << std::endl;
     system(cmd.c_str());       
 }

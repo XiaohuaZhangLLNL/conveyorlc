@@ -1122,7 +1122,7 @@ void Pdb::standardlize2(const std::string& inFileName, const std::string& outFil
         for(std::vector<Fragment*>::iterator f=resList.begin(); f!=resList.end(); ++f){
             Fragment* pFrag=*f;
 //            std::cout << "Residue Name="<< pFrag->getName() << std::endl;
-            if(pFrag->getName() != "HOH") {   
+//            if(pFrag->getName() != "HOH") {   
                 // if erase item iterator back up.
                if(pStdResContainer->find(pFrag->getName())) {
                    pTmpMol->addFragment(pFrag);
@@ -1139,7 +1139,7 @@ void Pdb::standardlize2(const std::string& inFileName, const std::string& outFil
                    nonAAfile << pFrag->getName() <<std::endl;
                }
                 
-            }
+//            }
         }
         
 //        std::cout << "resList Second size=" << resList.size() << std::endl;

@@ -139,6 +139,7 @@ bool preLigands(std::string& dir) {
                 << "  ntpr   = 200,\n" 
                 << "  ntb    = 0,\n" 
                 << "  igb    = 5,\n" 
+                << "  gbsa   = 1,\n" 
                 << "  cut    = 15,\n"       
                 << " /\n" << std::endl;
 
@@ -176,7 +177,7 @@ bool preLigands(std::string& dir) {
     pPdb->fixElement("LIG_minTmp.pdb", "LIG_min.pdb"); 
         
     //! Get DPBQT file for ligand from minimized structure.
-    cmd="prepare_ligand4.py -l LIG_min.pdb -A hydrogens";
+    cmd="prepare_ligand4.py -l LIG_min.pdb";
     std::cout << cmd << std::endl;
     system(cmd.c_str());
     
@@ -212,7 +213,7 @@ bool preLigands(std::string& dir) {
                 << "  cut    = 15,\n"         
                 << " /\n"
                 << " &pb\n"
-                << "  npbverb=0, epsout=80.0, radiopt=1, space=0.5,\n"
+                << "  npbverb=0, npopt=2, epsout=80.0, radiopt=1, space=0.5,\n"
                 << "  accept=1e-4, fillratio=6, sprob=1.6\n"
                 << " / \n" << std::endl;
 

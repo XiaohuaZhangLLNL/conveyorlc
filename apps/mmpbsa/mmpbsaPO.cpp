@@ -27,6 +27,7 @@ bool mmpbsaPO(int argc, char** argv, POdata& podata) {
                 ("recList", value<std::string > (&podata.recFile), "receptor directory file name")
                 ("ligList", value<std::string > (&podata.ligFile), "ligand directory file name")
                 ("output", value<std::string > (&podata.outputFile), "output filename")
+                ("xml", value<std::string > (&podata.xmlFile), "JobTracking XML filename")
                 ("PB", value<bool>(&podata.pbFlag)->default_value(true), "Turn on/off PB calculation (Default on).")
                 ;   
         options_description info("Optional:");

@@ -81,8 +81,8 @@ bool mmpbsa(std::string& dir, std::string& ligand, bool calcPB) {
     outFile <<"\nMM-PBSA:" << std::endl;
     for(unsigned i=0; i < bindPB.size(); ++i){
         outFile <<"Pose " << i+1 << ": " <<bindPB[i] << " kcal/mol" << std::endl;
-        if(bindGB[i]<minEn){
-            minEn=bindGB[i];
+        if(bindPB[i]<minEn){
+            minEn=bindPB[i];
             minID=i+1;
         }
     }
@@ -194,9 +194,17 @@ int main(int argc, char** argv) {
 	XMLComment * comment = new XMLComment();
 	comment->SetValue(" Tracking calculation error using XML file " );  
 	root->LinkEndChild( comment );  
-         
-        FILE* xmlGoodFile=fopen("JobTrackingGood.xml", "w"); 
-        FILE* xmlBadFile=fopen("JobTrackingBad.xml", "w"); 
+        
+        std::string xmlGoodFName="JobTrackingGood.xml";
+        std::string xmlBadFName="JobTrackingBad.xml";
+        std::string xmlFName="JobTracking.xml";
+        if(podata.xmlFile.length()>0){
+            xmlGoodFName=podata.xmlFile+"-Good.xml";
+            xmlBadFName=podata.xmlFile+"-Bad.xml"; 
+            xmlFName=podata.xmlFile+".xml";
+        }
+        FILE* xmlGoodFile=fopen(xmlGoodFName.c_str(), "w"); 
+        FILE* xmlBadFile=fopen(xmlBadFName.c_str(), "w"); 
         //! END of XML header
         
 
@@ -271,7 +279,7 @@ int main(int argc, char** argv) {
             }
         } 
         
-        doc.SaveFile( "JobTracking.xml" );          
+        doc.SaveFile( xmlFName.c_str() );          
         
         for(unsigned i=1; i < nproc; ++i){
             int freeProc;

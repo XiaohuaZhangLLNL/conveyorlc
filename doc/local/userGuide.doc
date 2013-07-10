@@ -30,7 +30,7 @@ export AMBERHOME=/usr/gapps/medchem/amber/amber12
 export PATH=$AMBERHOME/bin/:$PATH
 export LIGDIR=`pwd`
 
-srun -N40 -n640 /usr/gapps/medchem/NetBeansProjects/MedCM/apps/mmpbsa/preLigands ligprep_14-out.sdf
+srun -N40 -n640 /usr/gapps/medchem/medcm/bin/preLigands --sdf ligprep_14-out.sdf
 
 echo END
 date<br /></pre>
@@ -99,9 +99,9 @@ date
 export AMBERHOME=/usr/gapps/medchem/amber/amber12
 export PATH=$AMBERHOME/bin/:$PATH
 export WORKDIR=`pwd`/workspace/
-export LBindData=/g/g92/zhang30/medchem/NetBeansProjects/MedCM/data/
+export LBindData=/usr/gapps/medchem/medcm/data/
 
-srun -N50 --ntasks-per-node=16 -n800 /g/g92/zhang30/medchem/NetBeansProjects/MedCM/apps/mmpbsa/preReceptors recList GetPDB
+srun -N10 -n160 /usr/gapps/medchem/medcm/bin/amberTools --input recList --getPDB 0 
 
 echo END
 
@@ -200,7 +200,7 @@ cat &gt; vina-$COUNTER.job &lt;&lt; EOF
 
 date
 
-srun -N1284 -n1284 -c12 ./vina --recList recList$STR --ligList ligList --geoList geoList$STR --exhaustiveness 12  --granularity 0.333
+srun -N1284 -n1284 -c12 /usr/gapps/medchem/medcm/bin/vinaBMPI --recList recList$STR --ligList ligList --geoList geoList$STR --exhaustiveness 12  --granularity 0.333
 
 
 date
@@ -241,7 +241,7 @@ export WORKDIR=`pwd`/workspace/
 #msub -m e<br /><br />export AMBERHOME=/usr/gapps/medchem/amber/amber12
 export PATH=$AMBERHOME/bin/:$PATH
 export WORKDIR=`pwd`/workspace/
-<br />date<br /><br />srun -N20 -n320 /usr/gapps/medchem/NetBeansProjects/MedCM/apps/mmpbsa/mmpbsa recList ligList
+<br />date<br /><br />srun -N20 -n320 /usr/gapps/medchem/medcm/bin/mmpbsa --recList recDir --ligList ligDir
 
 date<br /><br /></pre>
         <p>recList and ligList are list of receptor PDB IDs and ligand numbers.</p>
