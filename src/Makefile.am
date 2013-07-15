@@ -28,6 +28,7 @@ MM/Amber.cpp \
 MM/AutoDock.cpp \
 MM/Gromacs.cpp \
 MM/Namd.cpp \
+MM/SpMMGBSA.cpp  \
 MM/SpMMPBSA.cpp  \
 MM/VinaLC.cpp  \
 Parser/BaseParser.cpp  \
@@ -85,6 +86,7 @@ MM/Amber.h \
 MM/AutoDock.h \
 MM/Gromacs.h \
 MM/Namd.h \
+MM/SpMMGBSA.h  \
 MM/SpMMPBSA.h  \
 MM/VinaLC.h  \
 Parser/BaseParser.h  \

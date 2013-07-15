@@ -57,3 +57,5 @@
 /apps/tools/mol2Info
 /tests/JobTrackSplTest
 /tests/gmon.out
+/apps/mmpbsa/glideGBSA
+/apps/mmpbsa/mmgbsa

@@ -13,7 +13,7 @@
 #include <vector>
 
 
-#include "src/MM/SpMMPBSA.h"
+#include "src/MM/SpMMGBSA.h"
 #include "src/Common/Tokenize.hpp"
 #include "src/Structure/Constants.h"
 #include "src/Common/File.hpp"
@@ -40,10 +40,10 @@ using namespace LBIND;
 
 
 
-bool mmgbsa(std::string& dir, std::string& ligand, bool calcPB) {
+bool mmgbsa(std::string& dir, std::string& ligand) {
     
-    boost::scoped_ptr<SpMMPBSA> pSpMMPBSA(new SpMMPBSA(calcPB));
-    pSpMMPBSA->run(dir, ligand);
+    boost::scoped_ptr<SpMMGBSA> pSpMMGBSA(new SpMMGBSA());
+    pSpMMGBSA->run(dir, ligand);
   
     std::string outFileName=dir+"-"+ligand+".txt";
     
@@ -56,7 +56,7 @@ bool mmgbsa(std::string& dir, std::string& ligand, bool calcPB) {
     }
     
     std::vector<double> bindGB;
-    pSpMMPBSA->getbindGB(bindGB); 
+    pSpMMGBSA->getbindGB(bindGB); 
     
     double minEn=9999999.0;
     int minID=0;
@@ -71,26 +71,7 @@ bool mmgbsa(std::string& dir, std::string& ligand, bool calcPB) {
     }
     
     outFile <<"Minimum Energy " << minID << ": " <<minEn << " kcal/mol" << std::endl;
-    
-    std::vector<double> bindPB;
-    pSpMMPBSA->getbindPB(bindPB);
-
-    minEn=9999999.0;
-    minID=0;    
-    
-    outFile <<"\nMM-PBSA:" << std::endl;
-    for(unsigned i=0; i < bindPB.size(); ++i){
-        outFile <<"Pose " << i+1 << ": " <<bindPB[i] << " kcal/mol" << std::endl;
-        if(bindPB[i]<minEn){
-            minEn=bindPB[i];
-            minID=i+1;
-        }
-    }
-
-    outFile <<"Minimum Energy " << minID << ": " <<minEn << " kcal/mol" << std::endl;    
-    
-    outFile.close();
-      
+          
     return true;
 }
 
@@ -302,11 +283,10 @@ int main(int argc, char** argv) {
             std::string dir=jobInput.dirBuffer;
             std::string lig=jobInput.ligBuffer;
             
-            if(jobInput.pbFlag ==0) calcPB = false;
                         
             strcpy(jobOut.message, "Finished!");
             try{
-                bool jobStatus=mmgbsa(dir, lig, calcPB);            
+                bool jobStatus=mmgbsa(dir, lig);            
                 jobOut.error=jobStatus;
             } catch (LBindException& e){
                 std::string message= e.what();  
