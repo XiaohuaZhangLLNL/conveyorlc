@@ -16,7 +16,7 @@ namespace LBIND{
 // ! Single-Point MM-PB(GB)SA rescoring of vina docking poses.    
 class SpMMGBSA {
 public:
-    SpMMGBSA();
+    SpMMGBSA(const std::string& dir, const std::string& ligand);
     SpMMGBSA(const SpMMGBSA& orig);
     virtual ~SpMMGBSA();
 
@@ -32,33 +32,35 @@ public:
     
   
 private:
-    /**
-     * \breif recRun prepare pdbqt, tleap and run GB/PB minimization for receptor
-     * \param dir the directory/receptor name under the WORKDIR
-     * 
-     */    
-    void recRun(const std::string& dir);
-    /**
-     * \breif ligRun prepare parameter files and run GB/PB minimization for ligand
-     * \param ligand the ligand name under the ligLibDir
-     * 
-     */    
-    void ligRun(const std::string& ligand);
+//    /**
+//     * \breif recRun prepare pdbqt, tleap and run GB/PB minimization for receptor
+//     * \param dir the directory/receptor name under the WORKDIR
+//     * 
+//     */    
+//    void recRun(const std::string& dir);
+//    /**
+//     * \breif ligRun prepare parameter files and run GB/PB minimization for ligand
+//     * \param ligand the ligand name under the ligLibDir
+//     * 
+//     */    
+//    void ligRun(const std::string& ligand);
     /**
      * \breif comRun prepare tleap and run GB/PB minimization for complex
      * \param ligand the ligand name under the ligLibDir
      * \param poseID the pose ID (Model number in Vina pdbqt output)
      * 
      */    
-    void comRun(const std::string& ligand, int poseID); 
-    /**
-     * 
-     */
-    bool energy(const std::string& dir,const std::string& ligand);  
-    /**
-     * \breif calBind calculate binding energies for poses
-     */
-    void calBind();
+    void comRun(int poseID); 
+    
+    bool checkRun(int poseID); 
+//    /**
+//     * 
+//     */
+////    bool energy(const std::string& dir,const std::string& ligand);  
+//    /**
+//     * \breif calBind calculate binding energies for poses
+//     */
+//    void calBind();
     
     /**
      * \param WORKDIR is the working dierctory containing a list of receptor names;
@@ -67,20 +69,17 @@ private:
      * 
      */     
     std::string WORKDIR;
-    std::string ligLibDir;
+    std::string amberDir;
+    std::string ligDir;
     
    /**
     Energy data
     */
     
-    double recGBen;
-    double recPBen;
     double ligGBen;
-    double ligPBen;
-    std::vector<double> comGBen;
-    std::vector<double> comPBen;    
-    std::vector<double> bindGBen;
-    std::vector<double> bindPBen;      
+//    std::vector<double> recGBen;
+//    std::vector<double> comGBen; 
+    std::vector<double> bindGBen;      
 };
 
 }//namespace LBIND

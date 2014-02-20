@@ -244,52 +244,52 @@ bool preReceptors(std::string& dir, bool getPDBflg){
         return jobStatus;          
     }
     
-    minFName="Rec_minGB2.in";
-    {
-        std::ofstream minFile;
-        try {
-            minFile.open(minFName.c_str());
-        }
-        catch(...){
-            std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
-            throw LBindException(mesg);
-        }   
+//    minFName="Rec_minGB2.in";
+//    {
+//        std::ofstream minFile;
+//        try {
+//            minFile.open(minFName.c_str());
+//        }
+//        catch(...){
+//            std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
+//            throw LBindException(mesg);
+//        }   
+//
+//        minFile << "title..\n" 
+//                << "&cntrl\n" 
+//                << "  imin   = 1,\n" 
+//                << "  ntmin   = 3,\n" 
+//                << "  maxcyc = 2000,\n" 
+//                << "  ncyc   = 1000,\n" 
+//                << "  ntpr   = 200,\n" 
+//                << "  ntb    = 0,\n" 
+//                << "  igb    = 5,\n" 
+//                << "  gbsa   = 1,\n"
+//                << "  cut    = 15,\n" 
+//                << "  ntr=1,\n" 
+//                << "  restraint_wt=1.0,\n" 
+//                << "  restraintmask='!@H=',\n"        
+//                << " /\n" << std::endl;
+//        minFile.close();    
+//    }
+//    
+//    cmd="sander -O -i Rec_minGB2.in -o Rec_minGB2.out  -p REC.prmtop -c Rec_min.rst -ref Rec_min.rst -x REC.mdcrd -r Rec_min2.rst";
+//    std::cout <<cmd <<std::endl;
+//    system(cmd.c_str()); 
+    
+//    sanderOut="Rec_minGB2.out";
+//    recGBen=0;
+//    success=pSanderOutput->getEnergy(sanderOut, recGBen);
+//    std::cout << "Receptorn GB Minimization Energy: " << recGBen <<" kcal/mol."<< std::endl;
 
-        minFile << "title..\n" 
-                << "&cntrl\n" 
-                << "  imin   = 1,\n" 
-                << "  ntmin   = 3,\n" 
-                << "  maxcyc = 2000,\n" 
-                << "  ncyc   = 1000,\n" 
-                << "  ntpr   = 200,\n" 
-                << "  ntb    = 0,\n" 
-                << "  igb    = 5,\n" 
-                << "  gbsa   = 1,\n"
-                << "  cut    = 15,\n" 
-                << "  ntr=1,\n" 
-                << "  restraint_wt=1.0,\n" 
-                << "  restraintmask='!@H=',\n"        
-                << " /\n" << std::endl;
-        minFile.close();    
-    }
+//    if(!success){
+//        std::string message="Receptor 2nd GB minimization fails.";
+//        throw LBindException(message); 
+//        jobStatus=false; 
+//        return jobStatus;          
+//    }    
     
-    cmd="sander -O -i Rec_minGB2.in -o Rec_minGB2.out  -p REC.prmtop -c Rec_min.rst -ref Rec_min.rst -x REC.mdcrd -r Rec_min2.rst";
-    std::cout <<cmd <<std::endl;
-    system(cmd.c_str()); 
-    
-    sanderOut="Rec_minGB2.out";
-    recGBen=0;
-    success=pSanderOutput->getEnergy(sanderOut, recGBen);
-    std::cout << "Receptorn GB Minimization Energy: " << recGBen <<" kcal/mol."<< std::endl;
-
-    if(!success){
-        std::string message="Receptor 2nd GB minimization fails.";
-        throw LBindException(message); 
-        jobStatus=false; 
-        return jobStatus;          
-    }    
-    
-    cmd="ambpdb -p REC.prmtop < Rec_min2.rst > Rec_min_0.pdb";
+    cmd="ambpdb -p REC.prmtop < Rec_min.rst > Rec_min_0.pdb";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
 

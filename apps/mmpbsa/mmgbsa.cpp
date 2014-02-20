@@ -42,8 +42,8 @@ using namespace LBIND;
 
 bool mmgbsa(std::string& dir, std::string& ligand) {
     
-    boost::scoped_ptr<SpMMGBSA> pSpMMGBSA(new SpMMGBSA());
-    pSpMMGBSA->run(dir, ligand);
+    boost::scoped_ptr<SpMMGBSA> pSpMMGBSA(new SpMMGBSA(dir, ligand));
+    pSpMMGBSA->run(dir, ligand); 
   
     std::string outFileName=dir+"-"+ligand+".txt";
     
