@@ -238,8 +238,6 @@ void Pdb::parse(const std::string& fileName, Complex* pComplex){
             std::string atomName= fileLine.substr(12,4);
             std::string resName= fileLine.substr(17,3);
 
-//            std::cout << fileID << " " << atomName << " " << resName << std::endl;
-
             std::string MoleculeName=fileLine.substr(21,1);
 //            std::cout << MoleculeName << std::endl;
             
@@ -285,6 +283,7 @@ void Pdb::parse(const std::string& fileName, Complex* pComplex){
             pAtom->setName(atomName);
             pAtom->setCoords(x,y,z);
             pAtom->setSymbol(typeName);
+//            std::cout << "|" << typeName << "|" << std::endl;
 //            pElement=pAtom->addElement();
 //            pElement->setElementSymbol(typeName);
             
@@ -295,8 +294,10 @@ void Pdb::parse(const std::string& fileName, Complex* pComplex){
         }
 
     }
-
-    inFile.close();    
+        
+    inFile.close();   
+    std::vector<Atom*> atomList2=pComplex->getAtomList();
+    std::cout << "Atom number in PDB2: " << atomList2.size() << std::endl;
     
 }
 

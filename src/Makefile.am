@@ -22,6 +22,7 @@ BackBone/Base.cpp \
 BackBone/Ligand.cpp \
 BackBone/Pathway.cpp \
 BackBone/Protein.cpp \
+BackBone/Surface.cpp \
 Common/Control.cpp \
 Common/LBindException.cpp \
 MM/Amber.cpp \
@@ -78,6 +79,8 @@ BackBone/Base.h \
 BackBone/Ligand.h \
 BackBone/Pathway.h \
 BackBone/Protein.h \
+BackBone/Surface.h \
+Common/Chomp.hpp \
 Common/Control.h \
 Common/File.hpp  \
 Common/LBindException.h \

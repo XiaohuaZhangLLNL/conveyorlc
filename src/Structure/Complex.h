@@ -13,6 +13,7 @@
 namespace LBIND{
     class Control;
     class Molecule;
+    class Atom;
     class Coordinates;
     class Coor3d;
     class ElementContainer;
@@ -35,6 +36,7 @@ public:
     void getCoordinate(Coordinates* pCoordinates);
     
     int getTotNumAtom();
+    std::vector<Atom*> getAtomList();
     
 protected:
     Control* pControl;

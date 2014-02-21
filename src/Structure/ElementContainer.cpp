@@ -8,6 +8,7 @@
 #include "ElementContainer.h"
 #include "Element.h"
 #include "Common/LBindException.h"
+#include "Common/Chomp.hpp"
 
 namespace LBIND{
 
@@ -39,6 +40,7 @@ std::map<std::string, Element*> ElementContainer::getElementMap(){
 }
 
 Element* ElementContainer::symbolToElement(std::string symbol){
+    chomp(symbol);
     for(ElementMapIterator it=itsElementMap.begin(); it!=itsElementMap.end(); ++it){
         if(it->first.compare(symbol)==0) return it->second;
     }

@@ -78,6 +78,10 @@ public:
     
     void setHybridization(int hybrid);
     int getHybridization();
+    
+    
+    void setSASA(double sas);
+    double getSASA();
 
     void setParent(Fragment* parent);
     Fragment* getParent();
@@ -111,6 +115,9 @@ protected:
         - 8 = Chain or terminal Atom
     */
     int itsType;
+    
+    // ! Solvent accessible surface area
+    double sasa; 
 
     //! nuclear charge
     double itscharge;

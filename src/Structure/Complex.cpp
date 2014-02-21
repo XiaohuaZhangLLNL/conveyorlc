@@ -9,6 +9,7 @@
 
 #include "Complex.h"
 #include "Molecule.h"
+#include "Fragment.h"
 #include "Coordinates.h"
 #include "Atom.h"
 #include "ElementContainer.h"
@@ -61,26 +62,19 @@ Control* Complex::getControl()
 }
 
 void Complex::assignElement(ElementContainer* pElementContainer){
-#ifdef USE_LOGGER
-    std::stringstream ss;    
-    ss << "... assignElement itsChildren.size" << itsChildren.size() << std::endl;
-#endif
-    for(std::vector<Molecule*>::iterator m=itsChildren.begin();
-            m!=itsChildren.end();++m){
-        std::vector<Atom*> atomList=(*m)->getGrdChildren();
-#ifdef USE_LOGGER
-        ss << "... assignElement atomList.size" << atomList.size() << std::endl;
-#endif
-        for(std::vector<Atom*>::iterator a=atomList.begin();
-                a!=atomList.end();++a){
-            Element* pElement=pElementContainer->symbolToElement((*a)->getSymbol());
-            (*a)->setElement(pElement);
+    
+    for(unsigned i=0; i< itsChildren.size(); ++i){
+        std::vector<Fragment*> resList=itsChildren[i]->getChildren();
+        for(unsigned j=0; j<resList.size(); ++j){
+            std::vector<Atom*> atomList=resList[j]->getChildren();
+            for(unsigned k=0; k<atomList.size(); ++k){
+                Atom *pAtom=atomList[k];
+                Element *pElement=pElementContainer->symbolToElement(pAtom->getSymbol());
+                pAtom->setElement(pElement);
+            }
         }
-    }
-#ifdef USE_LOGGER    
-    ss << "ParmContainer ... assignElement end" << std::endl;
-    Logger::Instance()->writeToLogFile(ss.str());
-#endif
+        
+    }  
     
 }
 
@@ -126,6 +120,23 @@ int Complex::getTotNumAtom(){
 
     }
     return totNumAtom;
+}
+
+std::vector<Atom*> Complex::getAtomList(){
+    std::vector<Atom*> retAtomList;
+    for(unsigned i=0; i< itsChildren.size(); ++i){
+        std::vector<Fragment*> resList=itsChildren[i]->getChildren();
+        for(unsigned j=0; j<resList.size(); ++j){
+            std::vector<Atom*> atomList=resList[j]->getChildren();
+            for(unsigned k=0; k<atomList.size(); ++k){
+                Atom *pAtom=atomList[k];
+                retAtomList.push_back(pAtom);
+            }
+        }
+        
+    }  
+   // std::cout << "Atom number in Complex: " << retAtomList.size() << std::endl;
+    return retAtomList;
 }
 
 }//namespace LBIND

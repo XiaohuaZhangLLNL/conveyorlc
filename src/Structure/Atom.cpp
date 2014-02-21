@@ -27,6 +27,7 @@ Atom::Atom(): BaseStruct(),
         itsType(0),
         itscharge(0),
         itsHybridization(0),
+        sasa(0),
         pCoords(new Coor3d(0.0)),
         pParent(NULL),
         pSupParent(NULL)
@@ -39,6 +40,7 @@ Atom::Atom(Molecule* supParent): BaseStruct(),
         itsType(0),
         itscharge(0),
         itsHybridization(0),
+        sasa(0),
         pCoords(new Coor3d(0.0)),
         pParent(NULL),
         pSupParent(supParent)
@@ -51,6 +53,7 @@ Atom::Atom(Fragment* parent): BaseStruct(),
         itsType(0),
         itscharge(0),
         itsHybridization(0),
+        sasa(0),
         pCoords(new Coor3d(0.0)),
         pParent(parent),
         pSupParent(NULL)
@@ -165,6 +168,14 @@ void Atom::setHybridization(int hybrid){
 
 int Atom::getHybridization(){
     return this->itsHybridization;
+}
+
+void Atom::setSASA(double sas){
+    this->sasa=sas;
+}
+
+double Atom::getSASA(){
+    return this->sasa;
 }
 
 void Atom::setParent(Fragment* parent){

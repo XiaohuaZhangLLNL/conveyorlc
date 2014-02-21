@@ -1,11 +1,11 @@
 /* 
- * File:   mol2InfoPO.cpp
- * Author: zhang30
+ * File:   calcSASAPO.cpp
+ * Author: zhang
  * 
- * Created on September 26, 2012, 4:30 PM
+ * Created on February 20, 2014, 4:59 PM
  */
 
-#include "mol2InfoPO.h"
+#include "calcSASAPO.h"
 
 #include <cstdlib>
 
@@ -18,7 +18,7 @@ using namespace boost::program_options;
 /*
  * 
  */
-bool mol2InfoPO(int argc, char** argv, POdata& podata) {
+bool calcSASAPO(int argc, char** argv, POdata& podata) {
     
     bool help;
     positional_options_description positional;
@@ -26,7 +26,7 @@ bool mol2InfoPO(int argc, char** argv, POdata& podata) {
     try {
         options_description inputs("Required:");
         inputs.add_options()
-                ("mol2", value<std::string > (&podata.mol2File), "input Mol2 file name")
+                ("pdb", value<std::string > (&podata.pdbFile), "input PDB file name")
                 ("output", value<std::string > (&podata.outputFile), "output filename")
                 ;   
         options_description info("Optional:");
@@ -56,8 +56,8 @@ bool mol2InfoPO(int argc, char** argv, POdata& podata) {
             return 0;
         }
 
-        if (vm.count("mol2") <= 0) {
-            std::cerr << "Missing input XML file name.\n" << "\nCorrect usage:\n" << desc << '\n';
+        if (vm.count("pdb") <= 0) {
+            std::cerr << "Missing input PDB file name.\n" << "\nCorrect usage:\n" << desc << '\n';
             return false;
         }
         
