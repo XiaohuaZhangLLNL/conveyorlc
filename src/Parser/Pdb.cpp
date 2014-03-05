@@ -296,8 +296,8 @@ void Pdb::parse(const std::string& fileName, Complex* pComplex){
     }
         
     inFile.close();   
-    std::vector<Atom*> atomList2=pComplex->getAtomList();
-    std::cout << "Atom number in PDB2: " << atomList2.size() << std::endl;
+//    std::vector<Atom*> atomList2=pComplex->getAtomList();
+//    std::cout << "Atom number in PDB2: " << atomList2.size() << std::endl;
     
 }
 
@@ -737,6 +737,46 @@ void Pdb::write(const std::string& fileName, Molecule* pMol){
     }
     outFile << "END" <<std::endl;
     outFile.close();
+}
+
+void Pdb::write(const std::string& fileName, std::vector<Atom*>& atomList){
+    
+    std::ofstream outFile;
+    try {
+        outFile.open(fileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::read >> Cannot open file" << fileName << std::endl;
+    }
+
+    outFile << "REMARK PDB FILE CONVERTED BY PMOL" << std::endl;
+
+
+    for(unsigned k=0;k<atomList.size();k++){
+
+        outFile << "ATOM  "<< std::setw(5)<< atomList[k]->getFileID();
+        if((atomList[k]->getName()).size()>2){
+            outFile  << " " << std::left << std::setw(4) <<atomList[k]->getName();
+        }else{
+            outFile  << " " << " " << std::left << std::setw(3) <<atomList[k]->getName();
+        }
+
+        outFile << " " << std::left << std::setw(3) <<"UNK"
+                << " " << std::setw(1) <<" "
+                << std::right << std::setw(4) << 1
+                << "    "
+                << std::fixed <<std::setprecision(3)
+                << std::setw(8) << atomList[k]->getX()
+                << std::setw(8) << atomList[k]->getY()
+                << std::setw(8) << atomList[k]->getZ()
+                << std::setw(22) << " "
+   //             << std::right << std::setw(2) << atomList[k]->getElement()->getElementSymbol()
+                << std::endl;
+    //                std::cout << "List Size: " << atomList.size() << "x= "<< atomList[k]->getX() << " y= " <<atomList[k]->getY()
+    //                        << " z= "<<atomList[k]->getZ() << std::endl;
+    }
+    outFile << "END" <<std::endl;
+    outFile.close();    
 }
 
 //void Pdb::write(const std::string& fileName, boost::shared_ptr<Conformer> pConformer){

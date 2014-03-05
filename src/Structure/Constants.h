@@ -39,6 +39,8 @@ namespace LBIND{
     const double HPLANCK = 6.626218e-34;
     const double HBAR = HPLANCK/2.0/PI;
 
+    const double BIGPOSITIVE=9999999.0;
+    const double BIGNEGTIVE=-9999999.0;
 //    const double ECONSTANT=2.71828182846;
 
 }//namespace LBIND

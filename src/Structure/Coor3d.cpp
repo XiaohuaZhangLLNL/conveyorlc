@@ -76,6 +76,11 @@ double Coor3d::dist2(const Coor3d& coord){
             +(z-coord.z)*(z-coord.z));
 }
 
+double Coor3d::dist2(const double xCoor, const double yCoor, const double zCoor){
+    return ((x-xCoor)*(x-xCoor)+(y-yCoor)*(y-yCoor)
+            +(z-zCoor)*(z-zCoor));
+}
+
 void Coor3d::rotate(const double rotMat[9], const Coor3d& o) {
             this->x -= o.x;
             this->y -= o.y;

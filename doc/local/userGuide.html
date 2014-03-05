@@ -1,1 +1,304 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">  <head>    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />    <title>User Guide</title>  </head>  <body>    <div class="contents">      <div class="textblock">        <ol type="1">        </ol>        <h3>1. Prepare ligands by preLigands</h3>        <h4>1.1 Input file</h4>        <pre></pre>        <p>A typical job script to run preLigands:<br />        </p>        <pre class="fragment">#!/bin/bash #msub -A medcm#msub -l nodes=40:ppn=16#msub -l walltime=16:00:00#msub -l partition=hera#msub -m edatehostnameexport AMBERHOME=/usr/gapps/medchem/amber/amber12export PATH=$AMBERHOME/bin/:$PATHexport LIGDIR=`pwd`srun -N40 -n640 /usr/gapps/medchem/NetBeansProjects/MedCM/apps/mmpbsa/preLigands ligprep_14-out.sdfecho ENDdate<br /></pre>        <p class="fragment">ligprep_14-out.sdf is a multi-structure SDF file          contains a list of ligands. The environment variables "AMBERHOME" and          "PATH" are required for program to call amber programs, such as,          antechamber, tleap, sander, etc. Also make sure babel and          prepare_ligand4.py are in the searching PATH. "LIGDIR" is the          directory to store the ligand forcefield files.<br />        </p>        <h4 class="fragment">1.2 Calculations in the program.<br />        </h4>        <p>Ligands are store in the sub-directory, 1, 2, 3, etc, according to          their sequence in the SDF file. Both intermediate files and forcefield          files are store in the sub-directory. There are four major          calculations:babel, antechamber, tleap, GB and PB minimization.</p>        <p>preLigands split the SDF file and Babel convert single-structure SDF          file to PDB file. The atom name were renamed. Then run the          antechamber, and subsequently tleap. Both GB and PB minimizations are          performed. The GB minimized structure were saved in PDB and then          converted to PDBQT for Vina docking.<br />        </p>        <p></p>        <pre class="fragment"></pre>        <h4>1.3 Job tracking.</h4>        <p>Jobs that run within MPI slave process were tracked using XML file.          An example of "preLigands" application follows:</p>        <pre class="fragment">&lt;?xml version="1.0" ?&gt;&lt;Errors&gt;    &lt;!-- Tracking calculation error using XML file --&gt;    &lt;error ligand="335" mesg="Ligand PB minimization fails." /&gt;    &lt;error ligand="594" mesg="LIG_min.pdbqt PDBQT file does not exist." /&gt;<br />    &lt;error ligand="100" mesg="Finished!" /&gt;    &lt;error ligand="222" mesg="Finished!" /&gt;    &lt;error ligand="241" mesg="Ligand GB minimization fails." /&gt;    &lt;error ligand="111" mesg="Finished!" /&gt;    &lt;error ligand="566" mesg="Finished!" /&gt;    &lt;error ligand="360" mesg="Finished!" /&gt;    &lt;error ligand="208" mesg="Finished!" /&gt;    &lt;error ligand="120" mesg="Finished!" /&gt;    &lt;error ligand="578" mesg="Finished!" /&gt;    &lt;error ligand="271" mesg="Finished!" /&gt;    &lt;error ligand="282" mesg="Finished!" /&gt;    &lt;error ligand="609" mesg="Finished!" /&gt;    &lt;error ligand="497" mesg="Finished!" /&gt;    &lt;error ligand="65" mesg="Finished!" /&gt;    &lt;error ligand="341" mesg="Finished!" /&gt;    &lt;error ligand="191" mesg="Ligand PB minimization fails." /&gt;    &lt;error ligand="363" mesg="Finished!" /&gt;    &lt;error ligand="227" mesg="Finished!" /&gt;    &lt;error ligand="3" mesg="Finished!" /&gt;    &lt;error ligand="182" mesg="LIG.prmtop file does not exist." /&gt;<br />    ....<br />&lt;/Errors&gt;<br /><br /></pre>        <h3>2. Prepare Receptors by preReceptors</h3>        <h4>2.1 Input file</h4>        <pre></pre>        <p>A typical job script to run preReceptors:</p>        <p></p>        <pre class="fragment">#!/bin/bash #msub -A medcm#msub -l nodes=50#msub -l walltime=16:00:00#msub -l partition=hera#msub -m edateexport AMBERHOME=/usr/gapps/medchem/amber/amber12export PATH=$AMBERHOME/bin/:$PATHexport WORKDIR=`pwd`/workspace/export LBindData=/g/g92/zhang30/medchem/NetBeansProjects/MedCM/data/srun -N50 --ntasks-per-node=16 -n800 /g/g92/zhang30/medchem/NetBeansProjects/MedCM/apps/mmpbsa/preReceptors recList GetPDBecho ENDdate<br /></pre>        <p>reList contains a list of receptor PDB IDs. if GetPDB keyword is          presented and the PDB file is not in the sub-directory, program will          try to download the PDB file. Make sure dms and sphgen are in the          reaching PATH.The environment variable "LBindData" is the directory          for MedCM program parameter files. WORKDIR is the directory to store          all receptor calculations.<br />        </p>        <h4 class="fragment">2.2 Calculations in the program.<br />        </h4>        <p>Receptor PDB files are store in the sub-directory named by PDB ID,          such as, 1A02/m_1A02_amber/.  Both intermediate files and forcefield          files for receptor are store in this sub-directory. <br />        </p>        <p>preRecetpors uses the sum file from centroid calculation by PFP. dms,          sphgen, and select_sphgen in MedCM will calculate the dimension of          docking grid. reduce and PDB::standardlize in MedCM will process the          PDB file downloaded from PDB bank to amber compatible PDB file.          Currently, the non-standard amino acid will be converted to Alanine.          DNA/RNA, cofactor,  water, ions will be removed from PDB file. The          program will perform PB/GB energy minimization. The GB minimized          structure were saved in PDB and then converted to PDBQT for Vina          docking. There are two stage GB energy minimizations: first with heavy          atom constraint and then with heavy atom free to move.</p>        <h4>2.3 Job tracking.</h4>        Job tracking uses a similar way as preLigands.        <pre class="fragment">&lt;?xml version="1.0" ?&gt;&lt;Errors&gt;    &lt;!-- Tracking calculation error using XML file --&gt;    &lt;error receptor="1A02" mesg="Finished!" /&gt;    &lt;error receptor="1A3Q" mesg="Receptor 2nd GB minimization fails." /&gt;<br />    &lt;error receptor="1A02" mesg="Finished!" /&gt;    &lt;error receptor="1A3Q" mesg="Rec_min.pdbqt does not exist." /&gt;<br />    ....<br />&lt;/Errors&gt;</pre>        <p></p>        <h3>3. Pre-process data for VinaLC calculation</h3>        <p>Currently two shell script were use to pre-process data: genLigand.sh          and genRecList.sh (will develop a C++ program for it)</p>        <p>genLigand.sh</p>        <pre class="fragment">#!/bin/bashrm ligands.pdbqtLIGDIR=/g/g92/zhang30/D/genbank/ligLib/COUNTER=1while [  $COUNTER -le 953 ]; do    if [ -e $LIGDIR/$COUNTER/LIG_min.pdbqt ]; then        echo "MODEL       $COUNTER" &gt;&gt; ligands.pdbqt        echo "REMARK $LIGDIR/$COUNTER/LIG_min.pdbqt" &gt;&gt; ligands.pdbqt        cat $LIGDIR/$COUNTER/LIG_min.pdbqt &gt;&gt; ligands.pdbqt        echo "ENDMDL" &gt;&gt; ligands.pdbqt    fi    let COUNTER=COUNTER+1done<br /><br /></pre>        <p>genRecList.sh</p>        <pre class="fragment"> <br />#!/bin/bashWORKDIR=/g/g92/zhang30/D/genbank/workspace/rm geoList*rm recList*for dir in `cat ../list`do    if [ -e $WORKDIR/$dir/m_${dir}_amber/$dir.pdbqt ]; then       cat $WORKDIR/$dir/m_${dir}_amber/geo.txt  &gt;&gt; geoList       cp $WORKDIR/$dir/m_${dir}_amber/$dir.pdbqt $WORKDIR/$dir/n_${dir}_vina/$dir.pdbqt       echo "$WORKDIR/$dir/n_${dir}_vina/$dir.pdbqt"  &gt;&gt; recList    fidonesplit -l 100 -a 2 -d geoList geoListsplit -l 100 -a 2 -d recList recList<br /></pre>        <h3>4. VinaLC calculation</h3>        <p>The VinaLC docking is in the dierctory $WORKDIR/../vinadir/. Please          refer to VinaLC program manual. </p>        <h4>4.1 Input file</h4>        <pre></pre>        <p>A typical job script to run VinaLC (The whole calculation has been          split into 36 jobs to satisfy the time limit of queue system):</p>        <pre class="fragment">#!/bin/bashCOUNTER=0while [  $COUNTER -le 36 ]; do        STR=$COUNTER        if [ $COUNTER -le 9 ]; then           STR="0$COUNTER"        ficat &gt; vina-$COUNTER.job &lt;&lt; EOF#!/bin/bash #msub -A medcm#msub -l nodes=1284:ppn=12#msub -l walltime=16:00:00#msub -l partition=sierra#msub -m edatesrun -N1284 -n1284 -c12 ./vina --recList recList$STR --ligList ligList --geoList geoList$STR --exhaustiveness 12  --granularity 0.333dateEOFmsub vina-$COUNTER.job    let COUNTER=COUNTER+1done<br /></pre>        <p></p>        <h3>5. Post-process results of VinaLC by processVinaLC for MM-PB/GBSA          calculation</h3>        <h4>5.1 Input file</h4>        <pre></pre>        <p>A typical job script to run processVinaLC:</p>        <p></p>        <pre class="fragment">#!/bin/bashexport AMBERHOME=/usr/gapps/medchem/amber/amber12export PATH=$AMBERHOME/bin/:$PATHexport WORKDIR=`pwd`/workspace//g/g92/zhang30/medchem/NetBeansProjects/MedCM/apps/mmpbsa/processVinaLC recList01_ligList.pdbqt.gz<br /><br /></pre>        <p>recList01_ligList.pdbqt.gz is the output from VinaLC.</p>        <h3>6. MM-PB/GBSA calculation</h3>        <h4>6.1 Input file</h4>        <pre></pre>        <p>A typical job script to run mmpbsa:</p>        <p></p>        <pre class="fragment">#!/bin/bash #msub -A medcm#msub -l nodes=20:ppn=16#msub -l walltime=16:00:00#msub -l partition=hera#msub -m e<br /><br />export AMBERHOME=/usr/gapps/medchem/amber/amber12export PATH=$AMBERHOME/bin/:$PATHexport WORKDIR=`pwd`/workspace/<br />date<br /><br />srun -N20 -n320 /usr/gapps/medchem/NetBeansProjects/MedCM/apps/mmpbsa/mmpbsa recList ligListdate<br /><br /></pre>        <p>recList and ligList are list of receptor PDB IDs and ligand numbers.</p>        <h4 class="fragment">6.2 Calculations in the program.</h4>        <p>docking posese were converted and splitted into single-structure          ligand PDB file. Each ligand PDB is combined with receptor into a          complex for PB/GB calculations. The single-point PB/GB energy          calculation is derived from: Ebinding=Ecomplex-Ereceptor-Eligand.</p>        <h4>6.3 Job tracking.</h4>        Job tracking uses a similar way as preLigands.        <p></p>        <p></p>      </div>    </div>    <p></p>  </body></html>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <title>User Guide</title>
+  </head>
+  <body>
+    <div class="contents">
+      <div class="textblock">
+        <ol type="1">
+        </ol>
+        <h3>1. Prepare ligands by preLigands</h3>
+        <h4>1.1 Input file</h4>
+        <pre></pre>
+        <p>A typical job script to run preLigands:<br />
+        </p>
+        <pre class="fragment">#!/bin/bash 
+#msub -A medcm
+#msub -l nodes=40:ppn=16
+#msub -l walltime=16:00:00
+#msub -l partition=hera
+#msub -m e
+
+date
+hostname
+
+export AMBERHOME=/usr/gapps/medchem/amber/amber12
+export PATH=$AMBERHOME/bin/:$PATH
+export LIGDIR=`pwd`
+
+srun -N40 -n640 /usr/gapps/medchem/NetBeansProjects/MedCM/apps/mmpbsa/preLigands ligprep_14-out.sdf
+
+echo END
+date<br /></pre>
+        <p class="fragment">ligprep_14-out.sdf is a multi-structure SDF file
+          contains a list of ligands. The environment variables "AMBERHOME" and
+          "PATH" are required for program to call amber programs, such as,
+          antechamber, tleap, sander, etc. Also make sure babel and
+          prepare_ligand4.py are in the searching PATH. "LIGDIR" is the
+          directory to store the ligand forcefield files.<br />
+        </p>
+        <h4 class="fragment">1.2 Calculations in the program.<br />
+        </h4>
+        <p>Ligands are store in the sub-directory, 1, 2, 3, etc, according to
+          their sequence in the SDF file. Both intermediate files and forcefield
+          files are store in the sub-directory. There are four major
+          calculations:babel, antechamber, tleap, GB and PB minimization.</p>
+        <p>preLigands split the SDF file and Babel convert single-structure SDF
+          file to PDB file. The atom name were renamed. Then run the
+          antechamber, and subsequently tleap. Both GB and PB minimizations are
+          performed. The GB minimized structure were saved in PDB and then
+          converted to PDBQT for Vina docking.<br />
+        </p>
+        <p></p>
+        <pre class="fragment"></pre>
+        <h4>1.3 Job tracking.</h4>
+        <p>Jobs that run within MPI slave process were tracked using XML file.
+          An example of "preLigands" application follows:</p>
+        <pre class="fragment">&lt;?xml version="1.0" ?&gt;
+&lt;Errors&gt;
+    &lt;!-- Tracking calculation error using XML file --&gt;
+    &lt;error ligand="335" mesg="Ligand PB minimization fails." /&gt;
+    &lt;error ligand="594" mesg="LIG_min.pdbqt PDBQT file does not exist." /&gt;<br />    &lt;error ligand="100" mesg="Finished!" /&gt;
+    &lt;error ligand="222" mesg="Finished!" /&gt;
+    &lt;error ligand="241" mesg="Ligand GB minimization fails." /&gt;
+    &lt;error ligand="111" mesg="Finished!" /&gt;
+    &lt;error ligand="566" mesg="Finished!" /&gt;
+    &lt;error ligand="360" mesg="Finished!" /&gt;
+    &lt;error ligand="208" mesg="Finished!" /&gt;
+    &lt;error ligand="120" mesg="Finished!" /&gt;
+    &lt;error ligand="578" mesg="Finished!" /&gt;
+    &lt;error ligand="271" mesg="Finished!" /&gt;
+    &lt;error ligand="282" mesg="Finished!" /&gt;
+    &lt;error ligand="609" mesg="Finished!" /&gt;
+    &lt;error ligand="497" mesg="Finished!" /&gt;
+    &lt;error ligand="65" mesg="Finished!" /&gt;
+    &lt;error ligand="341" mesg="Finished!" /&gt;
+    &lt;error ligand="191" mesg="Ligand PB minimization fails." /&gt;
+    &lt;error ligand="363" mesg="Finished!" /&gt;
+    &lt;error ligand="227" mesg="Finished!" /&gt;
+    &lt;error ligand="3" mesg="Finished!" /&gt;
+    &lt;error ligand="182" mesg="LIG.prmtop file does not exist." /&gt;<br />    ....<br />&lt;/Errors&gt;<br /><br /></pre>
+        <h3>2. Prepare Receptors by preReceptors</h3>
+        <h4>2.1 Input file</h4>
+        <pre></pre>
+        <p>A typical job script to run preReceptors:</p>
+        <p></p>
+        <pre class="fragment">#!/bin/bash 
+#msub -A medcm
+#msub -l nodes=50
+#msub -l walltime=16:00:00
+#msub -l partition=hera
+#msub -m e
+
+date
+
+export AMBERHOME=/usr/gapps/medchem/amber/amber12
+export PATH=$AMBERHOME/bin/:$PATH
+export WORKDIR=`pwd`/workspace/
+export LBindData=/g/g92/zhang30/medchem/NetBeansProjects/MedCM/data/
+
+srun -N50 --ntasks-per-node=16 -n800 /g/g92/zhang30/medchem/NetBeansProjects/MedCM/apps/mmpbsa/preReceptors recList GetPDB
+
+echo END
+
+date
+<br /></pre>
+        <p>reList contains a list of receptor PDB IDs. if GetPDB keyword is
+          presented and the PDB file is not in the sub-directory, program will
+          try to download the PDB file. Make sure dms and sphgen are in the
+          reaching PATH.The environment variable "LBindData" is the directory
+          for MedCM program parameter files. WORKDIR is the directory to store
+          all receptor calculations.<br />
+        </p>
+        <h4 class="fragment">2.2 Calculations in the program.<br />
+        </h4>
+        <p>Receptor PDB files are store in the sub-directory named by PDB ID,
+          such as, 1A02/m_1A02_amber/.  Both intermediate files and forcefield
+          files for receptor are store in this sub-directory. <br />
+        </p>
+        <p>preRecetpors uses the sum file from centroid calculation by PFP. dms,
+          sphgen, and select_sphgen in MedCM will calculate the dimension of
+          docking grid. reduce and PDB::standardlize in MedCM will process the
+          PDB file downloaded from PDB bank to amber compatible PDB file.
+          Currently, the non-standard amino acid will be converted to Alanine.
+          DNA/RNA, cofactor,  water, ions will be removed from PDB file. The
+          program will perform PB/GB energy minimization. The GB minimized
+          structure were saved in PDB and then converted to PDBQT for Vina
+          docking. There are two stage GB energy minimizations: first with heavy
+          atom constraint and then with heavy atom free to move.</p>
+        <h4>2.3 Job tracking.</h4>
+        Job tracking uses a similar way as preLigands.
+        <pre class="fragment">&lt;?xml version="1.0" ?&gt;
+&lt;Errors&gt;
+    &lt;!-- Tracking calculation error using XML file --&gt;
+    &lt;error receptor="1A02" mesg="Finished!" /&gt;
+    &lt;error receptor="1A3Q" mesg="Receptor 2nd GB minimization fails." /&gt;<br />    &lt;error receptor="1A02" mesg="Finished!" /&gt;
+    &lt;error receptor="1A3Q" mesg="Rec_min.pdbqt does not exist." /&gt;<br />    ....<br />&lt;/Errors&gt;</pre>
+        <p></p>
+        <h3>3. Pre-process data for VinaLC calculation</h3>
+        <p>Currently two shell script were use to pre-process data: genLigand.sh
+          and genRecList.sh (will develop a C++ program for it)</p>
+        <p>genLigand.sh</p>
+        <pre class="fragment">#!/bin/bash
+
+rm ligands.pdbqt
+
+LIGDIR=/g/g92/zhang30/D/genbank/ligLib/
+
+COUNTER=1
+while [  $COUNTER -le 953 ]; do
+    if [ -e $LIGDIR/$COUNTER/LIG_min.pdbqt ]; then
+        echo "MODEL       $COUNTER" &gt;&gt; ligands.pdbqt
+
+        echo "REMARK $LIGDIR/$COUNTER/LIG_min.pdbqt" &gt;&gt; ligands.pdbqt
+        cat $LIGDIR/$COUNTER/LIG_min.pdbqt &gt;&gt; ligands.pdbqt
+
+        echo "ENDMDL" &gt;&gt; ligands.pdbqt
+    fi
+    let COUNTER=COUNTER+1
+done
+<br /><br /></pre>
+        <p>genRecList.sh</p>
+        <pre class="fragment"> <br />#!/bin/bash
+
+WORKDIR=/g/g92/zhang30/D/genbank/workspace/
+
+rm geoList*
+rm recList*
+
+for dir in `cat ../list`
+do
+    if [ -e $WORKDIR/$dir/m_${dir}_amber/$dir.pdbqt ]; then
+       cat $WORKDIR/$dir/m_${dir}_amber/geo.txt  &gt;&gt; geoList
+       cp $WORKDIR/$dir/m_${dir}_amber/$dir.pdbqt $WORKDIR/$dir/n_${dir}_vina/$dir.pdbqt
+       echo "$WORKDIR/$dir/n_${dir}_vina/$dir.pdbqt"  &gt;&gt; recList
+    fi
+done
+
+split -l 100 -a 2 -d geoList geoList
+split -l 100 -a 2 -d recList recList
+<br /></pre>
+        <h3>4. VinaLC calculation</h3>
+        <p>The VinaLC docking is in the dierctory $WORKDIR/../vinadir/. Please
+          refer to VinaLC program manual. </p>
+        <h4>4.1 Input file</h4>
+        <pre></pre>
+        <p>A typical job script to run VinaLC (The whole calculation has been
+          split into 36 jobs to satisfy the time limit of queue system):</p>
+        <pre class="fragment">#!/bin/bash
+
+COUNTER=0
+while [  $COUNTER -le 36 ]; do
+        STR=$COUNTER
+        if [ $COUNTER -le 9 ]; then
+           STR="0$COUNTER"
+        fi
+
+cat &gt; vina-$COUNTER.job &lt;&lt; EOF
+#!/bin/bash 
+#msub -A medcm
+#msub -l nodes=1284:ppn=12
+#msub -l walltime=16:00:00
+#msub -l partition=sierra
+#msub -m e
+
+
+date
+
+srun -N1284 -n1284 -c12 ./vina --recList recList$STR --ligList ligList --geoList geoList$STR --exhaustiveness 12  --granularity 0.333
+
+
+date
+EOF
+
+
+msub vina-$COUNTER.job
+
+    let COUNTER=COUNTER+1
+done
+
+<br /></pre>
+        <p></p>
+        <h3>5. Post-process results of VinaLC by processVinaLC for MM-PB/GBSA
+          calculation</h3>
+        <h4>5.1 Input file</h4>
+        <pre></pre>
+        <p>A typical job script to run processVinaLC:</p>
+        <p></p>
+        <pre class="fragment">#!/bin/bash
+
+export AMBERHOME=/usr/gapps/medchem/amber/amber12
+export PATH=$AMBERHOME/bin/:$PATH
+export WORKDIR=`pwd`/workspace/
+
+/g/g92/zhang30/medchem/NetBeansProjects/MedCM/apps/mmpbsa/processVinaLC recList01_ligList.pdbqt.gz<br /><br /></pre>
+        <p>recList01_ligList.pdbqt.gz is the output from VinaLC.</p>
+        <h3>6. MM-PB/GBSA calculation</h3>
+        <h4>6.1 Input file</h4>
+        <pre></pre>
+        <p>A typical job script to run mmpbsa:</p>
+        <p></p>
+        <pre class="fragment">#!/bin/bash 
+#msub -A medcm
+#msub -l nodes=20:ppn=16
+#msub -l walltime=16:00:00
+#msub -l partition=hera
+#msub -m e<br /><br />export AMBERHOME=/usr/gapps/medchem/amber/amber12
+export PATH=$AMBERHOME/bin/:$PATH
+export WORKDIR=`pwd`/workspace/
+<br />date<br /><br />srun -N20 -n320 /usr/gapps/medchem/NetBeansProjects/MedCM/apps/mmpbsa/mmpbsa recList ligList
+
+date<br /><br /></pre>
+        <p>recList and ligList are list of receptor PDB IDs and ligand numbers.</p>
+        <h4 class="fragment">6.2 Calculations in the program.</h4>
+        <p>docking posese were converted and splitted into single-structure
+          ligand PDB file. Each ligand PDB is combined with receptor into a
+          complex for PB/GB calculations. The single-point PB/GB energy
+          calculation is derived from: Ebinding=Ecomplex-Ereceptor-Eligand.</p>
+        <h4>6.3 Job tracking.</h4>
+        Job tracking uses a similar way as preLigands.
+        <p></p>
+        <p></p>
+      </div>
+    </div>
+    <p></p>
+
+<h3>7. The “calcSite” program</h3>
+        <p>The “calcSite” program uses de novo approach to search for the cavities and rank them. Please set the environment variable:</p>
+        <pre class="fragment"> 
+export LBindData=/usr/gapps/medchem/medcm/data/
+</pre>      
+        <p>The help manual of program looks like:</p>      
+        <pre class="fragment"> 
+[zhang30@sierra1626 bin]$ ./calcSite --help
+ 
+Required::
+  --pdb arg             input PDB file name
+ 
+Optional::
+  --radius arg (=1.3999999999999999) probe sphere radius (Default=1.4
+                                     angstroms).
+  --surfSphNum arg (=960)            number of sphere vectors for surface
+                                     (Default=960).
+  --gridSphNum arg (=100)            number of sphere vectors for grid
+                                     (Default=100).
+  --help                             display usage summary
+</pre> 
+      
+<p>It requires a PDB file as input:</p>
+<pre class="fragment"> 
+./calcSite  --pdb SASAtest.pdb > out
+</pre>  
+<p>The default of program uses fine sphere vectors (100 vectors) for grid cluster calculation. You can decrease the number if you have large protein and running time is too long.</p>
+ 
+<pre class="fragment"> 
+./calcSite  --pdb SASAtest.pdb --gridSphNum 50 > out
+ </pre> 
+ 
+<p>The output will show a list of clusters and their centroid, dimensions, surface areas, etc.
+  </p>    
+      
+  </body>
+</html>

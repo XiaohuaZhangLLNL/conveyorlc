@@ -9,6 +9,7 @@
 #define	_PDB_H
 
 #include <iostream>
+#include <vector>
 #include <boost/shared_ptr.hpp>
 
 #include "Structure/Coor3d.h"
@@ -18,6 +19,7 @@ namespace LBIND{
     class Complex;
 //    class Conformer;
     class Molecule;
+    class Atom;
 
 class Pdb {
 public:
@@ -33,7 +35,8 @@ public:
     void read(const std::string& fileName, boost::shared_ptr<Complex> pComplex);
     void write(const std::string& fileName, Complex* pComplex);
     void write(const std::string& fileName, boost::shared_ptr<Complex> pComplex);
-    void write(const std::string& fileName, Molecule* pMol);
+    void write(const std::string& fileName, Molecule* pMol);    
+    void write(const std::string& fileName, std::vector<Atom*>& atomList);
     
     void renameAtom(const std::string& inFileName, const std::string& outFileName);
     void strip(const std::string& inFileName, const std::string& outFileName);

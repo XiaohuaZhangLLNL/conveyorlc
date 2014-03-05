@@ -8,6 +8,7 @@
 #include "calcSASAPO.h"
 
 #include <cstdlib>
+#include <iostream>
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -27,10 +28,13 @@ bool calcSASAPO(int argc, char** argv, POdata& podata) {
         options_description inputs("Required:");
         inputs.add_options()
                 ("pdb", value<std::string > (&podata.pdbFile), "input PDB file name")
-                ("output", value<std::string > (&podata.outputFile), "output filename")
+//                ("output", value<std::string > (&podata.outputFile), "output filename")
                 ;   
         options_description info("Optional:");
         info.add_options()
+                ("radius", value<double>(&podata.radius)->default_value(1.40), "probe sphere radius (Default=1.4 angstroms).")
+                ("surfSphNum", value<int>(&podata.surfSphNum)->default_value(960), "number of sphere vectors for surface (Default=960).")
+                ("gridSphNum", value<int>(&podata.gridSphNum)->default_value(100), "number of sphere vectors for grid (Default=100).")
                 ("help", bool_switch(&help), "display usage summary")
                 ;
         options_description desc;
@@ -61,10 +65,10 @@ bool calcSASAPO(int argc, char** argv, POdata& podata) {
             return false;
         }
         
-        if (vm.count("output") <= 0) {
-            std::cerr << "Missing output file name.\n" << "\nCorrect usage:\n" << desc << '\n';
-            return false;
-        }            
+//        if (vm.count("output") <= 0) {
+//            std::cerr << "Missing output file name.\n" << "\nCorrect usage:\n" << desc << '\n';
+//            return false;
+//        }            
         
     }catch (boost::filesystem::filesystem_error& e) {
         std::cerr << "\n\nFile system error: " << e.what() << '\n';

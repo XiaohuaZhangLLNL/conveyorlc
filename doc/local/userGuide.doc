@@ -257,6 +257,41 @@ date<br /><br /></pre>
       </div>
     </div>
     <p></p>
+<h3>7. The “calcSite” program</h3>
+<p>The “calcSite” program uses de novo approach to search for the cavities and rank them. Please set the environment variable:</p>
+        <pre class="fragment"> 
+export LBindData=/usr/gapps/medchem/medcm/data/
+</pre>      
+        <p>The help manual of program looks like:</p>      
+        <pre class="fragment"> 
+[zhang30@sierra1626 bin]$ ./calcSite --help
+ 
+Required::
+  --pdb arg             input PDB file name
+ 
+Optional::
+  --radius arg (=1.3999999999999999) probe sphere radius (Default=1.4
+                                     angstroms).
+  --surfSphNum arg (=960)            number of sphere vectors for surface
+                                     (Default=960).
+  --gridSphNum arg (=100)            number of sphere vectors for grid
+                                     (Default=100).
+  --help                             display usage summary
+</pre> 
+      
+<p>It requires a PDB file as input:</p>
+<pre class="fragment"> 
+./calcSite  --pdb SASAtest.pdb > out
+</pre>  
+<p>The default of program uses fine sphere vectors (100 vectors) for grid cluster calculation. You can decrease the number if you have large protein and running time is too long.</p>
+ 
+<pre class="fragment"> 
+./calcSite  --pdb SASAtest.pdb --gridSphNum 50 > out
+ </pre> 
+ 
+<p>The output will show a list of clusters and their centroid, dimensions, surface areas, etc.
+  </p>    
+      
   </body>
 </html>
 \endhtmlonly

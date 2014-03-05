@@ -59,3 +59,13 @@
 /tests/gmon.out
 /apps/mmpbsa/glideGBSA
 /apps/mmpbsa/mmgbsa
+/tests/SASAtest.pdb
+/apps/tools/SASAtest.pdb
+/apps/tools/run.sh
+/tests/Grid-3.pdb
+/tests/Grid-2.pdb
+/tests/Grid-1.pdb
+/tests/Grid-0.pdb
+/tests/gridPDB2.pdb
+/tests/gridPDB1.pdb
+/tests/gridPDB.pdb

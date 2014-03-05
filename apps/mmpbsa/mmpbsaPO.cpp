@@ -7,6 +7,8 @@
 
 #include "mmpbsaPO.h"
 
+#include <iostream>
+
 #include <boost/program_options.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/exception.hpp>

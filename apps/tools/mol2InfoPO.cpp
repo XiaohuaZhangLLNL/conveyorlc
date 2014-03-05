@@ -8,6 +8,7 @@
 #include "mol2InfoPO.h"
 
 #include <cstdlib>
+#include <iostream>
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem/fstream.hpp>

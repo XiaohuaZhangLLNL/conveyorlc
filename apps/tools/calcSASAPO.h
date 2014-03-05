@@ -13,6 +13,9 @@
 struct POdata{
     std::string pdbFile;
     std::string outputFile;
+    double radius;
+    int surfSphNum;
+    int gridSphNum;
 };
 
 bool calcSASAPO(int argc, char** argv, POdata& podata);

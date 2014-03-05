@@ -101,40 +101,18 @@ protected:
     //! file id
     int itsFileID;
 
-    //! Atom Type for Ring
-    /*!
-        atom Type Definitions
-        - 0 = Undefined
-        - 1 = Hydrogen
-        - 2 = Terminal Heavy Atom
-        - 3 = Open Chain Heavy Atom
-        - 4 = Closed Chain Heavy Atom
-        - 5 = Ring Heavy Atom
-        - 6 = Aromatic Ring Heavy Atom
-        - 7 = Chain Atom (not terminal, Ring or Hydrogen)
-        - 8 = Chain or terminal Atom
-    */
     int itsType;
     
     // ! Solvent accessible surface area
     double sasa; 
+    
+    bool isCavity;
 
     //! nuclear charge
     double itscharge;
     //! formal charge
     int itsFormalCharge;    
-    /*!
-       atom hybridization definitions
-       - 0 = undefined
-       - 1 = s
-       - 2 = sp
-       - 3 = sp2
-       - 4 = sp3
-       - 5 = sp3d
-       - 6 = sp3d2
-       - 7 = sp3d3
-       - 8 = other
-    */
+
     int itsHybridization;    
     //! coordinates
     Coor3d* pCoords;

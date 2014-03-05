@@ -19,6 +19,7 @@ lib_LTLIBRARIES = libLBind.la
 libLBind_la_SOURCES = \
 BackBone/ADR.cpp \
 BackBone/Base.cpp \
+BackBone/Grid.cpp \
 BackBone/Ligand.cpp \
 BackBone/Pathway.cpp \
 BackBone/Protein.cpp \
@@ -76,6 +77,7 @@ libLBindincludedir = $(includedir)/
 libLBindinclude_HEADERS = \
 BackBone/ADR.h \
 BackBone/Base.h \
+BackBone/Grid.h \
 BackBone/Ligand.h \
 BackBone/Pathway.h \
 BackBone/Protein.h \
