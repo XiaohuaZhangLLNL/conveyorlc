@@ -764,7 +764,7 @@ void Pdb::write(const std::string& fileName, Molecule* pMol){
     outFile.close();
 }
 
-void Pdb::write(const std::string& fileName, std::vector<Atom*>& atomList){
+void Pdb::write(const std::string& fileName, std::vector<Atom*>& atomList, const std::string& resName="UNK"){
     
     std::ofstream outFile;
     try {
@@ -786,7 +786,7 @@ void Pdb::write(const std::string& fileName, std::vector<Atom*>& atomList){
             outFile  << " " << " " << std::left << std::setw(3) <<atomList[k]->getName();
         }
 
-        outFile << " " << std::left << std::setw(3) <<"UNK"
+        outFile << " " << std::left << std::setw(3) <<resName
                 << " " << std::setw(1) <<" "
                 << std::right << std::setw(4) << 1
                 << "    "

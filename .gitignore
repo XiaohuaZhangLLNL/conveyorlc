@@ -83,3 +83,6 @@
 /tests/Grid-8.pdb
 /tests/Grid-9.pdb
 /tests/Grid-5.pdb
+/src/VinaLC/Makefile.am
+/src/VinaLC/Makefile
+/src/VinaLC/Makefile.in

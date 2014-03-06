@@ -31,7 +31,7 @@ private:
     void generateSpPoints();
     void getGridBox();
     void getSiteGrids();
-    void writeGridPDB(std::string& fileName, std::vector<Coor3d*>& outGrids);
+    void writeGridPDB(std::string& fileName, std::vector<Coor3d*>& outGrids, const std::string& resName="UNK");
     void clustGrids();
     // Merge two groups of grids and store in clustI if nearest points <=1 angstom.
     bool mergeGrids(std::vector<Coor3d*>& clustI, std::vector<Coor3d*>& clustJ);
