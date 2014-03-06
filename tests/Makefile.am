@@ -11,16 +11,16 @@ endif
 
 if USE_MPI
     AmberSplTest_SOURCES = AmberSplTest.cpp
-    AmberSplTest_LDADD = $(top_srcdir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx -lz
+    AmberSplTest_LDADD = $(top_builddir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx -lz
 
     StdResContainerSplTest_SOURCES = StdResContainerSplTest.cpp
-    StdResContainerSplTest_LDADD = $(top_srcdir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -lz
+    StdResContainerSplTest_LDADD = $(top_builddir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -lz
 
     JobTrackSplTest_SOURCES = JobTrackSplTest.cpp
-    JobTrackSplTest_LDADD = $(top_srcdir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -lz
+    JobTrackSplTest_LDADD = $(top_builddir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -lz
 
 #    AutoDockSplTest_SOURCES = AmberSplTest.cpp
-#    AutoDockSplTest_LDADD = -L$(top_srcdir)/src -lLbind -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_mpi -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx
+#    AutoDockSplTest_LDADD = -L$(top_builddir)/src -lLbind -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_mpi -lboost_serialization -L/@mpi_path@/lib/ -lmpi -lmpi_cxx
 
 
 

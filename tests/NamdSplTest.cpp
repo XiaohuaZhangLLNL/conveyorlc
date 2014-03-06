@@ -7,8 +7,8 @@
 
 #include <stdlib.h>
 #include <iostream>
-#include "src/MM/Namd.h"
-#include "src/BackBone/Protein.h"
+#include "MM/Namd.h"
+#include "BackBone/Protein.h"
 
 /*
  * Simple C++ Test Suite

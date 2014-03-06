@@ -7,9 +7,9 @@
 
 #include <stdlib.h>
 #include <iostream>
-#include "src/MM/AutoDock.h"
-#include "src/BackBone/Protein.h"
-#include "src/BackBone/Ligand.h"
+#include "MM/AutoDock.h"
+#include "BackBone/Protein.h"
+#include "BackBone/Ligand.h"
 
 /*
  * Simple C++ Test Suite

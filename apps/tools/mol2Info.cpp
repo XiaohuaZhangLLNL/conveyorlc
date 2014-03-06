@@ -11,11 +11,11 @@
 #include <fstream>
 #include <vector>
 
-#include "src/Structure/Molecule.h"
-#include "src/Structure/Coor3d.h"
-#include "src/Parser/Mol2.h"
-#include "src/Common/LBindException.h"
-#include "src/Common/Tokenize.hpp"
+#include "Structure/Molecule.h"
+#include "Structure/Coor3d.h"
+#include "Parser/Mol2.h"
+#include "Common/LBindException.h"
+#include "Common/Tokenize.hpp"
 #include "mol2InfoPO.h"
 
 #include <boost/scoped_ptr.hpp>

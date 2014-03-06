@@ -8,11 +8,11 @@
 #include <stdlib.h>
 #include <iostream>
 #include <cmath>
-#include "src/MM/Amber.h"
-#include "src/BackBone/Protein.h"
-#include "src/BackBone/Ligand.h"
-#include "src/Parser/SanderOutput.h"
-#include "src/Structure/Constants.h"
+#include "MM/Amber.h"
+#include "BackBone/Protein.h"
+#include "BackBone/Ligand.h"
+#include "Parser/SanderOutput.h"
+#include "Structure/Constants.h"
 
 #include <boost/scoped_ptr.hpp>
 /*

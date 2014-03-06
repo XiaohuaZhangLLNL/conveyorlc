@@ -8,8 +8,8 @@
 #include <cstdlib>
 #include <vector>
 
-#include "src/XML/XMLHeader.hpp"
-#include "src/Common/LBindException.h"
+#include "XML/XMLHeader.hpp"
+#include "Common/LBindException.h"
 
 using namespace LBIND;
 

@@ -16,6 +16,7 @@
 //#include "Conformer.h"
 #include "Structure/Coordinates.h"
 #include "Structure/PMolException.h"
+//#include "Common/Chomp.hpp"
 
 #include <string>
 #include <sstream>
@@ -180,6 +181,30 @@ void Pdb::read(const std::string& fileName, Complex* pComplex)
     inFile.close();
 
 }
+
+//std::string Pdb::guessSymbol(const std::string& atomName){
+//    std::string atomNameStr=atomName;
+//    std::string symbol="";
+//    chomp(atomNameStr);
+//    if(atomNameStr.size()==0){
+//        symbol="X";
+//        return symbol;
+//    }
+//    
+//    atomNameStr[0]=char(std::toupper(atomNameStr[0]));
+//    if(atomNameStr.size()==1){
+//        return atomNameStr;
+//    }
+//
+//    std::string firstStr(atomNameStr[0]);
+//    atomNameStr[1]=char(std::tolower(atomNameStr[1]));
+//    if(firstStr=="C"){
+//        symbol="C";
+//        return symbol;
+//    }
+//    // To do 
+//    return symbol;
+//}
 
 void Pdb::parse(const std::string& fileName, Complex* pComplex){
     std::ifstream inFile;

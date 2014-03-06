@@ -16,10 +16,10 @@
 #include <algorithm>
 #include <ctime>
 
-#include "src/Structure/Sstrm.hpp"
-#include "src/Structure/Coor3d.h"
-#include "src/Common/Tokenize.hpp"
-#include "src/Common/LBindException.h"
+#include "Structure/Sstrm.hpp"
+#include "Structure/Coor3d.h"
+#include "Common/Tokenize.hpp"
+#include "Common/LBindException.h"
 
 namespace LBIND {
 

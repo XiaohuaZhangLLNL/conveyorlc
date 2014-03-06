@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 #include <iostream>
-#include "src/BackBone/Protein.h"
+#include "BackBone/Protein.h"
 
 /*
  * Simple C++ Test Suite

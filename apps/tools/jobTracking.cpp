@@ -12,9 +12,9 @@
 #include <set>
 #include <vector>
 
-#include <src/XML/XMLHeader.hpp>
-#include "src/Common/LBindException.h"
-#include "src/Common/Tokenize.hpp"
+#include "XML/XMLHeader.hpp"
+#include "Common/LBindException.h"
+#include "Common/Tokenize.hpp"
 #include "jobTrackingPO.h"
 
 using namespace LBIND;

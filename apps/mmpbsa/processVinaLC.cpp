@@ -9,9 +9,9 @@
 #include <string>
 #include <vector>
 
-#include "src/Parser/GZstream.h"
-#include "src/Common/Tokenize.hpp"
-#include "src/Common/File.hpp"
+#include "Parser/GZstream.h"
+#include "Common/Tokenize.hpp"
+#include "Common/File.hpp"
 
 using namespace LBIND;
 

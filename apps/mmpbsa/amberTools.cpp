@@ -13,16 +13,16 @@
 #include <vector>
 #include <sstream>
 
-#include "src/Parser/Pdb.h"
-#include "src/Parser/SanderOutput.h"
-#include "src/MM/VinaLC.h"
-#include "src/Structure/Sstrm.hpp"
-#include "src/Structure/Coor3d.h"
-#include "src/Structure/Constants.h"
-#include "src/Common/File.hpp"
-#include "src/Common/Tokenize.hpp"
-#include "src/Common/LBindException.h"
-#include "src/XML/XMLHeader.hpp"
+#include "Parser/Pdb.h"
+#include "Parser/SanderOutput.h"
+#include "MM/VinaLC.h"
+#include "Structure/Sstrm.hpp"
+#include "Structure/Coor3d.h"
+#include "Structure/Constants.h"
+#include "Common/File.hpp"
+#include "Common/Tokenize.hpp"
+#include "Common/LBindException.h"
+#include "XML/XMLHeader.hpp"
 
 #include "amberToolsPO.h"
 

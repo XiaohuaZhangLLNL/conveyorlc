@@ -12,18 +12,18 @@
 #include <sstream>
 #include <cstring>
 
-#include "src/Parser/Sdf.h"
-#include "src/Parser/Pdb.h"
-#include "src/MM/Amber.h"
-#include "src/Parser/SanderOutput.h"
-#include "src/Structure/Sstrm.hpp"
-#include "src/Structure/Constants.h"
-#include "src/Structure/Molecule.h"
-#include "src/Parser/Mol2.h"
-#include "src/Common/File.hpp"
-#include "src/Common/Tokenize.hpp"
-#include "src/Common/LBindException.h"
-#include "src/XML/XMLHeader.hpp"
+#include "Parser/Sdf.h"
+#include "Parser/Pdb.h"
+#include "MM/Amber.h"
+#include "Parser/SanderOutput.h"
+#include "Structure/Sstrm.hpp"
+#include "Structure/Constants.h"
+#include "Structure/Molecule.h"
+#include "Parser/Mol2.h"
+#include "Common/File.hpp"
+#include "Common/Tokenize.hpp"
+#include "Common/LBindException.h"
+#include "XML/XMLHeader.hpp"
 
 #include "glideGBSAPO.h"
 

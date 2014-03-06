@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 #include <iostream>
-#include "src/DataBase/MySQLConnector.h"
+#include "DataBase/MySQLConnector.h"
 
 /*
  * Simple C++ Test Suite

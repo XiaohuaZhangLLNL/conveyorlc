@@ -13,12 +13,12 @@
 #include <vector>
 
 
-#include "src/MM/SpMMGBSA.h"
-#include "src/Common/Tokenize.hpp"
-#include "src/Structure/Constants.h"
-#include "src/Common/File.hpp"
-#include "src/Common/LBindException.h"
-#include "src/XML/XMLHeader.hpp"
+#include "MM/SpMMGBSA.h"
+#include "Common/Tokenize.hpp"
+#include "Structure/Constants.h"
+#include "Common/File.hpp"
+#include "Common/LBindException.h"
+#include "XML/XMLHeader.hpp"
 
 #include "mmgbsaPO.h"
 

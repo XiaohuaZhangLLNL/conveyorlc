@@ -24,6 +24,8 @@ public:
     void setElementMap(Element* pElement);
     std::map<std::string, Element*> getElementMap();
     Element* symbolToElement(std::string symbol);
+private:
+    void toLBindSymbol(std::string& symbol);
 
 private:
     std::map<std::string, Element*> itsElementMap;

@@ -7,8 +7,8 @@
 
 #include <stdlib.h>
 #include <iostream>
-#include "src/BackBone/Protein.h"
-#include "src/MM/Gromacs.h"
+#include "BackBone/Protein.h"
+#include "MM/Gromacs.h"
 
 /*
  * Simple C++ Test Suite

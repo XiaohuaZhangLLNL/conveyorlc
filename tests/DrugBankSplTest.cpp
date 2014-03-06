@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 #include <iostream>
-#include "src/DataBase/DrugBank.h"
+#include "DataBase/DrugBank.h"
 
 /*
  * Simple C++ Test Suite

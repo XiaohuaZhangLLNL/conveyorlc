@@ -45,7 +45,16 @@ void Grid::run(double probeRadius, int numberSphere){
     probe=probeRadius;
     numSphere=numberSphere;
     
-    atomList=pComplex->getAtomList();
+    std::vector<Atom*> allAtoms=pComplex->getAtomList();
+    for(unsigned i=0; i<allAtoms.size(); ++i){
+        Atom* pAtom=allAtoms[i];
+        std::string resName=pAtom->getParent()->getName();
+        if(resName=="HOH" || resName=="WAT"){
+            continue;
+        }else{
+            atomList.push_back(pAtom);
+        }
+    }
     generateSpPoints();
     
     getGridBox();
@@ -341,7 +350,8 @@ void Grid::siteSurface(std::vector<Coor3d*>& clust){
     double chargeArea=0;
     double polarArea=0;
     double hdyrophobArea=0;
-    double specialArea=0;
+    double specialPArea=0;
+    double specialHArea=0;
     
     
     for(unsigned i=0; i<surfAtomList.size();++i){
@@ -385,23 +395,28 @@ void Grid::siteSurface(std::vector<Coor3d*>& clust){
                pRes->getName()=="VAL"  ){
                 hdyrophobArea+=pAtom->getSASA();
             } 
-            //Special
-            if(pRes->getName()=="SER" ||
-               pRes->getName()=="THR" ||
-               pRes->getName()=="ASN" ||
-               pRes->getName()=="GLN"  ){
-                specialArea+=pAtom->getSASA();
+            //Special -Polar
+            if(pRes->getName()=="CYS" ||
+               pRes->getName()=="CYX" ||
+               pRes->getName()=="SEC"  ){
+                specialPArea+=pAtom->getSASA();
             }            
-            
+            //Special -Hydrophobic
+            if(pRes->getName()=="GLY" ||
+               pRes->getName()=="PRO"  ){
+                specialHArea+=pAtom->getSASA();
+            }             
         }
     }
     
     std::cout << "      Surface"  << std::endl;
-    std::cout << "          Charged     Area:   " << chargeArea << std::endl;
-    std::cout << "          Polar       Area:   " << polarArea << std::endl;
-    std::cout << "          Hydrophobic Area:   " << hdyrophobArea << std::endl;
-    std::cout << "          Special     Area:   " << specialArea << std::endl;
-    std::cout << "          total       Area:   " << chargeArea+polarArea+ hdyrophobArea+ specialArea<< std::endl;
+    std::cout << "          Charged         Area:   " << chargeArea << std::endl;
+    std::cout << "          Polar           Area:   " << polarArea << std::endl;
+    std::cout << "          Hydrophobic     Area:   " << hdyrophobArea << std::endl;
+    std::cout << "          Special (Polar) Area:   " << specialPArea << std::endl;
+    std::cout << "          Special (Hydro) Area:   " << specialPArea << std::endl;
+    std::cout << "          total           Area:   " << chargeArea+polarArea+ hdyrophobArea+ specialPArea+specialHArea<< std::endl;
+    std::cout << "          Hydro/Polar    Ratio:   " << (hdyrophobArea+specialHArea)/(chargeArea+polarArea+ specialPArea)<< std::endl;
     
 }
 
@@ -440,12 +455,41 @@ void Grid::siteCentroid(std::vector<Coor3d*>& clust) {
         if(pCoor->getZ()<zMin) zMin=pCoor->getZ();        
     }
     
+    double xDim=xMax-xMin;
+    double yDim=yMax-yMin;
+    double zDim=zMax-zMin;
+    
     std::cout << "      Box dimension:" << std::endl;
     std::cout << "          MIN         x= " << xMin << "     y= " << yMin << "     z= " << zMin << std::endl;
     std::cout << "          MAX         x= " << xMax << "     y= " << yMax << "     z= " << zMax << std::endl; 
-    std::cout << "          Dimension   X= " << xMax-xMin << "     Y= " << yMax-yMin << "     Z= " << zMax-zMin << std::endl;
+    std::cout << "          Dimension   X= " << xDim << "     Y= " << yDim << "     Z= " << zDim << std::endl;
     std::cout << "      Docking Box dimension (+/- 5 Angstroms):" << std::endl;
-    std::cout << "          Dimension   X= " << xMax-xMin+10 << "     Y= " << yMax-yMin+10 << "     Z= " << zMax-zMin+10 << std::endl;
+    std::cout << "          Dimension   X= " << xDim+10 << "     Y= " << yDim+10 << "     Z= " << zDim+10 << std::endl;
+    
+    double peudoVol=xDim*yDim*zDim;
+    double minDim=std::min(std::min(xDim, yDim), zDim);
+    double maxDim=std::max(std::max(xDim, yDim), zDim);
+    double ratioDim=0;
+    if(minDim>0){
+        ratioDim=maxDim/minDim;
+    }
+    double occupied=0;
+    if(peudoVol>0){
+        occupied=clust.size()/peudoVol;
+    }
+    double effRatioDim=0;
+    if(occupied>0){
+        effRatioDim=ratioDim/std::sqrt(occupied);
+    }
+    double effSize=0;
+    if(effRatioDim>0){
+        effSize=clust.size()/std::sqrt(effRatioDim);
+    }
+    
+    std::cout << "      Box Shape:" << std::endl;
+    std::cout << "          Ratio Dimension = " << ratioDim << "            Occupied (%)= " << 100*occupied << std::endl
+              << "          Effect  Ratio Dimension =" << effRatioDim << "  Effect Girds= " << effSize << std::endl;
+     
 
 }
 

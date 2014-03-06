@@ -55,6 +55,7 @@ private:
     std::string newAtomName(const std::string& atomType, int seq);
     bool isAA(Fragment* pFrag);
     void toALA(Fragment* pFrag); //! Convert non-standard Amino Acid to ALA
+//    std::string guessSymbol(const std::string& atomName);
 
 };
 
