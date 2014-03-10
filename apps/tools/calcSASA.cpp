@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
 
         boost::scoped_ptr<Grid> pGrid(new Grid(pComplex.get()));
 
-        pGrid->run(podata.radius, podata.gridSphNum);
+        pGrid->run(podata.radius, podata.gridSphNum, podata.minVol);
 
         delete pElementContainer;
 

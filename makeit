@@ -101,7 +101,7 @@ buildMedChem()
 
     echo "make ... "
 
-	make
+#	make
 
 }
 

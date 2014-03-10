@@ -20,6 +20,7 @@ namespace LBIND{
 Grid::Grid(Complex *pCom)  :
     pComplex(pCom), 
     numSphere(100),
+    minVol(50),
     probe(1.4){
 }
 
@@ -41,9 +42,10 @@ Grid::~Grid() {
     
 }
 
-void Grid::run(double probeRadius, int numberSphere){
+void Grid::run(double probeRadius, int numberSphere, int minVolume){
     probe=probeRadius;
     numSphere=numberSphere;
+    minVol=minVolume;
     
     std::vector<Atom*> allAtoms=pComplex->getAtomList();
     for(unsigned i=0; i<allAtoms.size(); ++i){
@@ -295,8 +297,8 @@ void Grid::clustGrids(){
     std::vector<std::vector<Coor3d*> > tmpClusters2;
 
     for(unsigned i=0; i<clusters.size(); ++i){
-        // 50 is about 4-5 water molecular volume.
-        if(clusters[i].size()>50) tmpClusters2.push_back(clusters[i]);
+        // minVol default value 50 is about 4-5 water molecular volume.
+        if(clusters[i].size()>minVol) tmpClusters2.push_back(clusters[i]);
     }   
     clusters.clear();
     clusters=tmpClusters2; 

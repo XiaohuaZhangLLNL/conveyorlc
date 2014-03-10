@@ -233,11 +233,13 @@ AC_FUNC_STRTOD
 AC_CHECK_FUNCS([pow sqrt])
 AC_OUTPUT(Makefile \
           doc/Makefile \
-		  doc/Doxyfile \
+	  doc/Doxyfile \
           doc/pics/Makefile \
           doc/local/Makefile \
           src/Makefile \
+          src/VinaLC/Makefile \
           apps/Makefile  \
+          apps/docking/Makefile  \
           apps/mmpbsa/Makefile \
           apps/tools/Makefile  \
           tests/Makefile )

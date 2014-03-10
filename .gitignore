@@ -86,3 +86,6 @@
 /src/VinaLC/Makefile.am
 /src/VinaLC/Makefile
 /src/VinaLC/Makefile.in
+/apps/docking/vinaLC
+/apps/docking/Makefile
+/apps/docking/Makefile.in

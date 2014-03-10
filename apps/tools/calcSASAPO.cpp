@@ -35,6 +35,7 @@ bool calcSASAPO(int argc, char** argv, POdata& podata) {
                 ("radius", value<double>(&podata.radius)->default_value(1.40), "probe sphere radius (Default=1.4 angstroms).")
                 ("surfSphNum", value<int>(&podata.surfSphNum)->default_value(960), "number of sphere vectors for surface (Default=960).")
                 ("gridSphNum", value<int>(&podata.gridSphNum)->default_value(100), "number of sphere vectors for grid (Default=100).")
+                ("minVolume", value<int>(&podata.minVol)->default_value(50), "minimum volume for a site (Default=50).")
                 ("help", bool_switch(&help), "display usage summary")
                 ;
         options_description desc;

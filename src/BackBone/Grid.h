@@ -24,7 +24,7 @@ public:
     virtual ~Grid();
     
     
-    void run(double probeRadius, int numberSphere);
+    void run(double probeRadius, int numberSphere, int minVolume);
         
        
 private:
@@ -43,7 +43,9 @@ private:
 private:
     Complex *pComplex;
     int numSphere;
+    unsigned minVol;
     double probe;
+    
     std::vector<Coor3d*> spPoints;
     std::vector<Coor3d*> grids;
     std::vector<Atom*> atomList;

@@ -1,3 +1,6 @@
+
+SUBDIRS = VinaLC
+
 CFLAGS = -Wall 
 
 if USE_MPI
@@ -7,6 +10,7 @@ INCLUDES = -I$(top_srcdir)/src -I@boost_dir@/include
 endif
 
 BOOST_LIB = -L/@boost_dir@/lib/ -lboost_regex  -lz 
+#BOOST_LIB = -L/@boost_dir@/lib/ -lboost_system -lboost_thread -lboost_serialization -lboost_filesystem -lboost_program_options -lboost_regex -lz
 
 #MM_LIB= -L/@mm_dir@/lib/ -lpcm
 
@@ -14,7 +18,7 @@ if USE_MPI
 MPI_LIB= -L/@mpi_path@/lib/ -lmpi -lmpi_cxx
 endif
 
-lib_LTLIBRARIES = libLBind.la
+lib_LTLIBRARIES = libLBind.la 
 
 libLBind_la_SOURCES = \
 BackBone/ADR.cpp \

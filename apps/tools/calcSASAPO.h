@@ -16,6 +16,7 @@ struct POdata{
     double radius;
     int surfSphNum;
     int gridSphNum;
+    int minVol;
 };
 
 bool calcSASAPO(int argc, char** argv, POdata& podata);
