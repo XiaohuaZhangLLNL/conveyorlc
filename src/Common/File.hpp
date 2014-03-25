@@ -31,6 +31,15 @@ void getPathFileName (const std::string& pathStr, std::string& pathFileName)
   pathFileName= pathStr.substr(found+1);
 } 
 
+void getFileBasename(const std::string& pathStr, std::string& pathFileName){
+  size_t found;
+  found=pathStr.find_last_of("/\\");
+  pathFileName= pathStr.substr(found+1);
+  found=pathFileName.find_last_of(".");
+  pathFileName= pathFileName.substr(0,found);  
+}
+
+
 bool fileExist(std::string& pathFile){
     std::ifstream my_file(pathFile.c_str());
     return my_file.good();    

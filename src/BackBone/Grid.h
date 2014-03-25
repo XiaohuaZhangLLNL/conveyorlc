@@ -25,6 +25,7 @@ public:
     
     
     void run(double probeRadius, int numberSphere, int minVolume);
+    void getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid);
         
        
 private:
@@ -38,7 +39,7 @@ private:
     
     void siteSurface(std::vector<Coor3d*>& clust);
     void siteCentroid(std::vector<Coor3d*>& clust);
-    
+    void siteCentroid(std::vector<Coor3d*>& clust, Coor3d& dockDim, Coor3d& centroid);
     
 private:
     Complex *pComplex;

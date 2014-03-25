@@ -1,2 +1,2 @@
-SUBDIRS = mmpbsa tools docking
+SUBDIRS = mmpbsa tools docking pipeline
 

@@ -242,6 +242,7 @@ AC_OUTPUT(Makefile \
           apps/docking/Makefile  \
           apps/mmpbsa/Makefile \
           apps/tools/Makefile  \
+          apps/pipeline/Makefile  \
           tests/Makefile )
 
 dnl

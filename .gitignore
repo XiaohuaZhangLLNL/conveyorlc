@@ -89,3 +89,17 @@
 /apps/docking/vinaLC
 /apps/docking/Makefile
 /apps/docking/Makefile.in
+/tests/Grid-07.pdb
+/tests/Grid-02.pdb
+/tests/Grid-04.pdb
+/tests/Grid-08.pdb
+/tests/Grid-03.pdb
+/tests/Grid-06.pdb
+/tests/Grid-01.pdb
+/tests/Grid-09.pdb
+/tests/Grid-05.pdb
+/tests/Grid-15.pdb
+/tests/PPL1ReceptorTest
+/apps/pipeline/Makefile
+/apps/pipeline/PPL1Receptor
+/apps/pipeline/Makefile.in

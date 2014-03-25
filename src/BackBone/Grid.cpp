@@ -293,21 +293,27 @@ void Grid::clustGrids(){
         
     }
     
-    
-    std::vector<std::vector<Coor3d*> > tmpClusters2;
-
-    for(unsigned i=0; i<clusters.size(); ++i){
-        // minVol default value 50 is about 4-5 water molecular volume.
-        if(clusters[i].size()>minVol) tmpClusters2.push_back(clusters[i]);
-    }   
-    clusters.clear();
-    clusters=tmpClusters2; 
-    
     //sort by volume
     std::sort(clusters.begin(), clusters.end(), great_than_key());
+
+    
+//    std::vector<std::vector<Coor3d*> > tmpClusters2;
+//
+//    for(unsigned i=0; i<clusters.size(); ++i){
+//        // minVol default value 50 is about 4-5 water molecular volume.
+//        if(clusters[i].size()>minVol) tmpClusters2.push_back(clusters[i]);
+//    }   
+//    clusters.clear();
+//    clusters=tmpClusters2; 
+    
+
        
     
     for (unsigned i = 0; i < clusters.size(); ++i) {
+        
+        if(i!=0 && clusters[i].size()<minVol) break; 
+        // always print out first one. if volume less than minVol don't print out.
+        
         std::cout << "================================================="  << std::endl;
         std::string numStr=Sstrm<std::string, int>(i+1);
         if(i<9){
@@ -512,6 +518,54 @@ void Grid::siteCentroid(std::vector<Coor3d*>& clust) {
 
 }
 
+void Grid::getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid){
+    siteCentroid(this->clusters[0], dockDim, centroid);
+}
+
+
+void Grid::siteCentroid(std::vector<Coor3d*>& clust, Coor3d& dockDim, Coor3d& centroid){
+    //Make sure initialized with zero;
+    centroid.set(0,0,0);
+    for(unsigned i=0; i<clust.size(); ++i){
+        Coor3d *pCoor=clust[i];
+        centroid=centroid+(*pCoor);
+    }
+    centroid=centroid/clust.size();    
+
+    // Determine dimensions of cluster
+    double xMax=BIGNEGTIVE;
+    double yMax=BIGNEGTIVE;
+    double zMax=BIGNEGTIVE;
+    
+    double xMin=BIGPOSITIVE;
+    double yMin=BIGPOSITIVE;
+    double zMin=BIGPOSITIVE;
+       
+    for(unsigned i=0; i< clust.size(); ++i){
+        Coor3d* pCoor=clust[i];
+        if(pCoor->getX()>xMax) xMax=pCoor->getX();
+        if(pCoor->getY()>yMax) yMax=pCoor->getY();
+        if(pCoor->getZ()>zMax) zMax=pCoor->getZ();
+        
+        if(pCoor->getX()<xMin) xMin=pCoor->getX();
+        if(pCoor->getY()<yMin) yMin=pCoor->getY();
+        if(pCoor->getZ()<zMin) zMin=pCoor->getZ();        
+    }
+    
+    double xDim=xMax-xMin;
+    double yDim=yMax-yMin;
+    double zDim=zMax-zMin;
+    
+    double xDock=xDim+10;
+    double yDock=yDim+10;
+    double zDock=zDim+10;
+    
+    if(xDock<22) xDock=22;
+    if(yDock<22) yDock=22;
+    if(zDock<22) zDock=22;    
+    
+    dockDim.set(xDock, yDock, zDock);
+}
 
 
 } //namespace LBIND
