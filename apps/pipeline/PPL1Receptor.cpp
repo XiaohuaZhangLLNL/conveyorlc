@@ -57,11 +57,15 @@ using namespace LBIND;
     export WORKDIR=`pwd`
     export LBindData=/usr/gapps/medchem/medcm/data/
 
-    srun -N4 -n48 -ppdebug /g/g92/zhang30/medchem/NetBeansProjects/MedCM/apps/mmpbsa/PPL1Receptor  <input-file> 
+    srun -N4 -n48 -ppdebug /g/g92/zhang30/medchem/NetBeansProjects/MedCM/apps/mmpbsa/PPL1Receptor  --input pdb.list --output out 
 
-    <input-file>: contain a list of receptor PDB Files.
+    pdb.list: contain a list of path to receptor PDB Files.
+ *  pdb/1NJS.pdb
+ *  pdb/3BKL.pdb
+ *  ...
 
-    Requires: define WORKDIR 
+    Requires: define LBindData 
+ *  
  * 
  * Note: the non-standard residues are changed to ALA due to lack of amber forcefield.
    \endverbatim
@@ -179,7 +183,7 @@ bool preReceptor(std::string& pdbFilePath, std::string& workDir, std::string& da
     
     cmd="sander -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
     std::cout <<cmd <<std::endl;
-    system(cmd.c_str());  
+    //system(cmd.c_str());  
     
     boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
     std::string sanderOut="Rec_minGB.out";
@@ -233,7 +237,7 @@ bool preReceptor(std::string& pdbFilePath, std::string& workDir, std::string& da
     pSurface->run(1.4, 960);
     std::cout << " Total SASA is: " << pSurface->getTotalSASA() << std::endl << std::endl;
 
-    boost::scoped_ptr<Grid> pGrid(new Grid(pComplex.get()));
+    boost::scoped_ptr<Grid> pGrid(new Grid(pComplex.get(), false));
     pGrid->run(1.4, 100, 50);
     Coor3d dockDim;
     Coor3d centroid;  

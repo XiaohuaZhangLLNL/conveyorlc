@@ -20,6 +20,7 @@ class Coor3d;
 class Grid {
 public:
     Grid(Complex *pCom);
+    Grid(Complex *pCom, bool outPDB);
     Grid(const Grid& orig);
     virtual ~Grid();
     
@@ -46,6 +47,7 @@ private:
     int numSphere;
     unsigned minVol;
     double probe;
+    bool outputPDB;
     
     std::vector<Coor3d*> spPoints;
     std::vector<Coor3d*> grids;

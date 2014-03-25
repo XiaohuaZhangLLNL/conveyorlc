@@ -103,3 +103,5 @@
 /apps/pipeline/Makefile
 /apps/pipeline/PPL1Receptor
 /apps/pipeline/Makefile.in
+/data/reduce_wwPDB_het_dict.txt
+/data/reduce_wwPDB_het_dict.txt.zip

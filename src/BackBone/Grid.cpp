@@ -21,7 +21,18 @@ Grid::Grid(Complex *pCom)  :
     pComplex(pCom), 
     numSphere(100),
     minVol(50),
-    probe(1.4){
+    probe(1.4),
+    outputPDB(true)
+{
+}
+
+Grid::Grid(Complex *pCom, bool outPDB)  :
+    pComplex(pCom), 
+    numSphere(100),
+    minVol(50),
+    probe(1.4),
+    outputPDB(outPDB)
+{
 }
 
 Grid::Grid(const Grid& orig) {
@@ -61,14 +72,19 @@ void Grid::run(double probeRadius, int numberSphere, int minVolume){
     
     getGridBox();
     
-    std::string fileName="gridPDB1.pdb";
-    writeGridPDB(fileName, grids);
-    
+    std::string fileName;
+
+    if (outputPDB) {
+        fileName = "gridPDB1.pdb";
+        writeGridPDB(fileName, grids);
+    }
+
     getSiteGrids();
-    
-    fileName="gridPDB2.pdb";
-    writeGridPDB(fileName, grids);
-    
+
+    if (outputPDB) {
+        fileName = "gridPDB2.pdb";
+        writeGridPDB(fileName, grids);
+    }
     
     clustGrids();
     
@@ -325,7 +341,10 @@ void Grid::clustGrids(){
         if(i>98){
             resName="CXX";
         }
-        writeGridPDB(filename, clusters[i], resName);
+        
+        if(outputPDB){
+            writeGridPDB(filename, clusters[i], resName);
+        }
         
         siteCentroid(clusters[i]);
         
