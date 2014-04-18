@@ -541,6 +541,11 @@ void Grid::getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid){
     siteCentroid(this->clusters[0], dockDim, centroid);
 }
 
+void Grid::getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid, int& size){
+    size=this->clusters[0].size();
+    siteCentroid(this->clusters[0], dockDim, centroid);
+}
+
 
 void Grid::siteCentroid(std::vector<Coor3d*>& clust, Coor3d& dockDim, Coor3d& centroid){
     //Make sure initialized with zero;

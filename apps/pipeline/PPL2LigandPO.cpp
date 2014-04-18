@@ -27,7 +27,7 @@ bool PPL2LigandPO(int argc, char** argv, POdata& podata) {
         options_description inputs("Required:");
         inputs.add_options()
                 ("sdf", value<std::string > (&podata.sdfFile), "input SDF file name")
-                ("xmlout", value<std::string > (&podata.xmlOut)->default_value("JobTracking.xml"), "xml tracking file name")
+                ("xmlout", value<std::string > (&podata.xmlOut)->default_value("PPL2Track.xml"), "xml tracking file name")
                 ("output", value<std::string > (&podata.outputFile), "output filename")
 //                ("restart", value<bool>(&podata.restart)->default_value(false), "Flag to restart failed calculation")
                 ("xmlrst", value<std::string > (&podata.xmlRst), "xml restart file name")

@@ -29,7 +29,11 @@
 
 #include <boost/scoped_ptr.hpp>
 
-#include <mpi.h>
+#include <boost/mpi.hpp>
+#include <boost/mpi/environment.hpp>
+#include <boost/mpi/communicator.hpp>
+
+namespace mpi = boost::mpi;
 
 using namespace LBIND;
 
@@ -59,13 +63,112 @@ using namespace LBIND;
    \endverbatim
  */
 
+class JobInputData{
+    
+public:
+    friend class boost::serialization::access;
+    // When the class Archive corresponds to an output archive, the
+    // & operator is defined similar to <<.  Likewise, when the class Archive
+    // is a type of input archive the & operator is defined similar to >>.
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & dirBuffer;        
+    }
+    
+    std::string dirBuffer;
+};
 
-bool preLigands(std::string& dir, std::string& workDir) {
+//struct JobInputData{        
+//    char dirBuffer[100];
+//};
+
+
+class JobOutData{
+    
+public:
+    friend class boost::serialization::access;
+    // When the class Archive corresponds to an output archive, the
+    // & operator is defined similar to <<.  Likewise, when the class Archive
+    // is a type of input archive the & operator is defined similar to >>.
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {        
+        ar & error;
+        ar & gbEn;
+        ar & ligID;
+        ar & ligName;
+        ar & pdbFilePath;
+        ar & pdbqtPath;        
+        ar & message; 
+       
+    }
+    
+    bool error;
+    double gbEn;
+    std::string ligID;
+    std::string ligName;
+    std::string pdbFilePath;
+    std::string pdbqtPath;    
+    std::string message;
+   
+};
+
+
+//struct JobOutData{  
+//    bool error;
+//    char dirBuffer[100];
+//    char message[100];
+//};
+
+void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile){
+        XMLElement * element = new XMLElement("Ligand");
+        
+        XMLElement * pdbidEle = new XMLElement("LigID");
+        XMLText * pdbidTx= new XMLText(jobOut.ligID.c_str()); // has to use c-style string.
+        pdbidEle->LinkEndChild(pdbidTx);
+        element->LinkEndChild(pdbidEle);
+
+        XMLElement * ligNameEle = new XMLElement("LigName");
+        XMLText * ligNameTx= new XMLText(jobOut.ligName.c_str()); // has to use c-style string.
+        ligNameEle->LinkEndChild(ligNameTx);
+        element->LinkEndChild(ligNameEle);        
+        
+        XMLElement * pdbPathEle = new XMLElement("PDBPath");
+        XMLText * pdbPathTx= new XMLText(jobOut.pdbFilePath.c_str());
+        pdbPathEle->LinkEndChild(pdbPathTx);        
+        element->LinkEndChild(pdbPathEle);
+
+        XMLElement * recPathEle = new XMLElement("PDBQTPath");
+        XMLText * recPathTx= new XMLText(jobOut.pdbqtPath.c_str());
+        recPathEle->LinkEndChild(recPathTx);        
+        element->LinkEndChild(recPathEle);
+        
+        XMLElement * gbEle = new XMLElement("GBEN");
+        XMLText * gbTx= new XMLText(Sstrm<std::string, double>(jobOut.gbEn));
+        gbEle->LinkEndChild(gbTx);        
+        element->LinkEndChild(gbEle); 
+        
+        XMLElement * mesgEle = new XMLElement("Mesg");
+        XMLText * mesgTx= new XMLText(jobOut.message);
+        mesgEle->LinkEndChild(mesgTx);          
+        element->LinkEndChild(mesgEle);           
+
+        root->LinkEndChild(element);
+
+        element->Print(xmlTmpFile,1);
+        fputs("\n",xmlTmpFile);
+        fflush(xmlTmpFile);          
+        
+}
+
+
+bool preLigands(JobOutData& jobOut, std::string& workDir) {
     
     bool jobStatus=false;
     
     // ! Goto sub directory
-    std::string subDir=workDir+"/scratch/lig/"+dir;   
+    std::string subDir=workDir+"/scratch/lig/"+jobOut.ligID;   
     std::string sdfPath=subDir+"/ligand.sdf";
     
     if(!fileExist(sdfPath)){
@@ -98,6 +201,7 @@ bool preLigands(std::string& dir, std::string& workDir) {
     
     boost::scoped_ptr<Sdf> pSdf(new Sdf());
     std::string info=pSdf->getInfo(sdfFile, keyword);
+    jobOut.ligName=pSdf->getTitle(sdfFile);
     
     std::cout << "Charge:" << info << std::endl;
     int charge=Sstrm<int, std::string>(info);
@@ -161,6 +265,7 @@ bool preLigands(std::string& dir, std::string& workDir) {
     std::string sanderOut="LIG_minGB.out";
     double ligGBen=0;
     bool success=pSanderOutput->getEnergy(sanderOut,ligGBen);
+    jobOut.gbEn=ligGBen;
     
     if(!success){
         std::string message="Ligand GB minimization fails.";
@@ -181,6 +286,8 @@ bool preLigands(std::string& dir, std::string& workDir) {
     }
     
     pPdb->fixElement("LIG_minTmp.pdb", "LIG_min.pdb"); 
+    
+    jobOut.pdbFilePath="scratch/lig/"+jobOut.ligID+"/LIG_min.pdb";
         
     //! Get DPBQT file for ligand from minimized structure.
     cmd="prepare_ligand4.py -l LIG_min.pdb";
@@ -194,51 +301,9 @@ bool preLigands(std::string& dir, std::string& workDir) {
         return jobStatus;        
     } 
     
-    //! PB energy minimization
-    minFName="LIG_minPB.in";
-    {
-        std::ofstream minFile;
-        try {
-            minFile.open(minFName.c_str());
-        }
-        catch(...){
-            std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
-            throw LBindException(mesg);
-        }   
-
-        minFile << "title..\n" 
-                << " &cntrl\n" 
-                << "  imin   = 1,\n" 
-                << "  ntmin   = 3,\n" 
-                << "  maxcyc = 2000,\n" 
-                << "  ncyc   = 1000,\n" 
-                << "  ntpr   = 200,\n" 
-                << "  ntb    = 0,\n" 
-                << "  igb    = 10,\n" 
-                << "  cut    = 15,\n"         
-                << " /\n"
-                << " &pb\n"
-                << "  npbverb=0, npopt=2, epsout=80.0, radiopt=1, space=0.5,\n"
-                << "  accept=1e-4, fillratio=6, sprob=1.6\n"
-                << " / \n" << std::endl;
-
-        minFile.close();    
-    }          
+    jobOut.pdbqtPath="scratch/lig/"+jobOut.ligID+"/LIG_min.pdbqt";
     
-    cmd="sander  -O -i LIG_minPB.in -o LIG_minPB.out  -p LIG.prmtop -c LIG_min.rst -ref LIG_min.rst  -x LIG.mdcrd -r LIG_min2.rst";
-    std::cout <<cmd <<std::endl;
-    system(cmd.c_str());       
 
-    sanderOut="LIG_minPB.out";
-    double ligPBen=0;
-    success=pSanderOutput->getEnergy(sanderOut,ligPBen);
-    
-    if(!success){
-        std::string message="Ligand PB minimization fails.";
-        throw LBindException(message); 
-        return jobStatus;          
-    }   
-    
     jobStatus=true;
     return jobStatus;
 }
@@ -317,46 +382,35 @@ void xmlEJobs(std::string& xmlFile, std::vector<std::string>& ligList){
 
     if (!loadOkay) {
         std::string mesg = doc.ErrorDesc();
-        mesg = "Could not load elements.xml file.\nError: " + mesg;
+        mesg = "Could not load PPL2Track.xml file.\nError: " + mesg;
         throw LBindException(mesg);
     }
-
-    XMLNode* node = doc.FirstChild("Errors");
+    
+    XMLNode* node = doc.FirstChild("Ligands");
     assert(node);
-    XMLNode* subNode = node->FirstChild("error");
-    assert(subNode);
+    XMLNode* ligNode = node->FirstChild("Ligand");
+    assert(ligNode);
 
-    for (subNode = node->FirstChild("error"); subNode != 0; subNode = subNode->NextSibling("error")) {
-        XMLElement* itemElement = subNode->ToElement();
-        bool rstFlg=false;
-        std::string dir;
-        for (XMLAttribute* pAttrib = itemElement->FirstAttribute(); pAttrib != 0; pAttrib = pAttrib->Next()) {
-            std::string nameStr = pAttrib->NameTStr();
-            if (nameStr == "ligand") {
-                dir=pAttrib->ValueStr();
-            }
-            if (nameStr == "mesg") {
-                if(pAttrib->ValueStr()=="LIG.prmtop does not exist."){
-                    rstFlg=true;
-                }
-            }
-            
-        }
-        if(rstFlg){
+    for (ligNode = node->FirstChild("Ligand"); ligNode != 0; ligNode = ligNode->NextSibling("Ligand")) {
+
+        XMLNode* mesgNode = ligNode->FirstChild("Mesg");
+        assert(mesgNode);
+        XMLText* mesgTx =mesgNode->FirstChild()->ToText();
+        assert(mesgTx);
+        std::string mesgStr = mesgTx->ValueStr();
+
+        
+        if(mesgStr!="Finished!"){        
+            XMLNode* ligIDnode = ligNode->FirstChild("LigID");
+            assert(ligIDnode);
+            XMLText* ligIDtx =ligIDnode->FirstChild()->ToText(); 
+            std::string dir=ligIDtx->ValueStr();
             ligList.push_back(dir);
         }
+        
     }
 }
 
-struct JobInputData{        
-    char dirBuffer[100];
-};
-
-struct JobOutData{  
-    bool error;
-    char dirBuffer[100];
-    char message[100];
-};
 
 int main(int argc, char** argv) {
     
@@ -373,14 +427,12 @@ int main(int argc, char** argv) {
     }
     
     // ! MPI Parallel
-    int nproc, rank, rc;
 
     int jobFlag=1; // 1: doing job,  0: done job
     
     JobInputData jobInput;
     JobOutData jobOut;
     
-    MPI_Status status1, status2;
         
     int rankTag=1;
     int jobTag=2;
@@ -388,19 +440,13 @@ int main(int argc, char** argv) {
     int inpTag=3;
     int outTag=4;
 
-    rc = MPI_Init(&argc, &argv);
-    if (rc != MPI_SUCCESS) {
-        std::cerr << "Error starting MPI program. Terminating.\n";
-        MPI_Abort(MPI_COMM_WORLD, rc);
-    }
-
-    MPI_Comm_size(MPI_COMM_WORLD, &nproc);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    mpi::timer runingTime;
     
-//    MPI_Barrier(MPI_COMM_WORLD);
-    double time=MPI_Wtime();
+    mpi::environment env(argc, argv);
+    mpi::communicator world; 
+    
 
-    if (nproc < 2) {
+    if (world.size() < 2) {
         std::cerr << "Error: Total process less than 2" << std::endl;
         return 1;
     }
@@ -408,22 +454,22 @@ int main(int argc, char** argv) {
     POdata podata;
     int error=0;
     
-    if (rank == 0) {        
+    if (world.rank() == 0) {        
         bool success=PPL2LigandPO(argc, argv, podata);
         if(!success){
             error=1;           
         }        
     }
 
-    MPI_Bcast(&error, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    if (error !=0) {
-        MPI_Finalize();
-        return 1;
-    } 
+//    MPI_Bcast(&error, 1, MPI_INT, 0, MPI_COMM_WORLD);
+//    if (error !=0) {
+//        MPI_Finalize();
+//        return 1;
+//    } 
     
     std::vector<std::string> ligList;
     // split SDF file
-    if(rank==0){
+    if(world.rank()==0){
         if(!podata.restart){
             splitSDF(podata.sdfFile, ligList, workDir);            
         }else{
@@ -431,9 +477,9 @@ int main(int argc, char** argv) {
         }                
     }
     
-    std::cout << "Number of tasks= " << nproc << " My rank= " << rank << std::endl;    
+    std::cout << "Number of tasks= " << world.size() << " My rank= " << world.rank() << std::endl;    
         
-    if (rank == 0) {
+    if (world.rank() == 0) {
                 
 //! Tracking error using XML file
 
@@ -441,99 +487,95 @@ int main(int argc, char** argv) {
  	XMLDeclaration* decl = new XMLDeclaration( "1.0", "", "" );  
 	doc.LinkEndChild( decl );  
  
-	XMLElement * root = new XMLElement( "Errors" );  
+	XMLElement * root = new XMLElement( "Ligands" );  
 	doc.LinkEndChild( root );  
 
 	XMLComment * comment = new XMLComment();
 	comment->SetValue(" Tracking calculation error using XML file " );  
 	root->LinkEndChild( comment );  
          
-        FILE* xmlFile=fopen("JobTrackingTemp.xml", "w"); 
+        FILE* xmlFile=fopen("PPL2TrackTemp.xml", "w"); 
+        fprintf(xmlFile, "<?xml version=\"1.0\" ?>\n");
+        fprintf(xmlFile, "<Ligands>\n");
+        fprintf(xmlFile, "    <!-- Tracking calculation error using XML file -->\n");
+        fflush(xmlFile);         
  //! END of XML header
 
         for(int i=0; i <ligList.size(); ++i){
-            if(i >=nproc-1){
-                MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
-//                    if(!jobOut.error){
-                    XMLElement * element = new XMLElement("error"); 
-                    element->SetAttribute("ligand", jobOut.dirBuffer);
-                    element->SetAttribute("mesg", jobOut.message);
-                    element->Print(xmlFile,2);
-                    fputs("\n",xmlFile);
-                    fflush(xmlFile);
-                    root->LinkEndChild(element);    
-//                    }
+            if(i >world.size()){
+//                MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
+                world.recv(mpi::any_source, outTag, jobOut);
+                toXML(jobOut, root, xmlFile);
             } 
 
             std::string dir=ligList[i];
 
             int freeProc;
-            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
+//            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
+            world.recv(mpi::any_source, rankTag, freeProc);
             std::cout << "At Process: " << freeProc << " working on: " << dir << std::endl;
-            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
+//            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
+            world.send(freeProc, jobTag, jobFlag);
 
-            strcpy(jobInput.dirBuffer, dir.c_str());
+//            strcpy(jobInput.dirBuffer, dir.c_str());
+            jobInput.dirBuffer=dir;
 
-            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);   
+//            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);
+            world.send(freeProc, inpTag, jobInput);
                              
         }
 
         int nJobs=ligList.size();
-        int ndata=(nJobs<nproc-1)? nJobs: nproc-1;
+        int ndata=(nJobs<world.size())? nJobs: world.size();
         std::cout << "ndata=" << ndata << " nJobs=" << nJobs << std::endl;
     
         for(int i=0; i < ndata; ++i){
-            MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
-//            if(!jobOut.error){
-                XMLElement * element = new XMLElement("error"); 
-                element->SetAttribute("ligand", jobOut.dirBuffer);
-                element->SetAttribute("mesg", jobOut.message);
-                element->Print(xmlFile,2);
-                fputs("\n",xmlFile);
-                fflush(xmlFile);
-                root->LinkEndChild(element);                  
-//            }
+//            MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
+            world.recv(mpi::any_source, outTag, jobOut);
+            toXML(jobOut, root, xmlFile);
         } 
         
+        fprintf(xmlFile, "</Ligands>\n");
         doc.SaveFile(podata.xmlOut);
         
-        for(int i=1; i < nproc; ++i){
+        for(int i=1; i < world.size(); ++i){
             int freeProc;
-            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
+//            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
+            world.recv(mpi::any_source, rankTag, freeProc);
             jobFlag=0;;
-            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD);            
+//            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
+            world.send(freeProc, jobTag, jobFlag);
         }
         
     }else {
         while (1) {
-            MPI_Send(&rank, 1, MPI_INTEGER, 0, rankTag, MPI_COMM_WORLD);
-            MPI_Recv(&jobFlag, 20, MPI_CHAR, 0, jobTag, MPI_COMM_WORLD, &status2);
+//            MPI_Send(&rank, 1, MPI_INTEGER, 0, rankTag, MPI_COMM_WORLD);
+            world.send(0, rankTag, world.rank());
+//            MPI_Recv(&jobFlag, 20, MPI_CHAR, 0, jobTag, MPI_COMM_WORLD, &status2);
+            world.recv(0, jobTag, jobFlag);
             if (jobFlag==0) {
                 break;
             }
             // Receive parameters
 
-            MPI_Recv(&jobInput, sizeof(JobInputData), MPI_CHAR, 0, inpTag, MPI_COMM_WORLD, &status1);
+            world.recv(0, inpTag, jobInput);
+//            MPI_Recv(&jobInput, sizeof(JobInputData), MPI_CHAR, 0, inpTag, MPI_COMM_WORLD, &status1);
                         
-            std::string dir=jobInput.dirBuffer;
-            strcpy(jobOut.message, "Finished!");
+            jobOut.ligID=jobInput.dirBuffer;
+            jobOut.message="Finished!";
             try{
-                bool jobStatus=preLigands(dir, workDir);            
+                bool jobStatus=preLigands(jobOut, workDir);            
                 jobOut.error=jobStatus;
             } catch (LBindException& e){
-                std::string message= e.what();  
-                strcpy(jobOut.message, message.c_str());
+                jobOut.message= e.what();  
             }
-            strcpy(jobOut.dirBuffer, dir.c_str());
-            MPI_Send(&jobOut, sizeof(JobOutData), MPI_CHAR, 0, outTag, MPI_COMM_WORLD);
+            
+//            MPI_Send(&jobOut, sizeof(JobOutData), MPI_CHAR, 0, outTag, MPI_COMM_WORLD);
+            world.send(0, outTag, jobOut);
         }
     }
 
-
-    time=MPI_Wtime()-time;
-    std::cout << "Rank= " << rank << " MPI Wall Time= " << time << std::endl;
-    MPI_Finalize();
-    
+    std::cout << "Rank= " << world.rank() <<" MPI Wall Time= " << runingTime.elapsed() << " Sec."<< std::endl;
     
     return 0;
 }

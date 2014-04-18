@@ -36,8 +36,11 @@
 #include <boost/scoped_ptr.hpp>
 #include <boost/smart_ptr/scoped_ptr.hpp>
 
-#include <mpi.h>
+#include <boost/mpi.hpp>
+#include <boost/mpi/environment.hpp>
+#include <boost/mpi/communicator.hpp>
 
+namespace mpi = boost::mpi;
 using namespace LBIND;
 
 /*!
@@ -71,31 +74,176 @@ using namespace LBIND;
    \endverbatim
  */
 
-bool preReceptor(std::string& pdbFilePath, std::string& workDir, std::string& dataPath){
+class JobInputData{
+    
+public:
+    friend class boost::serialization::access;
+    // When the class Archive corresponds to an output archive, the
+    // & operator is defined similar to <<.  Likewise, when the class Archive
+    // is a type of input archive the & operator is defined similar to >>.
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & getPDBflg;
+        ar & dirBuffer;        
+    }
+    
+    bool getPDBflg;
+    std::string dirBuffer;
+};
+
+//struct JobInputData{ 
+//    bool getPDBflg;
+//    char dirBuffer[100];
+//};
+
+class JobOutData{
+    
+public:
+    friend class boost::serialization::access;
+    // When the class Archive corresponds to an output archive, the
+    // & operator is defined similar to <<.  Likewise, when the class Archive
+    // is a type of input archive the & operator is defined similar to >>.
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {        
+        ar & error;
+        ar & volume;
+        ar & gbEn; 
+        ar & centroid;
+        ar & dimension;  
+        ar & pdbid;
+        ar & pdbFilePath;
+        ar & recPath;
+        ar & message; 
+       
+    }
+    
+    bool error;
+    int volume;
+    double gbEn;
+    Coor3d centroid;
+    Coor3d dimension;
+    std::string pdbid;
+    std::string pdbFilePath;
+    std::string recPath;
+    std::string message;
+   
+};
+
+//struct JobOutData{  
+//    bool error;
+//    char dirBuffer[100];
+//    char message[100];
+//};
+
+void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile){
+        XMLElement * element = new XMLElement("Receptor");
+        
+        XMLElement * pdbidEle = new XMLElement("PDBID");
+        XMLText * pdbidTx= new XMLText(jobOut.pdbid.c_str()); // has to use c-style string.
+        pdbidEle->LinkEndChild(pdbidTx);
+        element->LinkEndChild(pdbidEle);
+
+        XMLElement * pdbPathEle = new XMLElement("PDBPath");
+        XMLText * pdbPathTx= new XMLText(jobOut.pdbFilePath.c_str());
+        pdbPathEle->LinkEndChild(pdbPathTx);        
+        element->LinkEndChild(pdbPathEle);
+
+        XMLElement * recPathEle = new XMLElement("PDBQTPath");
+        XMLText * recPathTx= new XMLText(jobOut.recPath.c_str());
+        recPathEle->LinkEndChild(recPathTx);        
+        element->LinkEndChild(recPathEle);
+        
+        XMLElement * gbEle = new XMLElement("GBEN");
+        XMLText * gbTx= new XMLText(Sstrm<std::string, double>(jobOut.gbEn));
+        gbEle->LinkEndChild(gbTx);        
+        element->LinkEndChild(gbEle);        
+        
+        XMLElement * siteEle = new XMLElement("Site");
+        element->LinkEndChild(siteEle); 
+        
+        XMLElement * volEle = new XMLElement("Volume");
+        XMLText * volTx= new XMLText(Sstrm<std::string, int>(jobOut.volume));
+        volEle->LinkEndChild(volTx);         
+        siteEle->LinkEndChild(volEle);  
+        
+        XMLElement * centEle = new XMLElement("Centroid");
+        siteEle->LinkEndChild(centEle);  
+
+        XMLElement * xcEle = new XMLElement("X");
+        XMLText * xcTx= new XMLText(Sstrm<std::string, double>(jobOut.centroid.getX() ));
+        xcEle->LinkEndChild(xcTx);          
+        centEle->LinkEndChild(xcEle);         
+
+        XMLElement * ycEle = new XMLElement("Y");
+        XMLText * ycTx= new XMLText(Sstrm<std::string, double>(jobOut.centroid.getY() ));
+        ycEle->LinkEndChild(ycTx);        
+        centEle->LinkEndChild(ycEle);         
+
+        XMLElement * zcEle = new XMLElement("Z");
+        XMLText * zcTx= new XMLText(Sstrm<std::string, double>(jobOut.centroid.getZ() ));
+        zcEle->LinkEndChild(zcTx); 
+        centEle->LinkEndChild(zcEle);         
+        
+        XMLElement * DimEle = new XMLElement("Dimension");
+        siteEle->LinkEndChild(DimEle);  
+
+        XMLElement * xdEle = new XMLElement("X");
+        XMLText * xdTx= new XMLText(Sstrm<std::string, double>(jobOut.dimension.getX() ));
+        xdEle->LinkEndChild(xdTx);          
+        DimEle->LinkEndChild(xdEle);         
+
+        XMLElement * ydEle = new XMLElement("Y");
+        XMLText * ydTx= new XMLText(Sstrm<std::string, double>(jobOut.dimension.getY() ));
+        ydEle->LinkEndChild(ydTx);  
+        DimEle->LinkEndChild(ydEle);         
+
+        XMLElement * zdEle = new XMLElement("Z");
+        XMLText * zdTx= new XMLText(Sstrm<std::string, double>(jobOut.dimension.getZ() ));
+        zdEle->LinkEndChild(zdTx);  
+        DimEle->LinkEndChild(zdEle);         
+        
+        XMLElement * mesgEle = new XMLElement("Mesg");
+        XMLText * mesgTx= new XMLText(jobOut.message);
+        mesgEle->LinkEndChild(mesgTx);          
+        element->LinkEndChild(mesgEle);          
+        
+//        element->SetAttribute(std::string("item"), jobOut.pdbid);
+//        element->SetAttribute(std::string("mesg"), jobOut.message);  
+        root->LinkEndChild(element);
+
+        element->Print(xmlTmpFile,1);
+        fputs("\n",xmlTmpFile);
+        fflush(xmlTmpFile);     
+}
+
+
+bool preReceptor(JobOutData& jobOut, std::string& workDir, std::string& dataPath){
     
     bool jobStatus=false;
     
-    if(!fileExist(pdbFilePath)){
-        std::string mesg="PPL1Receptor::preReceptors()\n\t PDB file "+pdbFilePath+" doesn't exist\n";
+    if(!fileExist(jobOut.pdbFilePath)){
+        std::string mesg="PPL1Receptor::preReceptors()\n\t PDB file "+jobOut.pdbFilePath+" doesn't exist\n";
         throw LBindException(mesg);  
         return jobStatus; 
     }
     
-    std::string pdbBasename;
-    getFileBasename(pdbFilePath, pdbBasename);
+//    std::string pdbBasename;
+    getFileBasename(jobOut.pdbFilePath, jobOut.pdbid);
         
-    std::string recDir=workDir+"/scratch/com/"+pdbBasename+"/rec";
+    std::string recDir=workDir+"/scratch/com/"+jobOut.pdbid+"/rec";
     std::string cmd="mkdir -p "+recDir;
     system(cmd.c_str());  
     
-    cmd="cp "+pdbFilePath+" "+recDir;
+    cmd="cp "+jobOut.pdbFilePath+" "+recDir;
     system(cmd.c_str());  
     
     // cd to the rec directory to performance calculation
     chdir(recDir.c_str());
     
     std::string pdbFile;
-    getPathFileName(pdbFilePath, pdbFile);
+    getPathFileName(jobOut.pdbFilePath, pdbFile);
               
      //! begin energy minimization of receptor 
     cmd="reduce -Quiet -Trim  "+pdbFile+" >& rec_noh.pdb ";
@@ -183,12 +331,13 @@ bool preReceptor(std::string& pdbFilePath, std::string& workDir, std::string& da
     
     cmd="sander -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
     std::cout <<cmd <<std::endl;
-    //system(cmd.c_str());  
+    system(cmd.c_str());  
     
     boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
     std::string sanderOut="Rec_minGB.out";
     double recGBen=0;
     bool success=pSanderOutput->getEnergy(sanderOut, recGBen);
+    jobOut.gbEn=recGBen;
     
     if(!success){
         std::string message="Receptor GB minimization fails.";
@@ -212,15 +361,16 @@ bool preReceptor(std::string& pdbFilePath, std::string& workDir, std::string& da
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
     
-    cmd="prepare_receptor4.py -r Rec_min.pdb -o "+pdbBasename+".pdbqt";
+    cmd="prepare_receptor4.py -r Rec_min.pdb -o "+jobOut.pdbid+".pdbqt";
     system(cmd.c_str());
     
-    checkFName=pdbBasename+".pdbqt";
+    checkFName=jobOut.pdbid+".pdbqt";
     if(!fileExist(checkFName)){
         std::string message=checkFName+" does not exist.";
         throw LBindException(message);  
         return jobStatus;        
     } 
+    jobOut.recPath="scratch/com/"+jobOut.pdbid+"/rec/"+jobOut.pdbid+".pdbqt";
     
     // Get geometry
     std::string stdPDBfile="rec_std.pdb";    
@@ -241,7 +391,10 @@ bool preReceptor(std::string& pdbFilePath, std::string& workDir, std::string& da
     pGrid->run(1.4, 100, 50);
     Coor3d dockDim;
     Coor3d centroid;  
-    pGrid->getTopSiteGeo(dockDim, centroid);
+    pGrid->getTopSiteGeo(dockDim, centroid, jobOut.volume);
+    
+    jobOut.centroid=centroid;
+    jobOut.dimension=dockDim;
     
     std::ofstream outFile;
     outFile.open("rec_geo.txt");
@@ -276,16 +429,6 @@ void saveStrList(std::string& fileName, std::vector<std::string>& strList){
     
 }
 
-struct JobInputData{ 
-    bool getPDBflg;
-    char dirBuffer[100];
-};
-
-struct JobOutData{  
-    bool error;
-    char dirBuffer[100];
-    char message[100];
-};
 
 int main(int argc, char** argv) {
  
@@ -311,72 +454,72 @@ int main(int argc, char** argv) {
            
     // ! start MPI parallel
     
-    int nproc, rank, rc;
-
     int jobFlag=1; // 1: doing job,  0: done job
     
     JobInputData jobInput;
     JobOutData jobOut;
-    
-    MPI_Status status1, status2;
-        
+            
     int rankTag=1;
     int jobTag=2;
 
     int inpTag=3;
     int outTag=4;
 
-    rc = MPI_Init(&argc, &argv);
-    if (rc != MPI_SUCCESS) {
-        std::cerr << "Error starting MPI program. Terminating.\n";
-        MPI_Abort(MPI_COMM_WORLD, rc);
-    }
-
-    MPI_Comm_size(MPI_COMM_WORLD, &nproc);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    mpi::timer runingTime;
     
-//    MPI_Barrier(MPI_COMM_WORLD);
-    double time=MPI_Wtime();
+    mpi::environment env(argc, argv);
+    mpi::communicator world;    
 
-    if (nproc < 2) {
+//    int error=0;
+    
+    if (world.size() < 2) {
         std::cerr << "Error: Total process less than 2" << std::endl;
+//        error=1;
         return 1;
     }
     
     POdata podata;
-    int error=0;
     
-    if (rank == 0) {        
+    
+    if (world.rank() == 0) {        
         bool success=PPL1ReceptorPO(argc, argv, podata);
         if(!success){
-            error=1;           
+//            error=1; 
+            return 1;
         }        
     }
 
-    MPI_Bcast(&error, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    if (error !=0) {
-        MPI_Finalize();
-        return 1;
-    }     
+//    MPI_Bcast(&error, 1, MPI_INT, 0, MPI_COMM_WORLD);
+//    mpi::broadcast<int>(world, error, 1);
+//    if (error !=0) {
+//        MPI_Finalize();
+//        return 1;
+//    }     
 
-    std::cout << "Number of tasks= " << nproc << " My rank= " << rank << std::endl;
+    std::cout << "Number of tasks= " << world.size() << " My rank= " << world.rank() << std::endl;
 
-    if (rank == 0) {
+    if (world.rank() == 0) {
                         
         //! Tracking error using XML file
 	XMLDocument doc;  
  	XMLDeclaration* decl = new XMLDeclaration( "1.0", "", "" );  
 	doc.LinkEndChild( decl );  
  
-	XMLElement * root = new XMLElement( "Errors" );  
+	XMLElement * root = new XMLElement( "Receptors" );  
 	doc.LinkEndChild( root );  
 
 	XMLComment * comment = new XMLComment();
 	comment->SetValue(" Tracking calculation error using XML file " );  
 	root->LinkEndChild( comment );     
         
-        FILE* xmlGoodFile=fopen("JobTrackingGood.xml", "w"); 
-        FILE* xmlBadFile=fopen("JobTrackingBad.xml", "w"); 
+        
+        FILE* xmlTmpFile=fopen("PPL1TrackTemp.xml", "w");
+        fprintf(xmlTmpFile, "<?xml version=\"1.0\" ?>\n");
+        fprintf(xmlTmpFile, "<Receptors>\n");
+        fprintf(xmlTmpFile, "    <!-- Tracking calculation error using XML file -->\n");
+//        root->Print(xmlTmpFile, 0);
+//        fputs("\n",xmlTmpFile);
+        fflush(xmlTmpFile);        
         //! END of XML header        
        
         std::vector<std::string> dirList;        
@@ -387,96 +530,81 @@ int main(int argc, char** argv) {
         for(unsigned i=0; i<dirList.size(); ++i){
             ++count;
             
-            if(count >nproc){
-                MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
-                XMLElement * element = new XMLElement("error"); 
-                element->SetAttribute("receptor", jobOut.dirBuffer);
-                element->SetAttribute("mesg", jobOut.message);  
-                root->LinkEndChild(element);
-                if(!jobOut.error){
-                    element->Print(xmlBadFile,2);
-                    fputs("\n",xmlBadFile);
-                    fflush(xmlBadFile);                      
-                }else{
-                    element->Print(xmlGoodFile,2);
-                    fputs("\n",xmlGoodFile);
-                    fflush(xmlGoodFile);                    
-                }
-                  
+            if(count >world.size()){
+//                MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
+                world.recv(mpi::any_source, outTag, jobOut);
+                toXML(jobOut, root, xmlTmpFile);                
             }   
             
             int freeProc;
-            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
-            std::cout << "At Process: " << freeProc << " working on: " << dirList[i]  << std::endl;
-            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
+//            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
+            world.recv(mpi::any_source, rankTag, freeProc);
+            std::cout << "At Process: " << freeProc << " working on: " << dirList[i]  << std::endl;            
+//            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
+            world.send(freeProc, jobTag, jobFlag);
 
-            strcpy(jobInput.dirBuffer, dirList[i].c_str());
+//            strcpy(jobInput.dirBuffer, dirList[i].c_str());
+            jobInput.dirBuffer=dirList[i];
 
-            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);
-                        
+//            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);
+            world.send(freeProc, inpTag, jobInput);            
         }
 
         int nJobs=count;
-        int ndata=(nJobs<nproc)? nJobs: nproc;
+        int ndata=(nJobs<world.size())? nJobs: world.size();
         std::cout << "ndata=" << ndata << " nJobs=" << nJobs << std::endl;
     
         for(int i=0; i < ndata; ++i){
-            MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
-            XMLElement * element = new XMLElement("error"); 
-            element->SetAttribute("receptor", jobOut.dirBuffer);
-            element->SetAttribute("mesg", jobOut.message);  
-            root->LinkEndChild(element);
-            if(!jobOut.error){
-                element->Print(xmlBadFile,2);
-                fputs("\n",xmlBadFile);
-                fflush(xmlBadFile);                      
-            }else{
-                element->Print(xmlGoodFile,2);
-                fputs("\n",xmlGoodFile);
-                fflush(xmlGoodFile);                    
-            }
+//            MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
+            world.recv(mpi::any_source, outTag, jobOut);
+            toXML(jobOut, root, xmlTmpFile);  
         } 
+
+        fprintf(xmlTmpFile, "</Receptors>\n");        
+        doc.SaveFile( "PPL1Track.xml" );        
         
-        doc.SaveFile( "JobTracking.xml" );        
-        
-        for(int i=1; i < nproc; ++i){
+        for(int i=1; i < world.size(); ++i){
             int freeProc;
-            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
+//            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
+            world.recv(mpi::any_source, rankTag, freeProc);
             jobFlag=0;;
-            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD);            
+//            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
+            world.send(freeProc, jobTag, jobFlag);
         }        
         
     }else {
         while (1) {
-            MPI_Send(&rank, 1, MPI_INTEGER, 0, rankTag, MPI_COMM_WORLD);
-            MPI_Recv(&jobFlag, 20, MPI_CHAR, 0, jobTag, MPI_COMM_WORLD, &status2);
+//            MPI_Send(&rank, 1, MPI_INTEGER, 0, rankTag, MPI_COMM_WORLD);
+            world.send(0, rankTag, world.rank());
+//            MPI_Recv(&jobFlag, 20, MPI_CHAR, 0, jobTag, MPI_COMM_WORLD, &status2);
+            world.recv(0, jobTag, jobFlag);
             if (jobFlag==0) {
                 break;
             }
             // Receive parameters
 
-            MPI_Recv(&jobInput, sizeof(JobInputData), MPI_CHAR, 0, inpTag, MPI_COMM_WORLD, &status1);
+            world.recv(0, inpTag, jobInput);
+//            MPI_Recv(&jobInput, sizeof(JobInputData), MPI_CHAR, 0, inpTag, MPI_COMM_WORLD, &status1);
                         
-            std::string dir=jobInput.dirBuffer;  
-            strcpy(jobOut.message, "Finished!");
+            jobOut.pdbFilePath=jobInput.dirBuffer; 
+            jobOut.message="Finished!";
+//            strcpy(jobOut.message, "Finished!");
             try{
-                bool jobStatus=preReceptor(dir, workDir, dataPath);            
-                jobOut.error=jobStatus;
+                jobOut.error=preReceptor(jobOut, workDir, dataPath);            
             } catch (LBindException& e){
-                std::string message= e.what();  
-                strcpy(jobOut.message, message.c_str());
+//                std::string message= e.what();  
+//                strcpy(jobOut.message, message.c_str());
+                jobOut.message=e.what();
             }            
             
-            strcpy(jobOut.dirBuffer, dir.c_str());
-            MPI_Send(&jobOut, sizeof(JobOutData), MPI_CHAR, 0, outTag, MPI_COMM_WORLD);            
+//            MPI_Send(&jobOut, sizeof(JobOutData), MPI_CHAR, 0, outTag, MPI_COMM_WORLD);    
+            world.send(0, outTag, jobOut);
            
         }
     }
 
 
-    time=MPI_Wtime()-time;
-    std::cout << "Rank= " << rank << " MPI Wall Time= " << time << std::endl;
-    MPI_Finalize();
+    std::cout << "Rank= " << world.rank() <<" MPI Wall Time= " << runingTime.elapsed() << " Sec."<< std::endl;
     
     
     return 0;

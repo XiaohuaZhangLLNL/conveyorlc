@@ -20,6 +20,7 @@ public:
     
     void parse(const std::string& fileName);
     std::string getInfo(const std::string& fileName, const std::string& keyword);
+    std::string getTitle(const std::string& fileName);
     
 private:
 

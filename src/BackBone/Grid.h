@@ -27,6 +27,7 @@ public:
     
     void run(double probeRadius, int numberSphere, int minVolume);
     void getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid);
+    void getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid, int& size);
         
        
 private:
