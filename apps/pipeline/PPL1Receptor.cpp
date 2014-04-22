@@ -140,7 +140,7 @@ public:
 void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile){
         XMLElement * element = new XMLElement("Receptor");
         
-        XMLElement * pdbidEle = new XMLElement("PDBID");
+        XMLElement * pdbidEle = new XMLElement("RecID");
         XMLText * pdbidTx= new XMLText(jobOut.pdbid.c_str()); // has to use c-style string.
         pdbidEle->LinkEndChild(pdbidTx);
         element->LinkEndChild(pdbidEle);
