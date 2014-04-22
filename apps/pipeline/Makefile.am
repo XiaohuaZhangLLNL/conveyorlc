@@ -18,7 +18,7 @@ if USE_MPI
 
     PPL3Docking_SOURCES = PPL3Docking.cpp dock.cpp mpiparser.cpp mainProcedure.cpp
     PPL3Docking_LDFLAGS = -Wl,-rpath,@mpi_path@/lib/:@boost_dir@/lib/
-    PPL3Docking_LDADD = $(top_builddir)/src/VinaLC/.libs/libVinaLC.a -L/@boost_dir@/lib/ -lboost_system -lboost_thread -lboost_serialization -lboost_filesystem -lboost_program_options -lboost_mpi -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
+    PPL3Docking_LDADD = $(top_builddir)/src/VinaLC/.libs/libVinaLC.a $(top_builddir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_system -lboost_regex -lboost_thread -lboost_serialization -lboost_filesystem -lboost_program_options -lboost_mpi -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
 
 else
 endif
