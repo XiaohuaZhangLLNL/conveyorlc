@@ -75,7 +75,8 @@ void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile) {
     XMLElement * scoresEle = new XMLElement("Scores");
     for (unsigned i = 0; i < jobOut.scores.size(); ++i) {
         std::string iStr=Sstrm<std::string, unsigned>(i+1);
-        XMLElement * scEle = new XMLElement(iStr.c_str());
+        XMLElement * scEle = new XMLElement("Pose");
+        scEle->SetAttribute("id", iStr.c_str() );
         XMLText * scTx = new XMLText(Sstrm<std::string, double>(jobOut.scores[i]));
         scEle->LinkEndChild(scTx);
         scoresEle->LinkEndChild(scEle);

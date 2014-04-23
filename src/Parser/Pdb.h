@@ -43,6 +43,7 @@ public:
     void cutByRadius(const std::string& inFileName, const std::string& outFileName, Coor3d& center, double radius);
     
     int splitByModel(const std::string& inFileName, const std::string& outFileBase);
+    bool readByModel(const std::string& inFileName, const std::string& outFile, int modelID, double& score);
     
     void standardlize(const std::string& inFileName, const std::string& outFileName);
     void standardlize2(const std::string& inFileName, const std::string& outFileName);

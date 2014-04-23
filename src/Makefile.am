@@ -33,6 +33,7 @@ Common/LBindException.cpp \
 MM/Amber.cpp \
 MM/AutoDock.cpp \
 MM/Gromacs.cpp \
+MM/MMGBSA.cpp  \
 MM/Namd.cpp \
 MM/SpMMGBSA.cpp  \
 MM/SpMMPBSA.cpp  \
@@ -94,6 +95,7 @@ Common/Tokenize.hpp \
 MM/Amber.h \
 MM/AutoDock.h \
 MM/Gromacs.h \
+MM/MMGBSA.h  \
 MM/Namd.h \
 MM/SpMMGBSA.h  \
 MM/SpMMPBSA.h  \

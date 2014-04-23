@@ -16,6 +16,7 @@
 //#include "Conformer.h"
 #include "Structure/Coordinates.h"
 #include "Structure/PMolException.h"
+#include "Common/Tokenize.hpp"
 //#include "Common/Chomp.hpp"
 
 #include <string>
@@ -562,6 +563,81 @@ void Pdb::cutByRadius(const std::string& inFileName, const std::string& outFileN
     
 }
 
+bool Pdb::readByModel(const std::string& inFileName, const std::string& outFileName, int modelID, double& score){
+
+    std::ifstream inFile;
+    try {
+        inFile.open(inFileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::readByModel >> Cannot open file" << inFileName << std::endl;
+        return false;
+    }
+    
+    std::string fileLine="";    
+      
+    const std::string modelStr="MODEL";
+    const std::string endmdlStr="ENDMDL";
+    const std::string vinaStr="VINA";
+
+    bool scoreFlag=false;  
+    bool outFlag=false;
+    
+    std::ofstream outFile;
+    try {
+        outFile.open(outFileName.c_str());
+    } catch (...) {
+        std::cout << "Pdb::readByModel >> Cannot open file" << outFileName << std::endl;
+        return false;
+    }    
+    
+    while(std::getline(inFile, fileLine)){
+                
+        if(fileLine.compare(0,6, endmdlStr)==0){
+            outFlag=false;            
+        }
+
+        if(outFlag){
+//            std::cout << fileLine << std::endl;
+            outFile << fileLine << std::endl;
+            if(scoreFlag){
+                if(fileLine.compare(7, 4, vinaStr)==0){
+                    std::cout << fileLine << std::endl;
+                    std::vector<std::string> tokens;
+                    tokenize(fileLine, tokens); 
+                    if(tokens.size()>3){
+                        score=Sstrm<double, std::string>(tokens[3]);                    
+                    }
+                    scoreFlag=false;
+                }
+               
+            }
+        }
+        
+        if(fileLine.compare(0,5, modelStr)==0){
+            
+            std::vector<std::string> tokens;
+            tokenize(fileLine, tokens);    
+            
+            if(tokens.size()>1){
+                if(Sstrm<int, std::string>(tokens[1])==modelID){
+//                    std::cout << fileLine << std::endl;
+                    outFlag=true;
+                    scoreFlag=true;
+                                       
+                }
+            }
+            
+        }                
+    }
+    
+    outFile.flush();
+    inFile.close();
+    outFile.close();
+    
+    return true;
+        
+}
 
 int Pdb::splitByModel(const std::string& inFileName, const std::string& outFileBase){
     std::ifstream inFile;
@@ -569,7 +645,7 @@ int Pdb::splitByModel(const std::string& inFileName, const std::string& outFileB
         inFile.open(inFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::cutByRadius >> Cannot open file" << inFileName << std::endl;
+        std::cout << "PDB::splitByModel >> Cannot open file" << inFileName << std::endl;
     }
     
    

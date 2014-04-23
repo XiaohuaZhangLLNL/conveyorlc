@@ -5,7 +5,7 @@ else
 endif
 
 if USE_MPI
-    bin_PROGRAMS = PPL1Receptor PPL2Ligand PPL3Docking
+    bin_PROGRAMS = PPL1Receptor PPL2Ligand PPL3Docking PPL4mmgbsa
 else
 endif
 
@@ -19,6 +19,10 @@ if USE_MPI
     PPL3Docking_SOURCES = PPL3Docking.cpp dock.cpp mpiparser.cpp mainProcedure.cpp
     PPL3Docking_LDFLAGS = -Wl,-rpath,@mpi_path@/lib/:@boost_dir@/lib/
     PPL3Docking_LDADD = $(top_builddir)/src/VinaLC/.libs/libVinaLC.a $(top_builddir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_system -lboost_regex -lboost_thread -lboost_serialization -lboost_filesystem -lboost_program_options -lboost_mpi -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
+
+    PPL4mmgbsa_SOURCES = PPL4mmgbsa.cpp PPL4mmgbsaPO.cpp
+    PPL4mmgbsa_LDADD = $(top_builddir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_system -lboost_program_options -lboost_filesystem -lboost_regex -lboost_serialization -lboost_mpi -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
+
 
 else
 endif
