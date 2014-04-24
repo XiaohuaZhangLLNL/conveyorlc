@@ -563,6 +563,112 @@ void Pdb::cutByRadius(const std::string& inFileName, const std::string& outFileN
     
 }
 
+struct ResInfo{
+    std::string resName;
+    int resID;
+    bool hasChainID;
+    std::string chainID;
+};
+
+bool Pdb::aveKeyResCoor(const std::string& inFileName, std::vector<std::string>& keyRes, Coor3d& aveCoor){
+
+    std::vector<ResInfo*> keyResList;
+    const std::string delimiters=".";
+    for(unsigned i=0; i<keyRes.size(); ++i){
+        std::vector<std::string> tokens;
+        tokenize(keyRes[i], tokens, delimiters);
+        if(tokens.size()>1){
+            ResInfo* pResInfo=new ResInfo();
+            pResInfo->resName=tokens[0];
+            pResInfo->resID=Sstrm<int,std::string>(tokens[1]);
+            if(tokens.size()==2){
+                pResInfo->hasChainID=false;
+            }else{
+                pResInfo->hasChainID=true;
+                pResInfo->chainID=tokens[2];
+            }
+            keyResList.push_back(pResInfo);
+        }
+    }
+    
+    if(keyResList.size()==0){
+        return false;
+    }
+    
+    std::ifstream inFile;
+    try {
+        inFile.open(inFileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::cutByRadius >> Cannot open file" << inFileName << std::endl;
+    }
+        
+    std::string fileLine="";    
+    
+    const std::string atomStr="ATOM";
+    const std::string hetatmStr="HETATM";   
+    
+    double xSum=0;
+    double ySum=0;
+    double zSum=0;
+    
+    int count=0;
+    
+    while(std::getline(inFile, fileLine)){
+
+        if(fileLine.compare(0,4, atomStr)==0 || fileLine.compare(0,6, hetatmStr)==0){
+            
+            std::string resName= fileLine.substr(17,3);
+            std::string rIDstr= fileLine.substr(22,4);
+            int rID=atoi(rIDstr.c_str());            
+            std::string chainID=fileLine.substr(21,1);
+            
+            bool isKeyRes=false;
+            for(unsigned i=0; i<keyResList.size(); ++i){
+                if(rID==keyResList[i]->resID && resName==keyResList[i]->resName){
+                    if(keyResList[i]->hasChainID){
+                        if(chainID==keyResList[i]->chainID){
+                            isKeyRes=true;
+                        }
+                    }else{
+                        isKeyRes=true;
+                    }
+                }
+            }   
+            
+            if(!isKeyRes) continue;
+            
+            std::string xstr= fileLine.substr(30,8);
+            double x=atof(xstr.c_str());
+            std::string ystr= fileLine.substr(38,8);
+            double y=atof(ystr.c_str());
+            std::string zstr= fileLine.substr(46,8);
+            double z=atof(zstr.c_str());
+            
+            xSum=xSum+x;
+            ySum=ySum+y;            
+            zSum=zSum+z;
+            ++count;
+        }   
+    }
+    inFile.close(); 
+    
+    if(count==0) return false;
+    
+    xSum=xSum/count;
+    ySum=ySum/count;            
+    zSum=zSum/count;    
+    
+    aveCoor.set(xSum, ySum, zSum);
+   
+    for(unsigned i=0; i<keyResList.size(); ++i){
+        delete keyResList[i];
+    }
+    keyResList.clear();
+    
+    return true;
+}
+
 bool Pdb::readByModel(const std::string& inFileName, const std::string& outFileName, int modelID, double& score){
 
     std::ifstream inFile;
@@ -602,7 +708,7 @@ bool Pdb::readByModel(const std::string& inFileName, const std::string& outFileN
             outFile << fileLine << std::endl;
             if(scoreFlag){
                 if(fileLine.compare(7, 4, vinaStr)==0){
-                    std::cout << fileLine << std::endl;
+                    //std::cout << fileLine << std::endl;
                     std::vector<std::string> tokens;
                     tokenize(fileLine, tokens); 
                     if(tokens.size()>3){

@@ -546,6 +546,37 @@ void Grid::getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid, int& size){
     siteCentroid(this->clusters[0], dockDim, centroid);
 }
 
+bool Grid::getKeySiteGeo(Coor3d& aveKeyResCoor, Coor3d& dockDim, Coor3d& centroid, int& size){
+    
+    double curDist2=BIGPOSITIVE;
+    int index=-1;
+    
+    for(unsigned i=0; i<clusters.size(); ++i){
+        if(clusters[i].size() > minVol){
+            Coor3d clustCent;
+            siteAverage(clusters[i], clustCent);
+            if(clustCent.dist2(aveKeyResCoor)<curDist2){
+                index=i;
+                curDist2=clustCent.dist2(aveKeyResCoor);
+            }
+        }        
+    }
+    if(index==-1) index=0;
+    
+    size=this->clusters[index].size();
+    siteCentroid(this->clusters[index], dockDim, centroid); 
+    return true;
+}
+
+void Grid::siteAverage(std::vector<Coor3d*>& clust, Coor3d& aveCoor) {
+    aveCoor.set(0,0,0);
+    for(unsigned i=0; i<clust.size(); ++i){
+        Coor3d *pCoor=clust[i];
+        aveCoor=aveCoor+(*pCoor);
+    }
+    aveCoor=aveCoor/clust.size();  
+}
+
 
 void Grid::siteCentroid(std::vector<Coor3d*>& clust, Coor3d& dockDim, Coor3d& centroid){
     //Make sure initialized with zero;

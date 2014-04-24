@@ -85,11 +85,13 @@ public:
     void serialize(Archive & ar, const unsigned int version)
     {
         ar & getPDBflg;
-        ar & dirBuffer;        
+        ar & dirBuffer;  
+        ar & keyRes;
     }
     
     bool getPDBflg;
     std::string dirBuffer;
+    std::vector<std::string> keyRes;
 };
 
 //struct JobInputData{ 
@@ -219,10 +221,11 @@ void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile){
 }
 
 
-bool preReceptor(JobOutData& jobOut, std::string& workDir, std::string& dataPath){
+bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, std::string& dataPath){
     
     bool jobStatus=false;
     
+    jobOut.pdbFilePath=jobInput.dirBuffer; 
     if(!fileExist(jobOut.pdbFilePath)){
         std::string mesg="PPL1Receptor::preReceptors()\n\t PDB file "+jobOut.pdbFilePath+" doesn't exist\n";
         throw LBindException(mesg);  
@@ -239,7 +242,7 @@ bool preReceptor(JobOutData& jobOut, std::string& workDir, std::string& dataPath
     cmd="cp "+jobOut.pdbFilePath+" "+recDir;
     system(cmd.c_str());  
     
-    // cd to the rec directory to performance calculation
+    // cd to the rec directory to perform calculation
     chdir(recDir.c_str());
     
     std::string pdbFile;
@@ -389,9 +392,21 @@ bool preReceptor(JobOutData& jobOut, std::string& workDir, std::string& dataPath
 
     boost::scoped_ptr<Grid> pGrid(new Grid(pComplex.get(), false));
     pGrid->run(1.4, 100, 50);
+    
+    Coor3d aveKeyResCoor;
+    bool hasKeyResCoor=pPdb->aveKeyResCoor(pdbFile, jobInput.keyRes, aveKeyResCoor);
+ 
     Coor3d dockDim;
-    Coor3d centroid;  
-    pGrid->getTopSiteGeo(dockDim, centroid, jobOut.volume);
+    Coor3d centroid; 
+    
+    bool hasKeyDockGeo=false;
+    if(hasKeyResCoor){
+        hasKeyDockGeo=pGrid->getKeySiteGeo(aveKeyResCoor, dockDim, centroid, jobOut.volume);
+    }
+    
+    if(!hasKeyDockGeo){
+        pGrid->getTopSiteGeo(dockDim, centroid, jobOut.volume);
+    }
     
     jobOut.centroid=centroid;
     jobOut.dimension=dockDim;
@@ -408,7 +423,12 @@ bool preReceptor(JobOutData& jobOut, std::string& workDir, std::string& dataPath
     return jobStatus;
 }
 
-void saveStrList(std::string& fileName, std::vector<std::string>& strList){
+struct RecData{
+    std::string pdbFile;
+    std::vector<std::string> keyRes;
+};
+
+void saveStrList(std::string& fileName, std::vector<RecData*>& strList){
     std::ifstream inFile;
     try {
         inFile.open(fileName.c_str());
@@ -417,13 +437,20 @@ void saveStrList(std::string& fileName, std::vector<std::string>& strList){
         std::cout << "Cannot open file: " << fileName << std::endl;
     } 
 
+    const std::string comment="#";
     std::string fileLine;
     while(inFile){
         std::getline(inFile, fileLine);
+        if(fileLine.compare(0, 1, comment)==0) continue;
         std::vector<std::string> tokens;
         tokenize(fileLine, tokens); 
         if(tokens.size() > 0){
-            strList.push_back(tokens[0]);
+            RecData* pRecData=new RecData();
+            pRecData->pdbFile=tokens[0];
+            for(unsigned i=1; i<tokens.size(); ++i){
+                pRecData->keyRes.push_back(tokens[i]);
+            }
+            strList.push_back(pRecData);
         }        
     }
     
@@ -522,7 +549,7 @@ int main(int argc, char** argv) {
         fflush(xmlTmpFile);        
         //! END of XML header        
        
-        std::vector<std::string> dirList;        
+        std::vector<RecData*> dirList;        
         
         saveStrList(podata.inputFile, dirList);
         int count=0;
@@ -539,12 +566,13 @@ int main(int argc, char** argv) {
             int freeProc;
 //            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
             world.recv(mpi::any_source, rankTag, freeProc);
-            std::cout << "At Process: " << freeProc << " working on: " << dirList[i]  << std::endl;            
+            std::cout << "At Process: " << freeProc << " working on: " << dirList[i]->pdbFile  << std::endl;            
 //            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
             world.send(freeProc, jobTag, jobFlag);
 
 //            strcpy(jobInput.dirBuffer, dirList[i].c_str());
-            jobInput.dirBuffer=dirList[i];
+            jobInput.dirBuffer=dirList[i]->pdbFile;
+            jobInput.keyRes=dirList[i]->keyRes;
 
 //            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);
             world.send(freeProc, inpTag, jobInput);            
@@ -585,12 +613,11 @@ int main(int argc, char** argv) {
 
             world.recv(0, inpTag, jobInput);
 //            MPI_Recv(&jobInput, sizeof(JobInputData), MPI_CHAR, 0, inpTag, MPI_COMM_WORLD, &status1);
-                        
-            jobOut.pdbFilePath=jobInput.dirBuffer; 
+                                    
             jobOut.message="Finished!";
 //            strcpy(jobOut.message, "Finished!");
             try{
-                jobOut.error=preReceptor(jobOut, workDir, dataPath);            
+                jobOut.error=preReceptor(jobInput, jobOut, workDir, dataPath);            
             } catch (LBindException& e){
 //                std::string message= e.what();  
 //                strcpy(jobOut.message, message.c_str());

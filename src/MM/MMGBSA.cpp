@@ -63,11 +63,11 @@ void MMGBSA::run(std::string& poseID){
     std::string ligpdbqt=poseID+".pdbqt";
     boost::scoped_ptr<Pdb> pPdb(new Pdb());
     int pID=Sstrm<int, std::string>(poseID);
-    std::cout << " recID=" << recID<< " ligID=" << ligID << " poseID=" << pID << std::endl;
-    std::cout << posespdbqt << std::endl;
-    std::cout << ligpdbqt << std::endl;
+//    std::cout << " recID=" << recID<< " ligID=" << ligID << " poseID=" << pID << std::endl;
+//    std::cout << posespdbqt << std::endl;
+//    std::cout << ligpdbqt << std::endl;
     pPdb->readByModel(posespdbqt, ligpdbqt, pID, score);
-    std::cout << "Score=" << score << std::endl;
+//    std::cout << "Score=" << score << std::endl;
 
     std::string posePDB="Lig_"+poseID+".pdb";    
     cmd="babel -ipdbqt "+ligpdbqt+" -opdb "+posePDB;

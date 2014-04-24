@@ -41,6 +41,7 @@ public:
     void renameAtom(const std::string& inFileName, const std::string& outFileName);
     void strip(const std::string& inFileName, const std::string& outFileName);
     void cutByRadius(const std::string& inFileName, const std::string& outFileName, Coor3d& center, double radius);
+    bool aveKeyResCoor(const std::string& inFileName, std::vector<std::string>& keyRes, Coor3d& aveCoor);
     
     int splitByModel(const std::string& inFileName, const std::string& outFileBase);
     bool readByModel(const std::string& inFileName, const std::string& outFile, int modelID, double& score);

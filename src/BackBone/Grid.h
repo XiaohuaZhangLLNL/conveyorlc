@@ -28,8 +28,9 @@ public:
     void run(double probeRadius, int numberSphere, int minVolume);
     void getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid);
     void getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid, int& size);
+    
+    bool getKeySiteGeo(Coor3d& aveKeyResCoor, Coor3d& dockDim, Coor3d& centroid, int& size);
         
-       
 private:
     void generateSpPoints();
     void getGridBox();
@@ -42,6 +43,7 @@ private:
     void siteSurface(std::vector<Coor3d*>& clust);
     void siteCentroid(std::vector<Coor3d*>& clust);
     void siteCentroid(std::vector<Coor3d*>& clust, Coor3d& dockDim, Coor3d& centroid);
+    void siteAverage(std::vector<Coor3d*>& clust, Coor3d& aveCoor);
     
 private:
     Complex *pComplex;
