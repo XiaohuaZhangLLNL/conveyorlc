@@ -302,7 +302,7 @@ int main(int argc, char** argv) {
         std::vector<XmlData*> xmlList;
         
         try{
-        saveStrList(podata.recFile, xmlList);
+            saveStrList(podata.recFile, xmlList);
         }catch(LBindException& e){
             std::cerr << "LBindException: " << e.what() << std::endl;
             return 1;

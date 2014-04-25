@@ -5,7 +5,7 @@ else
 endif
 
 if USE_MPI
-    bin_PROGRAMS = PPL1Receptor PPL2Ligand PPL3Docking PPL4mmgbsa
+    bin_PROGRAMS = PPL1Receptor PPL2Ligand PPL3Docking PPL4mmgbsa PPL4parseXML
 else
 endif
 
@@ -22,6 +22,9 @@ if USE_MPI
 
     PPL4mmgbsa_SOURCES = PPL4mmgbsa.cpp PPL4mmgbsaPO.cpp
     PPL4mmgbsa_LDADD = $(top_builddir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_system -lboost_program_options -lboost_filesystem -lboost_regex -lboost_serialization -lboost_mpi -L/@mpi_path@/lib/ -lmpi -lmpi_cxx 
+
+    PPL4parseXML_SOURCES = PPL4parseXML.cpp 
+    PPL4parseXML_LDADD = $(top_builddir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_system -lboost_program_options -lboost_filesystem -lboost_regex -lz
 
 
 else
