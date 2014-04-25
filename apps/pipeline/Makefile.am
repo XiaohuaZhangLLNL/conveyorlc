@@ -1,7 +1,7 @@
 if USE_MPI
-    INCLUDES = -I. -I$(top_srcdir)/src -I/@boost_dir@/include -I/@mpi_path@/include 
+    INCLUDES = -I. -I$(top_srcdir)/src -I$(top_srcdir)/src/VinaLC -I/@boost_dir@/include -I/@mpi_path@/include 
 else
-    INCLUDES = -I. -I$(top_srcdir)/src -I/@boost_dir@/include 
+    INCLUDES = -I. -I$(top_srcdir)/src -I$(top_srcdir)/src/VinaLC -I/@boost_dir@/include 
 endif
 
 if USE_MPI

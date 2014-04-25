@@ -106,3 +106,7 @@
 /data/reduce_wwPDB_het_dict.txt
 /data/reduce_wwPDB_het_dict.txt.zip
 /apps/tools/calcSASA
+/apps/pipeline/PPL2Ligand
+/apps/pipeline/PPL3Docking
+/apps/pipeline/PPL4mmgbsa
+/apps/pipeline/PPL4parseXML
