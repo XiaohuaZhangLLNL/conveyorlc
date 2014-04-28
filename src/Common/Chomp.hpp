@@ -8,6 +8,8 @@
 #ifndef CHOMP_HPP
 #define	CHOMP_HPP
 
+#include <string>
+
 namespace LBIND {
     
 void chomp(std::string& s) {
@@ -18,6 +20,8 @@ void chomp(std::string& s) {
     if (std::string::npos != p)
         s.erase(p + 1);
 }
+
+
 
 } // namespace LBIND 
 

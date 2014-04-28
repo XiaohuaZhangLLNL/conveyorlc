@@ -69,6 +69,9 @@ void Complex::assignElement(ElementContainer* pElementContainer){
             std::vector<Atom*> atomList=resList[j]->getChildren();
             for(unsigned k=0; k<atomList.size(); ++k){
                 Atom *pAtom=atomList[k];
+//                std::cout << "Residue=" << resList[j]->getName() << " ResID=" << resList[j]->getID() 
+//                        << " Atom=" << pAtom->getName() << " file id=" << pAtom->getFileID() << " Symbol=" << pAtom->getSymbol()
+//                        << std::endl;
                 Element *pElement=pElementContainer->symbolToElement(pAtom->getSymbol());
                 pAtom->setElement(pElement);
             }

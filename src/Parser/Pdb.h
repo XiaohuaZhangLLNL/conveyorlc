@@ -54,9 +54,13 @@ public:
 //    void write(const std::string& fileName, boost::shared_ptr<Conformer> pConformer);
 //    void write(const std::string& fileName, Conformer* pConformer);
 private:
+    void guessElement(std::string& atomType, const std::string& resName, const std::string& atomName);
     std::string newAtomName(const std::string& atomType, int seq);
     bool isAA(Fragment* pFrag);
     void toALA(Fragment* pFrag); //! Convert non-standard Amino Acid to ALA
+    // a multi-definition issue.
+
+    void pdbchomp(std::string& s); 
 //    std::string guessSymbol(const std::string& atomName);
 
 };

@@ -207,6 +207,95 @@ void Pdb::read(const std::string& fileName, Complex* pComplex)
 //    return symbol;
 //}
 
+void Pdb::pdbchomp(std::string& s){
+    size_t p = s.find_first_not_of(" \t");
+    s.erase(0, p);
+
+    p = s.find_last_not_of(" \t");
+    if (std::string::npos != p)
+        s.erase(p + 1);
+}
+
+void Pdb::guessElement(std::string& atomType, const std::string& resName, const std::string& atomName){
+    
+    std::string atomNChomp=atomName;
+    this->pdbchomp(atomNChomp);
+
+    std::string resNChomp=resName;
+    this->pdbchomp(resNChomp);
+    
+    boost::scoped_ptr<StdResContainer> pStdResContainer(new StdResContainer());
+    //! if it is standard residues
+    if(atomNChomp.size()>0){
+        if(pStdResContainer->find(resName)){
+            atomType=atomNChomp.substr(0,1);
+        }else{
+            if(atomNChomp.substr(0,1)=="C"){
+                if(atomNChomp.substr(0,2)=="CL" || atomNChomp.substr(0,2)=="Cl"){
+                    atomType="Cl";
+                }else if((resNChomp.substr(0,2)=="CA") 
+                        &&(atomNChomp.substr(0,2)=="CA" || atomNChomp.substr(0,2)=="Ca")){
+                    atomType="Ca";
+                }else if((resNChomp.substr(0,2)=="CU") 
+                        &&(atomNChomp.substr(0,2)=="CU" || atomNChomp.substr(0,2)=="Cu")){
+                    atomType="Cu";
+                }else{
+                   atomType="C"; 
+                }
+            }else if(atomNChomp.substr(0,1)=="B"){
+                if(atomNChomp.substr(0,2)=="BR" || atomNChomp.substr(0,2)=="Br"){
+                    atomType="Br";
+                }else{
+                   atomType="B"; 
+                }                  
+            }else if(atomNChomp.substr(0,1)=="F"){
+                if((resNChomp.substr(0,2)=="FE") 
+                        &&(atomNChomp.substr(0,2)=="FE" || atomNChomp.substr(0,2)=="Fe")){
+                    atomType="Fe";
+                }else{
+                   atomType="F"; 
+                }
+            }else if(atomNChomp.substr(0,1)=="H"){
+                atomType="H";
+            }else if(atomNChomp.substr(0,1)=="M"){
+                if((resNChomp.substr(0,2)=="MG") 
+                        &&(atomNChomp.substr(0,2)=="MG" || atomNChomp.substr(0,2)=="Mg")){
+                    atomType="Mg";
+                }else if((resNChomp.substr(0,2)=="MN") 
+                        &&(atomNChomp.substr(0,2)=="MN" || atomNChomp.substr(0,2)=="Mn")){
+                    atomType="Mn";
+                }else{
+                   atomType="X"; 
+                }                
+            }else if(atomNChomp.substr(0,1)=="N"){
+                if((resNChomp.substr(0,2)=="NA") 
+                        &&(atomNChomp.substr(0,2)=="NA" || atomNChomp.substr(0,2)=="Na")){
+                    atomType="Na";
+                }else{
+                   atomType="N"; 
+                }              
+            }else if(atomNChomp.substr(0,1)=="O"){
+                atomType="O";
+            }else if(atomNChomp.substr(0,1)=="P"){
+                atomType="P";
+            }else if(atomNChomp.substr(0,1)=="S"){
+                atomType="S";
+            }else if(atomNChomp.substr(0,1)=="Z"){
+                if((resNChomp.substr(0,2)=="ZN") 
+                        &&(atomNChomp.substr(0,2)=="ZN" || atomNChomp.substr(0,2)=="Zn")){
+                    atomType="Zn";
+                }else{
+                   atomType="X"; 
+                }              
+            }else{
+                atomType="X";
+            }
+        }
+    }else{
+        atomType="X";
+    }
+}
+
 void Pdb::parse(const std::string& fileName, Complex* pComplex){
     std::ifstream inFile;
     try {
@@ -280,8 +369,13 @@ void Pdb::parse(const std::string& fileName, Complex* pComplex){
             std::string typeName="  ";
             if(fileLine.size()>77){
                 typeName=fileLine.substr(76,2);
+                if(typeName=="  "){
+                    guessElement(typeName, resName, atomName);
+                }
+            }else{
+                guessElement(typeName, resName, atomName);
             }
-//            std::cout << typeName << std::endl;
+            std::cout << typeName << std::endl;
 
             if(newMolecule){
 //                std::cout << "New Molecule!" << std::endl;

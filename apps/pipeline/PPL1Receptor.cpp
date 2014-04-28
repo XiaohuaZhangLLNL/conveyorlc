@@ -227,7 +227,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     
     jobOut.pdbFilePath=jobInput.dirBuffer; 
     if(!fileExist(jobOut.pdbFilePath)){
-        std::string mesg="PPL1Receptor::preReceptors()\n\t PDB file "+jobOut.pdbFilePath+" doesn't exist\n";
+        std::string mesg="PPL1Receptor::preReceptors: PDB file "+jobOut.pdbFilePath+" does NOT exist.";
         throw LBindException(mesg);  
         return jobStatus; 
     }
@@ -334,7 +334,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     
     cmd="sander -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
     std::cout <<cmd <<std::endl;
-    system(cmd.c_str());  
+//    system(cmd.c_str());  
     
     boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
     std::string sanderOut="Rec_minGB.out";
