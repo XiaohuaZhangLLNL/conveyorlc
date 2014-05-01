@@ -128,18 +128,18 @@ void saveRec(std::string& xmlFile, std::vector<std::string>& recList, std::vecto
         }
         
     } 
-//    std::cout << "Print Receptor List: " << std::endl;
-//    for(unsigned i=0; i< recList.size(); ++i){
-//        std::cout << "Receptor " << recList[i] << std::endl;
-//    }
-//    std::cout << "Print Geometry List: " << std::endl;
-//    for(unsigned i=0; i< geoList.size(); ++i){
-//        std::vector<double> geo=geoList[i];
-//        for(unsigned j=0; j< geo.size(); ++j){
-//            std::cout << geo[j] << ","<< std::endl;
-//        }
-//        std::cout << std::endl;
-//    }
+    std::cout << "Print Receptor List: " << std::endl;
+    for(unsigned i=0; i< recList.size(); ++i){
+        std::cout << "Receptor " << recList[i] << std::endl;
+    }
+    std::cout << "Print Geometry List: " << std::endl;
+    for(unsigned i=0; i< geoList.size(); ++i){
+        std::vector<double> geo=geoList[i];
+        for(unsigned j=0; j< geo.size(); ++j){
+            std::cout << geo[j] << ","<< std::endl;
+        }
+        std::cout << std::endl;
+    }
     
 }
 
@@ -176,10 +176,10 @@ void saveLig(std::string& xmlFile, std::vector<std::string>& ligList){
         
     } 
 
-//    std::cout << "Print Ligand List: " << std::endl;
-//    for(unsigned i=0; i< ligList.size(); ++i){
-//        std::cout << "Ligand " << ligList[i] << std::endl;
-//    }
+    std::cout << "Print Ligand List: " << std::endl;
+    for(unsigned i=0; i< ligList.size(); ++i){
+        std::cout << "Ligand " << ligList[i] << std::endl;
+    }
     
 }
 

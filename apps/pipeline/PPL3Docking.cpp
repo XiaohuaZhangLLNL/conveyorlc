@@ -159,12 +159,13 @@ int main(int argc, char* argv[]) {
         std::vector<std::string> ligList;
         std::vector<std::vector<double> > geoList;
        
+        std::cout << "Begin Parser" << std::endl;
         int success=mpiParser(argc, argv, recFile, fleFile, ligFile, ligList, recList, fleList, geoList, jobInput);
         if(success!=0) {
             std::cerr << "Error: Parser input error" << std::endl;
             return 1;            
         }
-//        std::cout << "End of Parser" << std::endl;
+        std::cout << "End of Parser" << std::endl;
         unsigned num_cpus = boost::thread::hardware_concurrency();
         if (num_cpus > 0)
             jobInput.cpu = num_cpus;
@@ -220,7 +221,7 @@ int main(int argc, char* argv[]) {
 //                std::cout << "i=" << i << " j=" << j << std::endl;
 
                 ++count;
-                if (count > world.size()) {
+                if (count > world.size()-1) {
                     world.recv(mpi::any_source, outTag, jobOut);
                     toXML(jobOut, root, xmlFile);
 // add output here
@@ -246,7 +247,7 @@ int main(int argc, char* argv[]) {
      
 
         int nJobs=count;
-        int ndata=(nJobs<world.size())? nJobs: world.size();
+        int ndata=(nJobs<world.size()-1)? nJobs: world.size()-1;
         std::cout << "ndata=" << ndata << " nJobs=" << nJobs << std::endl;
     
         for(unsigned i=0; i < ndata; ++i){

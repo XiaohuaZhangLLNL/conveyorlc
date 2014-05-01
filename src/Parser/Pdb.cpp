@@ -375,7 +375,7 @@ void Pdb::parse(const std::string& fileName, Complex* pComplex){
             }else{
                 guessElement(typeName, resName, atomName);
             }
-            std::cout << typeName << std::endl;
+//            std::cout << typeName << std::endl;
 
             if(newMolecule){
 //                std::cout << "New Molecule!" << std::endl;

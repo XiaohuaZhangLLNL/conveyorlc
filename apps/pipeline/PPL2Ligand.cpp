@@ -167,6 +167,7 @@ bool preLigands(JobOutData& jobOut, std::string& workDir) {
     
     bool jobStatus=false;
     
+    chdir(workDir.c_str());
     // ! Goto sub directory
     std::string subDir=workDir+"/scratch/lig/"+jobOut.ligID;   
     std::string sdfPath=subDir+"/ligand.sdf";
@@ -502,7 +503,7 @@ int main(int argc, char** argv) {
  //! END of XML header
 
         for(int i=0; i <ligList.size(); ++i){
-            if(i >world.size()){
+            if(i >world.size()-1){
 //                MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
                 world.recv(mpi::any_source, outTag, jobOut);
                 toXML(jobOut, root, xmlFile);
@@ -526,7 +527,7 @@ int main(int argc, char** argv) {
         }
 
         int nJobs=ligList.size();
-        int ndata=(nJobs<world.size())? nJobs: world.size();
+        int ndata=(nJobs<world.size()-1)? nJobs: world.size()-1;
         std::cout << "ndata=" << ndata << " nJobs=" << nJobs << std::endl;
     
         for(int i=0; i < ndata; ++i){

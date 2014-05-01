@@ -319,7 +319,7 @@ int main(int argc, char** argv) {
         for (unsigned i = 0; i < xmlList.size(); ++i) {
             for (unsigned j = 0; j < xmlList[i]->poseIDs.size(); ++j) {
                 ++count;
-                if (count > world.size()) {
+                if (count > world.size()-1) {
                      world.recv(mpi::any_source, outTag, jobOut);
                     toXML(jobOut, root, xmlTmpFile);
                 }
@@ -343,7 +343,7 @@ int main(int argc, char** argv) {
         }
         
         int nJobs=count;
-        int ndata=(nJobs<world.size())? nJobs: world.size();
+        int ndata=(nJobs<world.size()-1)? nJobs: world.size()-1;
         std::cout << "ndata=" << ndata << " nJobs=" << nJobs << std::endl;
     
         for(unsigned i=0; i < ndata; ++i){

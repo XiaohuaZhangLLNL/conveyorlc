@@ -190,6 +190,7 @@ int dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
         jobOut.ligID=jobInput.ligBuffer;
         jobOut.logPath="scratch/com/" + jobInput.recBuffer + "/dock/" + jobInput.ligBuffer+"/scores.log";
         jobOut.posePath="scratch/com/" + jobInput.recBuffer + "/dock/" + jobInput.ligBuffer+"/poses.pdbqt";
+        jobOut.scores.clear();
         getScores(logStr, jobOut.scores);
         jobOut.mesg="Finished!";
         

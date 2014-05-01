@@ -225,6 +225,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     
     bool jobStatus=false;
     
+    chdir(workDir.c_str());
     jobOut.pdbFilePath=jobInput.dirBuffer; 
     if(!fileExist(jobOut.pdbFilePath)){
         std::string mesg="PPL1Receptor::preReceptors: PDB file "+jobOut.pdbFilePath+" does NOT exist.";
@@ -334,7 +335,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     
     cmd="sander -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
     std::cout <<cmd <<std::endl;
-//    system(cmd.c_str());  
+    system(cmd.c_str());  
     
     boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
     std::string sanderOut="Rec_minGB.out";
@@ -557,7 +558,7 @@ int main(int argc, char** argv) {
         for(unsigned i=0; i<dirList.size(); ++i){
             ++count;
             
-            if(count >world.size()){
+            if(count >world.size()-1){
 //                MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
                 world.recv(mpi::any_source, outTag, jobOut);
                 toXML(jobOut, root, xmlTmpFile);                
@@ -579,7 +580,7 @@ int main(int argc, char** argv) {
         }
 
         int nJobs=count;
-        int ndata=(nJobs<world.size())? nJobs: world.size();
+        int ndata=(nJobs<world.size()-1)? nJobs: world.size()-1;
         std::cout << "ndata=" << ndata << " nJobs=" << nJobs << std::endl;
     
         for(int i=0; i < ndata; ++i){
