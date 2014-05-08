@@ -1,3 +1,5 @@
+SUBDIRS = Sql
+
 if USE_MPI
     INCLUDES = -I. -I$(top_srcdir)/src -I/@boost_dir@/include -I/@mpi_path@/include 
 else

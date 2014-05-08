@@ -243,7 +243,8 @@ AC_OUTPUT(Makefile \
           apps/mmpbsa/Makefile \
           apps/tools/Makefile  \
           apps/pipeline/Makefile  \
-          tests/Makefile )
+          tests/Makefile \
+          tests/Sql/Makefile )
 
 dnl
 dnl Exit Message

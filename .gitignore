@@ -110,3 +110,15 @@
 /apps/pipeline/PPL3Docking
 /apps/pipeline/PPL4mmgbsa
 /apps/pipeline/PPL4parseXML
+/tests/Sql/TestSqlDataBase
+/tests/Sql/Makefile.in
+/tests/Sql/UnitTests.db
+/tests/Sql/Makefile
+/tests/Sql/TestSqlField
+/tests/Sql/TestSqlFieldSet
+/tests/Sql/TestSqlRecord
+/tests/Sql/TestSqlRecordSet
+/tests/Sql/TestSql
+/tests/Sql/TestSqlTable
+/tests/Sql/TestSqlValue
+/tests/Sql/test.db

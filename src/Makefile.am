@@ -13,6 +13,7 @@ BOOST_LIB = -L/@boost_dir@/lib/ -lboost_regex  -lz
 #BOOST_LIB = -L/@boost_dir@/lib/ -lboost_system -lboost_thread -lboost_serialization -lboost_filesystem -lboost_program_options -lboost_regex -lz
 
 #MM_LIB= -L/@mm_dir@/lib/ -lpcm
+SQL_LIB=-L/usr/lib/ -lsqlite3
 
 if USE_MPI
 MPI_LIB= -L/@mpi_path@/lib/ -lmpi -lmpi_cxx
@@ -30,6 +31,15 @@ BackBone/Protein.cpp \
 BackBone/Surface.cpp \
 Common/Control.cpp \
 Common/LBindException.cpp \
+DataBase/SHA1.cpp \
+DataBase/SqlCommon.cpp \
+DataBase/SqlDatabase.cpp \
+DataBase/SqlField.cpp \
+DataBase/SqlFieldSet.cpp \
+DataBase/SqlRecord.cpp \
+DataBase/SqlRecordSet.cpp \
+DataBase/SqlTable.cpp \
+DataBase/SqlValue.cpp \
 MM/Amber.cpp \
 MM/AutoDock.cpp \
 MM/Gromacs.cpp \
@@ -92,6 +102,15 @@ Common/Control.h \
 Common/File.hpp  \
 Common/LBindException.h \
 Common/Tokenize.hpp \
+DataBase/SHA1.h \
+DataBase/SqlCommon.h \
+DataBase/SqlDatabase.h \
+DataBase/SqlField.h \
+DataBase/SqlFieldSet.h \
+DataBase/SqlRecord.h \
+DataBase/SqlRecordSet.h \
+DataBase/SqlTable.h \
+DataBase/SqlValue.h \
 MM/Amber.h \
 MM/AutoDock.h \
 MM/Gromacs.h \
