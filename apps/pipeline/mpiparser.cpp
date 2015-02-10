@@ -37,7 +37,8 @@
 
 using namespace LBIND;
 
-void saveRec(std::string& xmlFile, std::vector<std::string>& recList, std::vector<std::vector<double> >& geoList){
+void saveRec(std::string& xmlFile, std::vector<std::string>& recList, std::vector<std::vector<double> >& geoList, 
+        std::vector<std::vector<std::string> >& nonAAList){
 //    std::ifstream inFile;
 //    try {
 //        inFile.open(fileName.c_str());
@@ -125,13 +126,29 @@ void saveRec(std::string& xmlFile, std::vector<std::string>& recList, std::vecto
                         
             geoList.push_back(geo);
             
+            XMLNode* nonstdAAsnode = recNode->FirstChild("NonStdAAList");
+            assert(nonstdAAsnode); 
+            
+            std::vector<std::string> nonAAs;
+            for (XMLNode* poseNode = nonstdAAsnode->FirstChild(); poseNode != 0; poseNode = poseNode->NextSibling()) {
+                std::string nonstdAA=poseNode->FirstChild()->ToText()->ValueStr();
+//                std::cout << "Pose ID=" << poseID << std::endl;
+                nonAAs.push_back(nonstdAA);
+            }            
+            
+            nonAAList.push_back(nonAAs);
         }
         
     } 
     std::cout << "Print Receptor List: " << std::endl;
     for(unsigned i=0; i< recList.size(); ++i){
         std::cout << "Receptor " << recList[i] << std::endl;
+        std::vector<std::string> nonAAs=nonAAList[i];
+        for(unsigned j=0; j< nonAAs.size(); ++j){
+            std::cout << "Non-Standard residue: " << nonAAs[j] << std::endl;
+        }
     }
+        
     std::cout << "Print Geometry List: " << std::endl;
     for(unsigned i=0; i< geoList.size(); ++i){
         std::vector<double> geo=geoList[i];
@@ -217,6 +234,7 @@ int mpiParser(int argc, char* argv[],
         std::vector<std::string>& recList,
         std::vector<std::string>& fleList,
         std::vector<std::vector<double> >& geoList,
+        std::vector<std::vector<std::string> >& nonAAList,
         JobInputData& jobInput){
     using namespace boost::program_options;
     const std::string version_string = "AutoDock Vina 1.1.2 (May 11, 2011)";
@@ -308,7 +326,7 @@ Thank you!\n";
             std::cerr << "Missing receptor List file.\n" << "\nCorrect usage:\n" << desc << '\n';
             return 1;
         }else{
-            saveRec(recFile, recList, geoList);
+            saveRec(recFile, recList, geoList, nonAAList);
         }
         
 //        if (vm.count("fleList") > 0) {

@@ -87,11 +87,13 @@ public:
         ar & getPDBflg;
         ar & dirBuffer;  
         ar & keyRes;
+        ar & nonRes;
     }
     
     bool getPDBflg;
     std::string dirBuffer;
     std::vector<std::string> keyRes;
+    std::vector<std::string> nonRes;
 };
 
 //struct JobInputData{ 
@@ -118,6 +120,7 @@ public:
         ar & pdbFilePath;
         ar & recPath;
         ar & message; 
+        ar & nonRes;
        
     }
     
@@ -130,6 +133,7 @@ public:
     std::string pdbFilePath;
     std::string recPath;
     std::string message;
+    std::vector<std::string> nonRes;
    
 };
 
@@ -151,6 +155,17 @@ void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile){
         XMLText * pdbPathTx= new XMLText(jobOut.pdbFilePath.c_str());
         pdbPathEle->LinkEndChild(pdbPathTx);        
         element->LinkEndChild(pdbPathEle);
+        
+        XMLElement * nonstdAAsEle = new XMLElement("NonStdAAList");
+        for (unsigned i = 0; i < jobOut.nonRes.size(); ++i) {
+            std::string iStr=Sstrm<std::string, unsigned>(i+1);
+            XMLElement * scEle = new XMLElement("NonStdAA");
+            scEle->SetAttribute("id", iStr.c_str() );
+            XMLText * scTx = new XMLText(jobOut.nonRes[i].c_str());
+            scEle->LinkEndChild(scTx);
+            nonstdAAsEle->LinkEndChild(scEle);
+        }
+        element->LinkEndChild(nonstdAAsEle);        
 
         XMLElement * recPathEle = new XMLElement("PDBQTPath");
         XMLText * recPathTx= new XMLText(jobOut.recPath.c_str());
@@ -227,6 +242,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     
     chdir(workDir.c_str());
     jobOut.pdbFilePath=jobInput.dirBuffer; 
+    jobOut.nonRes=jobInput.nonRes;
     if(!fileExist(jobOut.pdbFilePath)){
         std::string mesg="PPL1Receptor::preReceptors: PDB file "+jobOut.pdbFilePath+" does NOT exist.";
         throw LBindException(mesg);  
@@ -237,6 +253,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     getFileBasename(jobOut.pdbFilePath, jobOut.pdbid);
         
     std::string recDir=workDir+"/scratch/com/"+jobOut.pdbid+"/rec";
+    std::string libDir=workDir+"/lib/";
     std::string cmd="mkdir -p "+recDir;
     system(cmd.c_str());  
     
@@ -273,10 +290,16 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         return jobStatus;        
     }  
     
+    std::vector<std::vector<int> > ssList;
     {
-        std::string stdPdbFile="rec_std.pdb";
         boost::scoped_ptr<Pdb> pPdb(new Pdb() );
-        pPdb->standardlize(checkFName, stdPdbFile);
+        pPdb->getDisulfide(checkFName, ssList);
+        
+        std::string stdPdbFile="rec_std.pdb";
+        
+        pPdb->standardlizeSS(checkFName, stdPdbFile, ssList);
+        
+
     }
         
     std::string tleapFName="rec_leap.in";
@@ -292,9 +315,23 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         }
         
         tleapFile << "source leaprc.ff99SB\n"                
-                  << "source leaprc.gaff\n"
-                  << "REC = loadpdb rec_std.pdb\n"
-                  << "saveamberparm REC REC.prmtop REC.inpcrd\n"
+                  << "source leaprc.gaff\n";
+        
+        for(unsigned int i=0; i<jobInput.nonRes.size(); ++i){
+            tleapFile << "loadoff "<< libDir << jobInput.nonRes[i] <<".off \n";
+            tleapFile << "loadamberparams "<< libDir << jobInput.nonRes[i] <<".frcmod \n";
+        }
+        
+        tleapFile << "REC = loadpdb rec_std.pdb\n";
+               
+        for(unsigned int i=0; i<ssList.size(); ++i){
+            std::vector<int> pair=ssList[i];
+            if(pair.size()==2){
+                tleapFile << "bond REC."<< pair[0] <<".SG REC." << pair[1] <<".SG \n";
+            }
+        }        
+                
+        tleapFile << "saveamberparm REC REC.prmtop REC.inpcrd\n"
                   << "quit\n";
         
         tleapFile.close();
@@ -350,7 +387,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     }
     
        
-    cmd="ambpdb -p REC.prmtop < Rec_min.rst > Rec_min_0.pdb";
+    cmd="ambpdb -p REC.prmtop -aatm < Rec_min.rst > Rec_min_0.pdb";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
 
@@ -365,7 +402,11 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
     
-    cmd="prepare_receptor4.py -r Rec_min.pdb -o "+jobOut.pdbid+".pdbqt";
+    cmd="ambpdb -p REC.prmtop < Rec_min.rst > Rec_min_1.pdb";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());     
+    
+    cmd="prepare_receptor4.py -r Rec_min_1.pdb -o "+jobOut.pdbid+".pdbqt";
     system(cmd.c_str());
     
     checkFName=jobOut.pdbid+".pdbqt";
@@ -426,7 +467,8 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
 
 struct RecData{
     std::string pdbFile;
-    std::vector<std::string> keyRes;
+    std::vector<std::string> keyRes; // key residues to help locate binding site
+    std::vector<std::string> nonRes; //non-standard residue list
 };
 
 void saveStrList(std::string& fileName, std::vector<RecData*>& strList){
@@ -449,7 +491,16 @@ void saveStrList(std::string& fileName, std::vector<RecData*>& strList){
             RecData* pRecData=new RecData();
             pRecData->pdbFile=tokens[0];
             for(unsigned i=1; i<tokens.size(); ++i){
-                pRecData->keyRes.push_back(tokens[i]);
+                std::string str=tokens[i];
+                std::string flg=str.substr(0, 6);
+                std::string strline=str.substr(7,str.size()-7);
+                std::vector<std::string> strTokens;
+                tokenize(strline, strTokens, "|");
+                if(flg=="KeyRes"){                    
+                    pRecData->keyRes=strTokens;
+                }else if(flg=="NonRes"){
+                    pRecData->nonRes=strTokens;
+                }
             }
             strList.push_back(pRecData);
         }        
@@ -574,6 +625,7 @@ int main(int argc, char** argv) {
 //            strcpy(jobInput.dirBuffer, dirList[i].c_str());
             jobInput.dirBuffer=dirList[i]->pdbFile;
             jobInput.keyRes=dirList[i]->keyRes;
+            jobInput.nonRes=dirList[i]->nonRes;
 
 //            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);
             world.send(freeProc, inpTag, jobInput);            

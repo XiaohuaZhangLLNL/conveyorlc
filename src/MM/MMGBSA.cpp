@@ -30,6 +30,13 @@ MMGBSA::MMGBSA(const std::string& dir, const std::string& ligand, const std::str
     ligID=ligand; 
 }
 
+MMGBSA::MMGBSA(const std::string& dir, const std::string& ligand, std::vector<std::string>& nonStdRes, const std::string& workDir) {
+    WORKDIR=workDir;
+    recID=dir;
+    ligID=ligand; 
+    nonRes=nonStdRes;
+}
+
 MMGBSA::MMGBSA(const MMGBSA& orig) {
 }
 
@@ -38,6 +45,7 @@ MMGBSA::~MMGBSA() {
 
 void MMGBSA::run(std::string& poseID){
     
+    std::string libDir=WORKDIR+"/lib/";
     std::string ligDir=WORKDIR+"/scratch/lig/"+ligID+"/";
     std::string recDir=WORKDIR+"/scratch/com/"+recID+"/rec/";
     std::string dockDir=WORKDIR+"/scratch/com/"+recID+"/dock/"+ligID+"/";
@@ -103,6 +111,12 @@ void MMGBSA::run(std::string& poseID){
     cmd="cat Rec_min.pdb Lig_lp_"+poseID+".pdb > Com_"+poseID+".pdb";
     system(cmd.c_str());
 
+    std::vector<std::vector<int> > ssList;
+    {
+        std::string stdPdbFile="Rec_min.pdb";
+        boost::scoped_ptr<Pdb> pPdb(new Pdb() );        
+        pPdb->getDisulfide(stdPdbFile, ssList);
+    }    
     
     tleapFName="Com_leap.in";
     {
@@ -117,9 +131,23 @@ void MMGBSA::run(std::string& poseID){
 
         tleapFile << "source leaprc.ff99SB" << std::endl;
         tleapFile << "source leaprc.gaff" << std::endl;
+
+        for(unsigned int i=0; i<nonRes.size(); ++i){
+            tleapFile << "loadoff "<< libDir << nonRes[i] <<".off \n";
+            tleapFile << "loadamberparams "<< libDir << nonRes[i] <<".frcmod \n";
+        }        
+        
         tleapFile << "loadamberparams  " << ligDir  << "/ligand.frcmod" <<std::endl;
         tleapFile << "loadoff " << ligDir  << "/LIG.lib" <<std::endl;
         tleapFile << "COM = loadpdb Com_"<< poseID <<".pdb" << std::endl;
+        
+        for(unsigned int i=0; i<ssList.size(); ++i){
+            std::vector<int> pair=ssList[i];
+            if(pair.size()==2){
+                tleapFile << "bond COM."<< pair[0] <<".SG COM." << pair[1] <<".SG \n";
+            }
+        }  
+        
         tleapFile << "saveamberparm COM Com.prmtop Com.inpcrd"<< std::endl;            
         tleapFile << "quit " << std::endl;
 
@@ -171,7 +199,7 @@ void MMGBSA::run(std::string& poseID){
     std::cout << "Complex GB Minimization Energy: " << comEnergy <<" kcal/mol."<< std::endl;   
     
     // receptor energy calculation
-    cmd="ambpdb -p Com.prmtop < Com_min"+poseID+".rst > Com_min.pdb";
+    cmd="ambpdb -p Com.prmtop -aatm < Com_min"+poseID+".rst > Com_min.pdb";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
     
@@ -193,9 +221,22 @@ void MMGBSA::run(std::string& poseID){
         }
         
         tleapFile << "source leaprc.ff99SB\n"                
-                  << "source leaprc.gaff\n"
-                  << "REC = loadpdb rec_tmp.pdb\n"
-                  << "saveamberparm REC REC.prmtop REC.inpcrd\n"
+                  << "source leaprc.gaff\n";
+
+        for(unsigned int i=0; i<nonRes.size(); ++i){
+            tleapFile << "loadoff "<< libDir << nonRes[i] <<".off \n";
+            tleapFile << "loadamberparams "<< libDir << nonRes[i] <<".frcmod \n";
+        }                   
+                
+        tleapFile << "REC = loadpdb rec_tmp.pdb\n";
+        
+        for(unsigned int i=0; i<ssList.size(); ++i){
+            std::vector<int> pair=ssList[i];
+            if(pair.size()==2){
+                tleapFile << "bond REC."<< pair[0] <<".SG REC." << pair[1] <<".SG \n";
+            }
+        }          
+        tleapFile << "saveamberparm REC REC.prmtop REC.inpcrd\n"
                   << "quit\n";
         
         tleapFile.close();

@@ -44,7 +44,8 @@ public:
         ar & ligBuffer;
 //        ar & ligFile;
         ar & recBuffer;
-        ar & fleBuffer;        
+        ar & fleBuffer;  
+        ar & nonRes;
     }
 
     bool useScoreCF; //switch to turn on score cutoff    
@@ -65,6 +66,7 @@ public:
 //    std::string ligFile;
     std::string recBuffer;
     std::string fleBuffer;
+    std::vector<std::string> nonRes;
 };
 
 struct JobOutData{
@@ -84,6 +86,7 @@ public:
         ar & posePath;
         ar & mesg;
         ar & scores;
+        ar & nonRes;
     }
     std::string pdbID;
     std::string ligID;
@@ -91,6 +94,7 @@ public:
     std::string posePath;
     std::string mesg;
     std::vector<double> scores;
+    std::vector<std::string> nonRes;
 };
 
 int dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir);

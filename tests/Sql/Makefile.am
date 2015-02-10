@@ -6,13 +6,19 @@ else
 endif
 
 if USE_MPI
-    bin_PROGRAMS = TestSql TestSqlDataBase TestSqlField TestSqlFieldSet TestSqlRecord TestSqlRecordSet TestSqlTable TestSqlValue
+    bin_PROGRAMS = TestSql TestSqlMedCM TestSqlMedCM2 TestSqlDataBase TestSqlField TestSqlFieldSet TestSqlRecord TestSqlRecordSet TestSqlTable TestSqlValue
 else
 endif
 
 if USE_MPI
     TestSql_SOURCES = TestSql.cpp
     TestSql_LDADD = $(top_builddir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/usr/lib/ -lsqlite3
+
+    TestSqlMedCM_SOURCES = TestSqlMedCM.cpp
+    TestSqlMedCM_LDADD = $(top_builddir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/usr/lib/ -lsqlite3
+
+    TestSqlMedCM2_SOURCES = TestSqlMedCM2.cpp
+    TestSqlMedCM2_LDADD = $(top_builddir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/usr/lib/ -lsqlite3
 
     TestSqlDataBase_SOURCES = TestSqlDataBase.cpp
     TestSqlDataBase_LDADD = $(top_builddir)/src/.libs/libLBind.a -L/@boost_dir@/lib/ -lboost_program_options -lboost_regex -lboost_serialization -L/usr/lib/ -lsqlite3

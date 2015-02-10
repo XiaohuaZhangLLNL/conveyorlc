@@ -122,3 +122,8 @@
 /tests/Sql/TestSqlTable
 /tests/Sql/TestSqlValue
 /tests/Sql/test.db
+/tests/Sql/author.idx
+/tests/Sql/tmp
+/tests/Sql/runSqlMedCM.sh
+/tests/Sql/pdbid.idx
+/tests/Sql/MedCM.db

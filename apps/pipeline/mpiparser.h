@@ -20,6 +20,7 @@ int mpiParser(int argc, char* argv[],
         std::vector<std::string>& recList,
         std::vector<std::string>& fleList,
         std::vector<std::vector<double> >& geoList,
+        std::vector<std::vector<std::string> >& nonAAList,
         JobInputData& jobInput);
 
 #endif

@@ -55,11 +55,13 @@ public:
         ar & dirBuffer;  
         ar & ligBuffer;
         ar & poseBuffer;
+        ar & nonRes;
     }
  
     std::string dirBuffer;
     std::string ligBuffer;
     std::string poseBuffer;
+    std::vector<std::string> nonRes;
 };
 
 
@@ -149,7 +151,7 @@ void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile) {
 
 bool mmgbsa(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir) {
     
-    boost::scoped_ptr<MMGBSA> pMMGBSA(new MMGBSA(jobInput.dirBuffer, jobInput.ligBuffer, workDir));
+    boost::scoped_ptr<MMGBSA> pMMGBSA(new MMGBSA(jobInput.dirBuffer, jobInput.ligBuffer, jobInput.nonRes, workDir));
     pMMGBSA->run(jobInput.poseBuffer); 
   
     jobOut.gbbind=pMMGBSA->getbindGB(); 
@@ -165,6 +167,7 @@ struct XmlData{
     std::string recID;
     std::string ligID;  
     std::vector<std::string> poseIDs;
+    std::vector<std::string> nonRes;
 };
 
 void saveStrList(std::string& xmlFile, std::vector<XmlData*>& xmlList){
@@ -211,6 +214,15 @@ void saveStrList(std::string& xmlFile, std::vector<XmlData*>& xmlList){
 //                std::cout << "Pose ID=" << poseID << std::endl;
                 pXmlData->poseIDs.push_back(poseID);
             }
+            
+            XMLNode* nonstdAAsnode = comNode->FirstChild("NonStdAAList");
+            assert(nonstdAAsnode); 
+            
+            for (XMLNode* poseNode = nonstdAAsnode->FirstChild(); poseNode != 0; poseNode = poseNode->NextSibling()) {
+                std::string nonstdAA=poseNode->FirstChild()->ToText()->ValueStr();
+//                std::cout << "Pose ID=" << poseID << std::endl;
+                pXmlData->nonRes.push_back(nonstdAA);
+            }             
             
             xmlList.push_back(pXmlData);
         }
@@ -336,6 +348,7 @@ int main(int argc, char** argv) {
                 jobInput.dirBuffer = xmlList[i]->recID;
                 jobInput.ligBuffer = xmlList[i]->ligID;
                 jobInput.poseBuffer= xmlList[i]->poseIDs[j];
+                jobInput.nonRes= xmlList[i]->nonRes;
 
                 world.send(freeProc, inpTag, jobInput);
 

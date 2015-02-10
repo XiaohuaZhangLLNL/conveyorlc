@@ -7,6 +7,7 @@
 
 #include "SqlCommon.h"
 #include "SHA1.h"
+#include <time.h>
 
 #include <sstream>
 
@@ -62,12 +63,12 @@ time_t time::get() {
 
 string time::format(const char* format) {
     string s;
-    tm *localtime;
+    tm *ltime;
     char buffer[128];
 
-    localtime=std::localtime(&_value);
-    if (localtime != 0)
-        if (strftime(buffer, 128, format, localtime) > 0)
+    ltime=localtime(&_value);
+    if (ltime != 0)
+        if (strftime(buffer, 128, format, ltime) > 0)
             s = buffer;
 
     return s;

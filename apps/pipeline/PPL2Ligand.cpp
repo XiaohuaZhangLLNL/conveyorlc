@@ -15,7 +15,7 @@
 #include "Parser/Sdf.h"
 #include "Parser/Pdb.h"
 #include "MM/Amber.h"
-#include "Parser/SanderOutput.h"
+#include "Parser/SanderOutput.h" 
 #include "Structure/Sstrm.hpp"
 #include "Structure/Constants.h"
 #include "Structure/Molecule.h"
@@ -183,8 +183,11 @@ bool preLigands(JobOutData& jobOut, std::string& workDir) {
     std::string sdfFile="ligand.sdf";
     std::string pdb1File="ligand.pdb";
     
-    std::string cmd="babel -isdf " + sdfFile + " -opdb " +pdb1File;
+    std::string cmd="babel -isdf " + sdfFile + " -opdb " +pdb1File +" >> log";
     std::cout << cmd << std::endl;
+    std::string echo="echo ";
+    echo=echo+cmd+" > log";
+    system(echo.c_str());
     system(cmd.c_str());
     
     std::string pdbFile="ligrn.pdb";
@@ -213,7 +216,7 @@ bool preLigands(JobOutData& jobOut, std::string& workDir) {
     std::string options=" -c bcc -nc "+ chargeStr;
         
     boost::scoped_ptr<Amber> pAmber(new Amber());
-    pAmber->antechamber(pdbFile, output, options);
+    pAmber->antechamber(tmpFile, output, options);
     
     pAmber->parmchk(output);
     
@@ -259,8 +262,11 @@ bool preLigands(JobOutData& jobOut, std::string& workDir) {
         minFile.close();    
     }          
     
-    cmd="sander  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst";
+    cmd="sander  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
     std::cout <<cmd <<std::endl;
+    echo="echo ";
+    echo=echo+cmd+" >> log";
+    system(echo.c_str());
     system(cmd.c_str()); 
     boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
     std::string sanderOut="LIG_minGB.out";
@@ -275,8 +281,11 @@ bool preLigands(JobOutData& jobOut, std::string& workDir) {
     }
     
     //! Use ambpdb generated PDB file for PDBQT.
-    cmd="ambpdb -p LIG.prmtop < LIG_min.rst > LIG_minTmp.pdb";
+    cmd="ambpdb -p LIG.prmtop < LIG_min.rst > LIG_minTmp.pdb ";
     std::cout <<cmd <<std::endl;
+    echo="echo ";
+    echo=echo+cmd+" >> log";
+    system(echo.c_str());    
     system(cmd.c_str());    
 
     checkFName="LIG_minTmp.pdb";
@@ -291,8 +300,11 @@ bool preLigands(JobOutData& jobOut, std::string& workDir) {
     jobOut.pdbFilePath="scratch/lig/"+jobOut.ligID+"/LIG_min.pdb";
         
     //! Get DPBQT file for ligand from minimized structure.
-    cmd="prepare_ligand4.py -l LIG_min.pdb";
+    cmd="prepare_ligand4.py -l LIG_min.pdb  >> log";
     std::cout << cmd << std::endl;
+    echo="echo ";
+    echo=echo+cmd+" >> log";
+    system(echo.c_str());    
     system(cmd.c_str());
     
     checkFName="LIG_min.pdbqt";
@@ -527,7 +539,7 @@ int main(int argc, char** argv) {
         }
 
         int nJobs=ligList.size();
-        int ndata=(nJobs<world.size()-1)? nJobs: world.size()-1;
+        int ndata=(nJobs<world.size()-1)? nJobs: world.size();
         std::cout << "ndata=" << ndata << " nJobs=" << nJobs << std::endl;
     
         for(int i=0; i < ndata; ++i){

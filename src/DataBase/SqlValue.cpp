@@ -109,8 +109,13 @@ integer Value::asInteger() {
 double Value::asDouble() {
     if (isNull())
         return 0.0;
-
-    return atof(_value.c_str());
+    
+    std::stringstream ss;
+    ss << _value;
+    double outDbl;
+    ss >> outDbl;
+    
+    return outDbl;
 }
 
 bool Value::asBool() {

@@ -193,6 +193,7 @@ int dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
         jobOut.scores.clear();
         getScores(logStr, jobOut.scores);
         jobOut.mesg="Finished!";
+        jobOut.nonRes=jobInput.nonRes;
         
         
     } catch (file_error& e) {

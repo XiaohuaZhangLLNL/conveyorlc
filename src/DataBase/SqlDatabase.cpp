@@ -6,7 +6,7 @@
  */
 
 #include "SqlDatabase.h"
-#include "SqlRecordset.h"
+#include "SqlRecordSet.h"
 #include <time.h>
 
 

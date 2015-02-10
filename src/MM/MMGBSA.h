@@ -16,6 +16,7 @@ namespace LBIND{
 class MMGBSA {
 public:
     MMGBSA(const std::string& dir, const std::string& ligand, const std::string& workDir);
+    MMGBSA(const std::string& dir, const std::string& ligand, std::vector<std::string>& nonStdRes, const std::string& workDir);
     MMGBSA(const MMGBSA& orig);
     virtual ~MMGBSA();
 
@@ -60,6 +61,7 @@ private:
     std::string WORKDIR;
     std::string recID;
     std::string ligID;
+    std::vector<std::string> nonRes;
     
    /**
     Energy data

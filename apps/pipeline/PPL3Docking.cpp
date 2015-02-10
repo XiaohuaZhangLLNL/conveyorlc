@@ -56,6 +56,17 @@ void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile) {
     XMLText * pdbidTx = new XMLText(jobOut.pdbID.c_str()); // has to use c-style string.
     pdbidEle->LinkEndChild(pdbidTx);
     element->LinkEndChild(pdbidEle);
+    
+    XMLElement * nonstdAAsEle = new XMLElement("NonStdAAList");
+    for (unsigned i = 0; i < jobOut.nonRes.size(); ++i) {
+        std::string iStr=Sstrm<std::string, unsigned>(i+1);
+        XMLElement * scEle = new XMLElement("NonStdAA");
+        scEle->SetAttribute("id", iStr.c_str() );
+        XMLText * scTx = new XMLText(jobOut.nonRes[i].c_str());
+        scEle->LinkEndChild(scTx);
+        nonstdAAsEle->LinkEndChild(scEle);
+    }
+    element->LinkEndChild(nonstdAAsEle);
 
     XMLElement * ligidEle = new XMLElement("LigID");
     XMLText * ligidTx = new XMLText(jobOut.ligID.c_str()); // has to use c-style string.
@@ -158,9 +169,10 @@ int main(int argc, char* argv[]) {
         std::vector<std::string> fleList;
         std::vector<std::string> ligList;
         std::vector<std::vector<double> > geoList;
+        std::vector<std::vector<std::string> > nonAAList;
        
         std::cout << "Begin Parser" << std::endl;
-        int success=mpiParser(argc, argv, recFile, fleFile, ligFile, ligList, recList, fleList, geoList, jobInput);
+        int success=mpiParser(argc, argv, recFile, fleFile, ligFile, ligList, recList, fleList, geoList, nonAAList, jobInput);
         if(success!=0) {
             std::cerr << "Error: Parser input error" << std::endl;
             return 1;            
@@ -232,6 +244,8 @@ int main(int argc, char* argv[]) {
                 // Start to send parameters                                        
                 jobInput.recBuffer = recList[i];
                 jobInput.ligBuffer = ligList[j];
+                
+                jobInput.nonRes = nonAAList[i];
 
                 if (jobInput.flexible) {
                     jobInput.fleBuffer = fleList[i];
