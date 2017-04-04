@@ -15,6 +15,7 @@ struct POdata{
     std::string outputFile;
     std::string xmlOut;
     std::string xmlRst;
+    int firstLigID;
     bool restart;
 };
 

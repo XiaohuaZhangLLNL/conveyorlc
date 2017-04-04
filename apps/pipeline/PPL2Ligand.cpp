@@ -169,7 +169,11 @@ bool preLigands(JobOutData& jobOut, std::string& workDir) {
     
     chdir(workDir.c_str());
     // ! Goto sub directory
-    std::string subDir=workDir+"/scratch/lig/"+jobOut.ligID;   
+    std::string subDir=workDir+"/scratch/lig/"+jobOut.ligID;  
+    jobOut.pdbFilePath="scratch/lig/"+jobOut.ligID+"/LIG_min.pdb";
+    jobOut.pdbqtPath="scratch/lig/"+jobOut.ligID+"/LIG_min.pdbqt";
+    jobOut.gbEn=0.0;
+        
     std::string sdfPath=subDir+"/ligand.sdf";
     
     if(!fileExist(sdfPath)){
@@ -297,7 +301,7 @@ bool preLigands(JobOutData& jobOut, std::string& workDir) {
     
     pPdb->fixElement("LIG_minTmp.pdb", "LIG_min.pdb"); 
     
-    jobOut.pdbFilePath="scratch/lig/"+jobOut.ligID+"/LIG_min.pdb";
+    
         
     //! Get DPBQT file for ligand from minimized structure.
     cmd="prepare_ligand4.py -l LIG_min.pdb  >> log";
@@ -314,9 +318,7 @@ bool preLigands(JobOutData& jobOut, std::string& workDir) {
         return jobStatus;        
     } 
     
-    jobOut.pdbqtPath="scratch/lig/"+jobOut.ligID+"/LIG_min.pdbqt";
     
-
     jobStatus=true;
     return jobStatus;
 }
@@ -343,20 +345,20 @@ bool preLigands(JobOutData& jobOut, std::string& workDir) {
 //    
 //}
 
-void splitSDF(std::string& sdfFile, std::vector<std::string>& ligList, std::string& workDir){
+void splitSDF(POdata& podata, std::vector<std::string>& ligList, std::string& workDir){
     std::ifstream inFile;
     try {
-        inFile.open(sdfFile.c_str());
+        inFile.open(podata.sdfFile.c_str());
     }
     catch(...){
-        std::cout << "preLigands >> Cannot open file" << sdfFile << std::endl;
+        std::cout << "preLigands >> Cannot open file" << podata.sdfFile << std::endl;
     } 
 
     const std::string delimter="$$$$";
     std::string fileLine="";
     std::string contents="";            
 
-    int count=1;
+    int count=podata.firstLigID;
 
     while(inFile){
         std::getline(inFile, fileLine);
@@ -412,8 +414,7 @@ void xmlEJobs(std::string& xmlFile, std::vector<std::string>& ligList){
         assert(mesgTx);
         std::string mesgStr = mesgTx->ValueStr();
 
-        
-        if(mesgStr!="Finished!"){        
+        if(mesgStr=="Finished!"){        
             XMLNode* ligIDnode = ligNode->FirstChild("LigID");
             assert(ligIDnode);
             XMLText* ligIDtx =ligIDnode->FirstChild()->ToText(); 
@@ -421,7 +422,13 @@ void xmlEJobs(std::string& xmlFile, std::vector<std::string>& ligList){
             ligList.push_back(dir);
         }
         
+    } 
+
+    std::cout << "Print Previous Successful Ligand List: " << std::endl;
+    for(unsigned i=0; i< ligList.size(); ++i){
+        std::cout << "Ligand " << ligList[i] << std::endl;
     }
+    
 }
 
 
@@ -481,13 +488,19 @@ int main(int argc, char** argv) {
 //    } 
     
     std::vector<std::string> ligList;
+    std::vector<std::string> sLigList;
     // split SDF file
     if(world.rank()==0){
-        if(!podata.restart){
-            splitSDF(podata.sdfFile, ligList, workDir);            
-        }else{
-            xmlEJobs(podata.xmlRst, ligList);
-        }                
+
+        splitSDF(podata, ligList, workDir); 
+        if(podata.restart){
+            xmlEJobs(podata.xmlRst, sLigList);
+        }
+
+        for(unsigned i=0; i<sLigList.size(); ++i){
+            std::string rmLig=sLigList[i];
+            ligList.erase(std::remove(ligList.begin(), ligList.end(), rmLig), ligList.end());            
+        }
     }
     
     std::cout << "Number of tasks= " << world.size() << " My rank= " << world.rank() << std::endl;    

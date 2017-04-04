@@ -150,15 +150,17 @@ void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile) {
 
 
 bool mmgbsa(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir) {
+
+    jobOut.recID=jobInput.dirBuffer;
+    jobOut.ligID=jobInput.ligBuffer;
+    jobOut.poseID=jobInput.poseBuffer;    
     
     boost::scoped_ptr<MMGBSA> pMMGBSA(new MMGBSA(jobInput.dirBuffer, jobInput.ligBuffer, jobInput.nonRes, workDir));
     pMMGBSA->run(jobInput.poseBuffer); 
   
     jobOut.gbbind=pMMGBSA->getbindGB(); 
     jobOut.score=pMMGBSA->getScore();
-    jobOut.recID=jobInput.dirBuffer;
-    jobOut.ligID=jobInput.ligBuffer;
-    jobOut.poseID=jobInput.poseBuffer;
+
           
     return true;
 }

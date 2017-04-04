@@ -253,7 +253,32 @@ void toXML(std::vector<RecXml*>& recXmlList, std::string xmlFileName) {
     }  
         
     doc.SaveFile( xmlFileName.c_str() );
-               
+
+// Save in CSV file but no pose info
+    std::ofstream outFile;
+    try {
+        outFile.open("PPL4Parse.csv");
+    }
+    catch(...){
+        std::cout << "Cannot open CSV file PPL4Parse.csv" << std::endl;
+    }
+    
+    outFile << "RecID, LigID, MinVinaPoseID, MinVina, MinGBPoseID, MinGB" << std::endl;
+    
+    for(unsigned i=0; i<recXmlList.size(); ++i){
+                
+        for(unsigned j=0; j<recXmlList[i]->ligList.size(); ++j){
+            
+            outFile << recXmlList[i]->recID.c_str() << ", ";
+            outFile << recXmlList[i]->ligList[j]->ligID << ", ";
+            outFile << recXmlList[i]->ligList[j]->poseList[0]->poseID << ", ";
+            outFile << recXmlList[i]->ligList[j]->poseList[0]->vina << ", ";
+            outFile << recXmlList[i]->ligList[j]->miniGbPoseID << ", ";
+            outFile << recXmlList[i]->ligList[j]->miniGb << std::endl;
+
+        }
+    }  
+                
 }
 
 

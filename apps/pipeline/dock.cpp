@@ -78,6 +78,12 @@ int dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
         int verbosity = 1;
         int num_modes = jobInput.num_modes;
         fl energy_range = jobInput.energy_range;
+        
+        jobOut.pdbID=jobInput.recBuffer;
+        jobOut.ligID=jobInput.ligBuffer;
+        
+        jobOut.logPath="scratch/com/" + jobInput.recBuffer + "/dock/" + jobInput.ligBuffer+"/scores.log";
+        jobOut.posePath="scratch/com/" + jobInput.recBuffer + "/dock/" + jobInput.ligBuffer+"/poses.pdbqt";        
 
         // -0.035579, -0.005156, 0.840245, -0.035069, -0.587439, 0.05846
         fl weight_gauss1 = -0.035579;
@@ -186,10 +192,6 @@ int dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
         logFile.close();
         outFile.close();
         
-        jobOut.pdbID=jobInput.recBuffer;
-        jobOut.ligID=jobInput.ligBuffer;
-        jobOut.logPath="scratch/com/" + jobInput.recBuffer + "/dock/" + jobInput.ligBuffer+"/scores.log";
-        jobOut.posePath="scratch/com/" + jobInput.recBuffer + "/dock/" + jobInput.ligBuffer+"/poses.pdbqt";
         jobOut.scores.clear();
         getScores(logStr, jobOut.scores);
         jobOut.mesg="Finished!";

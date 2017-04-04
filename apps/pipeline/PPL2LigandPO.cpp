@@ -31,6 +31,7 @@ bool PPL2LigandPO(int argc, char** argv, POdata& podata) {
                 ("output", value<std::string > (&podata.outputFile), "output filename")
 //                ("restart", value<bool>(&podata.restart)->default_value(false), "Flag to restart failed calculation")
                 ("xmlrst", value<std::string > (&podata.xmlRst), "xml restart file name")
+                ("firstLigID", value<int> (&podata.firstLigID)->default_value(1), "First ligID default from 1")
                 ;   
         options_description info("Optional:");
         info.add_options()
