@@ -25,21 +25,21 @@
 #include <boost/mpi/environment.hpp>
 #include <boost/mpi/communicator.hpp>
 
-#include "parse_pdbqt.h"
-#include "parallel_mc.h"
-#include "file.h"
-#include "cache.h"
-#include "non_cache.h"
-#include "naive_non_cache.h"
-#include "parse_error.h"
-#include "everything.h"
-#include "weighted_terms.h"
-#include "current_weights.h"
-#include "quasi_newton.h"
+#include "VinaLC/parse_pdbqt.h"
+#include "VinaLC/parallel_mc.h"
+#include "VinaLC/file.h"
+#include "VinaLC/cache.h"
+#include "VinaLC/non_cache.h"
+#include "VinaLC/naive_non_cache.h"
+#include "VinaLC/parse_error.h"
+#include "VinaLC/everything.h"
+#include "VinaLC/weighted_terms.h"
+#include "VinaLC/current_weights.h"
+#include "VinaLC/quasi_newton.h"
 //#include "gzstream.h"
 //#include "tee.h"
-#include "coords.h" // add_to_output_container
-#include "tokenize.h"
+#include "VinaLC/coords.h" // add_to_output_container
+#include "VinaLC/tokenize.h"
 
 #include "dock.h"
 #include "mpiparser.h"
@@ -148,15 +148,9 @@ int main(int argc, char* argv[]) {
     int inpTag=3;
     int outTag=4;
 
-    mpi::timer runingTime;
-    
     mpi::environment env(argc, argv);
     mpi::communicator world;    
-
-    if (world.size() < 2) {
-        std::cerr << "Error: Total process less than 2" << std::endl;
-        return 1;
-    }
+    mpi::timer runingTime;
 
     std::cout << "Number of tasks= " << world.size() << " My rank= " << world.rank() << std::endl;
 
@@ -178,6 +172,11 @@ int main(int argc, char* argv[]) {
             return 1;            
         }
         std::cout << "End of Parser" << std::endl;
+
+    if (world.size() < 2) {
+        std::cerr << "Error: Total process less than 2" << std::endl;
+        return 1;
+    }
         unsigned num_cpus = boost::thread::hardware_concurrency();
         if (num_cpus > 0)
             jobInput.cpu = num_cpus;

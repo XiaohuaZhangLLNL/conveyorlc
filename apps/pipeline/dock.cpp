@@ -33,21 +33,22 @@
 #include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/convenience.hpp> // filesystem::basename
 #include <boost/thread/thread.hpp> // hardware_concurrency // FIXME rm ?
-#include "parse_pdbqt.h"
-#include "parallel_mc.h"
-#include "file.h"
-#include "cache.h"
-#include "non_cache.h"
-#include "naive_non_cache.h"
-#include "parse_error.h"
-#include "everything.h"
-#include "weighted_terms.h"
-#include "current_weights.h"
-#include "quasi_newton.h"
+
+#include "VinaLC/parse_pdbqt.h"
+#include "VinaLC/parallel_mc.h"
+#include "VinaLC/file.h"
+#include "VinaLC/cache.h"
+#include "VinaLC/non_cache.h"
+#include "VinaLC/naive_non_cache.h"
+#include "VinaLC/parse_error.h"
+#include "VinaLC/everything.h"
+#include "VinaLC/weighted_terms.h"
+#include "VinaLC/current_weights.h"
+#include "VinaLC/quasi_newton.h"
 //#include "gzstream.h"
 //#include "tee.h"
-#include "coords.h" // add_to_output_container
-#include "tokenize.h"
+#include "VinaLC/coords.h" // add_to_output_container
+#include "VinaLC/tokenize.h"
 #include "dock.h"
 
 
