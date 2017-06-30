@@ -15,6 +15,9 @@ set(VERSION_MINOR 0)
 set(VERSION_PATCH 0)
 set(VERSION_STRING ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
+
+set(CMAKE_BUILD_TYPE Release)
+
 # location of additional cmake modules
 #list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
@@ -74,7 +77,6 @@ endif()
 
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
-
 
 add_subdirectory(src)
 add_subdirectory(apps)
