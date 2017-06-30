@@ -40,11 +40,6 @@
 #include <boost/mpi/environment.hpp>
 #include <boost/mpi/communicator.hpp>
 
-#include <boost/serialization/string.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-
 namespace mpi = boost::mpi;
 using namespace LBIND;
 
@@ -89,12 +84,14 @@ public:
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
+       ar & protonateFlg;
         ar & getPDBflg;
         ar & dirBuffer;  
         ar & keyRes;
         ar & nonRes;
     }
     
+    bool protonateFlg;
     bool getPDBflg;
     std::string dirBuffer;
     std::vector<std::string> keyRes;
@@ -270,30 +267,35 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     
     std::string pdbFile;
     getPathFileName(jobOut.pdbFilePath, pdbFile);
-              
-     //! begin energy minimization of receptor 
-    cmd="reduce -Quiet -Trim  "+pdbFile+" >& rec_noh.pdb ";
-    std::cout <<cmd <<std::endl;
-    system(cmd.c_str());
-    
-    std::string checkFName="rec_noh.pdb";
-    if(!fileExist(checkFName)){
-        std::string message=checkFName+" does not exist.";
-        throw LBindException(message);  
-        return jobStatus;        
-    }     
-    
-    cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/reduce_wwPDB_het_dict.txt\" >& rec_rd.pdb";
-    std::cout <<cmd <<std::endl;
-    system(cmd.c_str()); 
-    
+      
+    std::string checkFName="";
+    if(jobInput.protonateFlg){
+         //! begin energy minimization of receptor 
+        cmd="reduce -Quiet -Trim  "+pdbFile+" >& rec_noh.pdb ";
+        std::cout <<cmd <<std::endl;
+        system(cmd.c_str());
 
-    checkFName="rec_rd.pdb";
-    if(!fileExist(checkFName)){
-        std::string message=checkFName+" does not exist.";
-        throw LBindException(message); 
-        return jobStatus;        
-    }  
+        checkFName="rec_noh.pdb";
+        if(!fileExist(checkFName)){
+            std::string message=checkFName+" does not exist.";
+            throw LBindException(message);  
+            return jobStatus;        
+        }     
+
+        cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/reduce_wwPDB_het_dict.txt\" >& rec_rd.pdb";
+        std::cout <<cmd <<std::endl;
+        system(cmd.c_str()); 
+
+
+        checkFName="rec_rd.pdb";
+        if(!fileExist(checkFName)){
+            std::string message=checkFName+" does not exist.";
+            throw LBindException(message); 
+            return jobStatus;        
+        }  
+    }else{
+       checkFName=pdbFile;
+    }
     
     std::vector<std::vector<int> > ssList;
     {
@@ -463,7 +465,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     outFile << centroid.getX() << " " << centroid.getY() << " " << centroid.getZ() << " " 
              << dockDim.getX() << " " << dockDim.getY() << " "  << dockDim.getZ() << "\n";
     outFile.close();
-    delete pElementContainer;
+    //delete pElementContainer;
     
     //END    
     jobStatus=true;
@@ -549,9 +551,10 @@ int main(int argc, char** argv) {
     int inpTag=3;
     int outTag=4;
 
+    mpi::timer runingTime;
+    
     mpi::environment env(argc, argv);
     mpi::communicator world;    
-    mpi::timer runingTime;
 
 //    int error=0;
     
@@ -603,7 +606,14 @@ int main(int argc, char** argv) {
 //        root->Print(xmlTmpFile, 0);
 //        fputs("\n",xmlTmpFile);
         fflush(xmlTmpFile);        
-        //! END of XML header        
+        //! END of XML header   
+        
+        // Turn on/off protonate procedure
+        if(podata.protonateFlg=="on"){
+           jobInput.protonateFlg=true;
+        }else{
+           jobInput.protonateFlg=false;
+        }
        
         std::vector<RecData*> dirList;        
         

@@ -13,6 +13,7 @@
 struct POdata{
     std::string inputFile;
     std::string outputFile;
+    std::string protonateFlg;
 };
 
 bool PPL1ReceptorPO(int argc, char** argv, POdata& podata);
