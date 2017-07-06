@@ -66,8 +66,10 @@ find_package(Boost 1.35 REQUIRED COMPONENTS program_options system filesystem re
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 # find sqlite3
-find_package (sqlite3 REQUIRED)
-include_directories(${SQLITE3_INCLUDE_DIRS})
+if (APPLE)
+    find_package (sqlite3 REQUIRED)
+    include_directories(${SQLITE3_INCLUDE_DIRS})
+endif()
 
 # find zlib
 find_package( ZLIB REQUIRED )
