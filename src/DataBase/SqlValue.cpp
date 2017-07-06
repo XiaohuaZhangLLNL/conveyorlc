@@ -48,6 +48,8 @@ bool Value::equals(Value& value) {
             return (asBool() == value.asBool());
         case type_time:
             return (asTime() == value.asTime());
+        case type_undefined: 
+            return false;
     }
 
     return false;

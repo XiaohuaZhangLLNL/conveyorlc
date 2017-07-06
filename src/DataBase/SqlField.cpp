@@ -67,6 +67,7 @@ string Field::getTypeStr() {
         case type_float: return "REAL";
         case type_bool: return "INTEGER";
         case type_time: return "INTEGER";
+        case type_undefined: return "";
     }
     return "";
 }

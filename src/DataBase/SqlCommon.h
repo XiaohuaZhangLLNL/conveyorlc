@@ -129,7 +129,7 @@ public:
     log(std::string s) {
         std::string text = s;
         text += "\r\n";
-        printf(text.c_str());
+        printf("%s", text.c_str());
     }
 };
 

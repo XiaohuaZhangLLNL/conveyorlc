@@ -20,6 +20,7 @@ set(CMAKE_BUILD_TYPE Release)
 
 # location of additional cmake modules
 #list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # detect operating system
 message(STATUS "Building on a ${CMAKE_SYSTEM_NAME} system")
@@ -64,16 +65,24 @@ endif()
 find_package(Boost 1.35 REQUIRED COMPONENTS program_options system filesystem regex serialization mpi thread)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
+# find sqlite3
+find_package (sqlite3 REQUIRED)
+include_directories(${SQLITE3_INCLUDE_DIRS})
+
+# find zlib
+find_package( ZLIB REQUIRED )
+include_directories( ${ZLIB_INCLUDE_DIRS} )
 
 # example how to set c++ compiler flags for GNU
 message(STATUS "Using C++ compiler: ${CMAKE_CXX_COMPILER_ID}")
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
     #set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -Wall -Wno-unknown-pragmas -Wno-sign-compare -Woverloaded-virtual -Wwrite-strings -Wno-unused")
-    set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -DUSE_MPI")
     set(CMAKE_CXX_FLAGS_DEBUG   "-g -pg -DDEBUG")
     set(CMAKE_CXX_FLAGS_RELEASE "-O3")
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
 endif()
+
+set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -DUSE_MPI")
 
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -81,7 +90,5 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_subdirectory(src)
 add_subdirectory(apps)
 
-
-#add_executable(PPL4parseXML apps/pipeline/PPL4parseXML.cpp)
-#target_link_libraries(PPL4parseXML LBind ${Boost_LIBRARIES})
+INSTALL( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION  ${CMAKE_INSTALL_PREFIX} )
 
