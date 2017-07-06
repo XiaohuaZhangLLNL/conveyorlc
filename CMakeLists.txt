@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 # project name
-project(MedCM)
+project(ConveyorLC)
 
 # enable fortran, c, and c++ language
 #enable_language(C CXX)

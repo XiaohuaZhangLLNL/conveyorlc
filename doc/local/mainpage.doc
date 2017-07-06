@@ -1,5 +1,5 @@
 /*!
-\mainpage MedCM 
+\mainpage ConveyorLC 
 \htmlonly
 <table cellpadding="10" cellspacing="0" border="0" width="100%">
 <tr>
@@ -44,7 +44,7 @@
 
 <h2> Introduction </h2>
 
-<p align="justify">This software focuses on developing a computational approach that accelerates and lowers the cost of the development of medical countermeasures against biological threats of human or natural origin. It falls within LLNL's biosecurity thrust area. MedCM stands for Medical CounterMeasures.</p>
+<p align="justify">This software focuses on developing a computational approach that accelerates and lowers the cost of the development of medical countermeasures against biological threats of human or natural origin. It falls within LLNL's biosecurity thrust area. ConveyorLC stands for a conveyor for drug discovery on Livermore Computing.</p>
 
 <p align="justify">The software take advantage of LLNL's high performance computing capabilities to assess the pharmacokinetic and safety profile of proposed medical countermeasures (therapeutic drugs) in silico. The applications included in this software are: </p>
 

@@ -30,7 +30,7 @@ export AMBERHOME=/usr/gapps/medchem/amber/amber12
 export PATH=$AMBERHOME/bin/:$PATH
 export LIGDIR=`pwd`
 
-srun -N40 -n640 /usr/gapps/medchem/medcm/bin/preLigands --sdf ligprep_14-out.sdf
+srun -N40 -n640 /usr/gapps/medchem/conveyorlc/bin/preLigands --sdf ligprep_14-out.sdf
 
 echo END
 date<br /></pre>
@@ -99,9 +99,9 @@ date
 export AMBERHOME=/usr/gapps/medchem/amber/amber12
 export PATH=$AMBERHOME/bin/:$PATH
 export WORKDIR=`pwd`/workspace/
-export LBindData=/usr/gapps/medchem/medcm/data/
+export LBindData=/usr/gapps/medchem/conveyorlc/data/
 
-srun -N10 -n160 /usr/gapps/medchem/medcm/bin/amberTools --input recList --getPDB 0 
+srun -N10 -n160 /usr/gapps/medchem/conveyorlc/bin/amberTools --input recList --getPDB 0 
 
 echo END
 
@@ -111,7 +111,7 @@ date
           presented and the PDB file is not in the sub-directory, program will
           try to download the PDB file. Make sure dms and sphgen are in the
           reaching PATH.The environment variable "LBindData" is the directory
-          for MedCM program parameter files. WORKDIR is the directory to store
+          for ConveyorLC program parameter files. WORKDIR is the directory to store
           all receptor calculations.<br />
         </p>
         <h4 class="fragment">2.2 Calculations in the program.<br />
@@ -121,8 +121,8 @@ date
           files for receptor are store in this sub-directory. <br />
         </p>
         <p>preRecetpors uses the sum file from centroid calculation by PFP. dms,
-          sphgen, and select_sphgen in MedCM will calculate the dimension of
-          docking grid. reduce and PDB::standardlize in MedCM will process the
+          sphgen, and select_sphgen in ConveyorLC will calculate the dimension of
+          docking grid. reduce and PDB::standardlize in ConveyorLC will process the
           PDB file downloaded from PDB bank to amber compatible PDB file.
           Currently, the non-standard amino acid will be converted to Alanine.
           DNA/RNA, cofactor,  water, ions will be removed from PDB file. The
@@ -200,7 +200,7 @@ cat &gt; vina-$COUNTER.job &lt;&lt; EOF
 
 date
 
-srun -N1284 -n1284 -c12 /usr/gapps/medchem/medcm/bin/vinaBMPI --recList recList$STR --ligList ligList --geoList geoList$STR --exhaustiveness 12  --granularity 0.333
+srun -N1284 -n1284 -c12 /usr/gapps/medchem/conveyorlc/bin/vinaBMPI --recList recList$STR --ligList ligList --geoList geoList$STR --exhaustiveness 12  --granularity 0.333
 
 
 date
@@ -226,7 +226,7 @@ export AMBERHOME=/usr/gapps/medchem/amber/amber12
 export PATH=$AMBERHOME/bin/:$PATH
 export WORKDIR=`pwd`/workspace/
 
-/g/g92/zhang30/medchem/NetBeansProjects/MedCM/apps/mmpbsa/processVinaLC recList01_ligList.pdbqt.gz<br /><br /></pre>
+/g/g92/zhang30/medchem/NetBeansProjects/ConveyorLC/apps/mmpbsa/processVinaLC recList01_ligList.pdbqt.gz<br /><br /></pre>
         <p>recList01_ligList.pdbqt.gz is the output from VinaLC.</p>
         <h3>6. MM-PB/GBSA calculation</h3>
         <h4>6.1 Input file</h4>
@@ -241,7 +241,7 @@ export WORKDIR=`pwd`/workspace/
 #msub -m e<br /><br />export AMBERHOME=/usr/gapps/medchem/amber/amber12
 export PATH=$AMBERHOME/bin/:$PATH
 export WORKDIR=`pwd`/workspace/
-<br />date<br /><br />srun -N20 -n320 /usr/gapps/medchem/medcm/bin/mmpbsa --recList recDir --ligList ligDir
+<br />date<br /><br />srun -N20 -n320 /usr/gapps/medchem/conveyorlc/bin/mmpbsa --recList recDir --ligList ligDir
 
 date<br /><br /></pre>
         <p>recList and ligList are list of receptor PDB IDs and ligand numbers.</p>
@@ -260,7 +260,7 @@ date<br /><br /></pre>
 <h3>7. The “calcSite” program</h3>
 <p>The “calcSite” program uses de novo approach to search for the cavities and rank them. Please set the environment variable:</p>
         <pre class="fragment"> 
-export LBindData=/usr/gapps/medchem/medcm/data/
+export LBindData=/usr/gapps/medchem/conveyorlc/data/
 </pre>      
         <p>The help manual of program looks like:</p>      
         <pre class="fragment"> 

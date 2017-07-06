@@ -1,8 +1,11 @@
+# the automake configuration are deprecated and will be removed in the future.
+
+
 #                                   -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([MedCM], [0.0.1], [xhzhang1978@gmail.com], [MedCM])
+AC_INIT([ConveyorLC], [0.0.1], [xhzhang1978@gmail.com], [ConveyorLC])
 
 AM_INIT_AUTOMAKE
 
