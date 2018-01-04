@@ -186,7 +186,7 @@ bool preReceptors(std::string& dir, bool getPDBflg){
             throw LBindException(mesg);
         }
         
-        tleapFile << "source leaprc.ff99SB\n"                
+        tleapFile << "source leaprc.protein.ff14SB\n"                
                   << "source leaprc.gaff\n"
                   << "REC = loadpdb rec.pdb\n"
                   << "saveamberparm REC REC.prmtop REC.inpcrd\n"

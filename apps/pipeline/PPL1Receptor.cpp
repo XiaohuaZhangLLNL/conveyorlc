@@ -321,7 +321,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             throw LBindException(mesg);
         }
         
-        tleapFile << "source leaprc.ff99SB\n"                
+        tleapFile << "source leaprc.protein.ff14SB\n"                
                   << "source leaprc.gaff\n";
         
         for(unsigned int i=0; i<jobInput.nonRes.size(); ++i){

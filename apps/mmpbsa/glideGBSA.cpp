@@ -186,7 +186,7 @@ bool glideGBSA(std::string& dir, double& deltaG) {
             throw LBindException(mesg);
         }   
 
-        tleapFile << "source leaprc.ff99SB" << std::endl;
+        tleapFile << "source leaprc.protein.ff14SB" << std::endl;
         tleapFile << "source leaprc.gaff" << std::endl;
         tleapFile << "loadamberparams  ligand.frcmod" <<std::endl;
         tleapFile << "loadoff LIG.lib" <<std::endl;
