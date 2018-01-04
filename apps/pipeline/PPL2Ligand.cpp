@@ -289,7 +289,7 @@ bool preLigands(JobOutData& jobOut, std::string& workDir) {
     }
     
     //! Use ambpdb generated PDB file for PDBQT.
-    cmd="ambpdb -p LIG.prmtop < LIG_min.rst > LIG_minTmp.pdb ";
+    cmd="ambpdb -p LIG.prmtop -c LIG_min.rst > LIG_minTmp.pdb ";
     std::cout <<cmd <<std::endl;
     echo="echo ";
     echo=echo+cmd+" >> log";

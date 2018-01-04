@@ -133,7 +133,7 @@ SpMMGBSA::~SpMMGBSA() {
 //    bool success=pSanderOutput->getEAmber(sanderOut, recGBen);
 //    std::cout << "Receptorn GB Minimization Energy: " << recGBen <<" kcal/mol."<< std::endl;
 //       
-//    cmd="ambpdb -p REC.prmtop < Rec_min.rst > Rec_min_0.pdb";
+//    cmd="ambpdb -p REC.prmtop -c Rec_min.rst > Rec_min_0.pdb";
 //    std::cout <<cmd <<std::endl;
 //    system(cmd.c_str());      
 //    cmd="grep -v END Rec_min_0.pdb > Rec_min.pdb ";
@@ -293,7 +293,7 @@ void SpMMGBSA::comRun(int poseID){
     std::cout << "Complex GB Minimization Energy: " << comEnergy <<" kcal/mol."<< std::endl;   
     
     // receptor energy calculation
-    cmd="ambpdb -p Com.prmtop < Com_min"+Sstrm<std::string, int>(poseID)+".rst > Com_min.pdb";
+    cmd="ambpdb -p Com.prmtop -c Com_min"+Sstrm<std::string, int>(poseID)+".rst > Com_min.pdb";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
     

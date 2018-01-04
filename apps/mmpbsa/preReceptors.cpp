@@ -263,7 +263,7 @@ bool preReceptors(std::string& dir){
         return jobStatus;          
     }    
     
-    cmd="ambpdb -p REC.prmtop < Rec_min2.rst > Rec_min_0.pdb";
+    cmd="ambpdb -p REC.prmtop -c Rec_min2.rst > Rec_min_0.pdb";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
 

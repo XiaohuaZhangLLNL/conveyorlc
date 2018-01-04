@@ -199,7 +199,7 @@ void MMGBSA::run(std::string& poseID){
     std::cout << "Complex GB Minimization Energy: " << comEnergy <<" kcal/mol."<< std::endl;   
     
     // receptor energy calculation
-    cmd="ambpdb -p Com.prmtop -aatm < Com_min"+poseID+".rst > Com_min.pdb";
+    cmd="ambpdb -p Com.prmtop -aatm -c Com_min"+poseID+".rst > Com_min.pdb";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
     

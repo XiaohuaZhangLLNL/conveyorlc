@@ -162,7 +162,7 @@ bool preLigands(std::string& dir) {
     }
     
     //! Use ambpdb generated PDB file for PDBQT.
-    cmd="ambpdb -p LIG.prmtop < LIG_min.rst > LIG_minTmp.pdb";
+    cmd="ambpdb -p LIG.prmtop -c LIG_min.rst > LIG_minTmp.pdb";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());    
 

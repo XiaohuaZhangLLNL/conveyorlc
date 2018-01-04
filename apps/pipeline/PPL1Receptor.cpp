@@ -394,7 +394,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     }
     
        
-    cmd="ambpdb -p REC.prmtop -aatm < Rec_min.rst > Rec_min_0.pdb";
+    cmd="ambpdb -p REC.prmtop -aatm -c Rec_min.rst > Rec_min_0.pdb";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
 
@@ -409,7 +409,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
     
-    cmd="ambpdb -p REC.prmtop < Rec_min.rst > Rec_min_1.pdb";
+    cmd="ambpdb -p REC.prmtop -c Rec_min.rst > Rec_min_1.pdb";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());     
     
