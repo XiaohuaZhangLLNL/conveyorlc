@@ -93,7 +93,7 @@ void MMGBSA::run(std::string& poseID){
             throw LBindException(mesg);
         }   
 
-        tleapFile << "source leaprc.ff99SB" << std::endl;
+        tleapFile << "source leaprc.protein.ff14SB" << std::endl;
         tleapFile << "source leaprc.gaff" << std::endl;
         tleapFile << "loadamberparams  " << ligDir <<  "/ligand.frcmod" <<std::endl;
         tleapFile << "loadoff " << ligDir << "/LIG.lib" <<std::endl;
@@ -129,7 +129,7 @@ void MMGBSA::run(std::string& poseID){
             throw LBindException(mesg);
         }   
 
-        tleapFile << "source leaprc.ff99SB" << std::endl;
+        tleapFile << "source leaprc.protein.ff14SB" << std::endl;
         tleapFile << "source leaprc.gaff" << std::endl;
 
         for(unsigned int i=0; i<nonRes.size(); ++i){
@@ -220,7 +220,7 @@ void MMGBSA::run(std::string& poseID){
             throw LBindException(mesg);
         }
         
-        tleapFile << "source leaprc.ff99SB\n"                
+        tleapFile << "source leaprc.protein.ff14SB\n"                
                   << "source leaprc.gaff\n";
 
         for(unsigned int i=0; i<nonRes.size(); ++i){

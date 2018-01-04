@@ -82,7 +82,7 @@ void Amber::ligLeapInput(std::string pdbid, std::string ligName, std::string tle
         throw LBindException(mesg);
     }   
        
-    tleapFile << "source leaprc.ff99SB" << std::endl;
+    tleapFile << "source leaprc.protein.ff14SB" << std::endl;
     tleapFile << "source leaprc.gaff" << std::endl;
     tleapFile << ligName <<" = loadmol2 " << pdbid <<"-lig-"<< ligName << ".mol2 " << std::endl;
     tleapFile << "check " << ligName << std::endl;
@@ -105,7 +105,7 @@ void Amber::comLeapInput(std::string pdbid, std::string ligName, std::string tle
         throw LBindException(mesg);
     }   
     
-    tleapFile << "source leaprc.ff99SB" << std::endl;
+    tleapFile << "source leaprc.protein.ff14SB" << std::endl;
     tleapFile << "source leaprc.gaff" << std::endl;
     tleapFile << "loadamberparams " << pdbid <<"-lig-"<< ligName << ".frcmod" << std::endl;
     tleapFile << "loadoff " << ligName <<".lib " << std::endl;
@@ -128,7 +128,7 @@ void Amber::tleapInput(std::string& mol2FName, std::string& ligName, std::string
     
     std::string mol2FBase=mol2FName.substr(0,mol2FName.size()-5);
        
-    tleapFile << "source leaprc.ff99SB" << std::endl;
+    tleapFile << "source leaprc.protein.ff14SB" << std::endl;
     tleapFile << "source leaprc.gaff" << std::endl;
     tleapFile << "loadamberparams " << mol2FBase << ".frcmod" << std::endl;    
     tleapFile << ligName <<" = loadmol2 " << mol2FName << std::endl;
