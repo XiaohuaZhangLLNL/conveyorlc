@@ -69,30 +69,42 @@ bool SanderOutput::getEnergy(std::string sanderOutFile, double& energy){
         std::cout << "SanderOutput::getEnergy >> Cannot open file" << sanderOutFile << std::endl;
     }
 
-    static const boost::regex finalRegex("FINAL RESULTS");
+    std::vector<std::string> lineVector;
+	
+    static const boost::regex finalRegex("NSTEP");
     static const boost::regex enRegex("ENERGY");
     
     boost::smatch what;
     std::string fileLine="";
     
-    bool finalFlag=false;
+    //bool finalFlag=false;
 
     while(inFile){
         std::getline(inFile, fileLine);
+        lineVector.push_back(fileLine);
+    }
 
+    for(int i=lineVector.size()-1; i>0; i--){
+        std::string fileLine=lineVector[i];
         if(boost::regex_search(fileLine,what,finalRegex)){
-            finalFlag=true;
+            //finalFlag=true;
+            std::string enLine=lineVector[i+1];
+            std::cout << enLine << std::endl;
+            std::vector<std::string> tokens;
+            tokenize(enLine, tokens);
+            energy=Sstrm<double, std::string>(tokens[1]);
+            return true;            
         }
         
-        if(finalFlag){
-            if(boost::regex_search(fileLine,what,enRegex)){
-                std::getline(inFile, fileLine);
-                std::vector<std::string> tokens;
-                tokenize(fileLine, tokens);
-                energy=Sstrm<double, std::string>(tokens[1]);
-                return true;                
-            }            
-        }
+        //if(finalFlag){
+        //    if(boost::regex_search(fileLine,what,enRegex)){
+        //        std::getline(inFile, fileLine);
+        //        std::vector<std::string> tokens;
+        //        tokenize(fileLine, tokens);
+        //        energy=Sstrm<double, std::string>(tokens[1]);
+        //        return true;                
+        //    }            
+        //}
     }
     
     return false;
