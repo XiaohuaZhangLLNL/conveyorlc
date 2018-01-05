@@ -48,6 +48,39 @@ make
 make install
 ```
 
+### 1.4 Installation with Spack configuration
+
+Use git clone to download spack4atom
+
+```
+git clone ssh://git@cz-bitbucket.llnl.gov:7999/xzr/spack4atom.git
+```
+Add the spack4atom repo to spack
+ 
+```
+spack repo add <path to spack4atom repo root>
+```
+
+Double check if the repo has been added correctly.
+```
+[zhang30@quartz2306 spack4atom]$ spack repo list
+==> 2 package repositories.
+atom       /g/g17/fdinatal/repos/spack4atom
+builtin    /g/g17/fdinatal/repos/spack/var/spack/repos/builtin
+```
+
+Install the ConveyorLC by spack
+```
+spack install conveyorlc
+```
+
+To clean up the installation and re-install
+```
+spack uninstall conveyorlc
+spack clean --all conveyorlc
+spack install conveyorlc
+```
+
 ## 2. Running the code
 
 ### 2.1 Executables in the pipeline
@@ -75,10 +108,14 @@ PPL1Receptor -h
 #msub -l partition=cab
 #msub -m be
 
-export LBindData=/usr/gapps/bbs/zhang30/data/
-export PATH=/usr/gapps/bbs/zhang30/bin:$PATH
-export AMBERHOME=/usr/gapps/bbs/zhang30/amber/amber10_all
+export conveyorlc=/usr/gapps/kras/quartz/pipeline/conveyorlc
+export LBindData=$conveyorlc/data
+export PATH=$conveyorlc/bin:/usr/gapps/kras/quartz/pipeline/bin:$PATH
+export AMBERHOME=/usr/gapps/kras/quartz/amber16
 export PATH=$AMBERHOME/bin/:$PATH
+
+test -f /usr/gapps/kras/quartz/amber16/amber.sh && source /usr/gapps/kras/quartz/amber16/amber.sh
+
 
 srun -N 2 -n 24 PPL1Receptor --input pdb.list --output out
 
@@ -94,10 +131,14 @@ srun -N 2 -n 24 PPL1Receptor --input pdb.list --output out
 #msub -l partition=cab
 #msub -m be
 
-export LBindData=/usr/gapps/bbs/zhang30/data/
-export PATH=/usr/gapps/bbs/zhang30/bin:$PATH
-export AMBERHOME=/usr/gapps/bbs/zhang30/amber/amber10_all
+export conveyorlc=/usr/gapps/kras/quartz/pipeline/conveyorlc
+export LBindData=$conveyorlc/data
+export PATH=$conveyorlc/bin:/usr/gapps/kras/quartz/pipeline/bin:$PATH
+export AMBERHOME=/usr/gapps/kras/quartz/amber16
 export PATH=$AMBERHOME/bin/:$PATH
+
+test -f /usr/gapps/kras/quartz/amber16/amber.sh && source /usr/gapps/kras/quartz/amber16/amber.sh
+
 
 srun -N 10 -n 160 PPL1Receptor --sdf ligand.sdf
 
@@ -113,10 +154,14 @@ srun -N 10 -n 160 PPL1Receptor --sdf ligand.sdf
 #msub -l partition=cab
 #msub -m be
 
-export LBindData=/usr/gapps/bbs/zhang30/data/
-export PATH=/usr/gapps/bbs/zhang30/bin:$PATH
-export AMBERHOME=/usr/gapps/bbs/zhang30/amber/amber10_all
+export conveyorlc=/usr/gapps/kras/quartz/pipeline/conveyorlc
+export LBindData=$conveyorlc/data
+export PATH=$conveyorlc/bin:/usr/gapps/kras/quartz/pipeline/bin:$PATH
+export AMBERHOME=/usr/gapps/kras/quartz/amber16
 export PATH=$AMBERHOME/bin/:$PATH
+
+test -f /usr/gapps/kras/quartz/amber16/amber.sh && source /usr/gapps/kras/quartz/amber16/amber.sh
+
 
 srun -N 64 -n 64 -c 16 PPL3Docking --recXML PPL1Track.xml --ligXML PPL2Track.xml --exhaustiveness 32
 
@@ -131,10 +176,14 @@ srun -N 64 -n 64 -c 16 PPL3Docking --recXML PPL1Track.xml --ligXML PPL2Track.xml
 #msub -l partition=cab
 #msub -m be
 
-export LBindData=/usr/gapps/bbs/zhang30/data/
-export PATH=/usr/gapps/bbs/zhang30/bin:$PATH
-export AMBERHOME=/usr/gapps/bbs/zhang30/amber/amber10_all
+export conveyorlc=/usr/gapps/kras/quartz/pipeline/conveyorlc
+export LBindData=$conveyorlc/data
+export PATH=$conveyorlc/bin:/usr/gapps/kras/quartz/pipeline/bin:$PATH
+export AMBERHOME=/usr/gapps/kras/quartz/amber16
 export PATH=$AMBERHOME/bin/:$PATH
+
+test -f /usr/gapps/kras/quartz/amber16/amber.sh && source /usr/gapps/kras/quartz/amber16/amber.sh
+
 
 srun -N 32 -n 512  PPL4mmgbsa --comXML PPL3Track.xml
 
