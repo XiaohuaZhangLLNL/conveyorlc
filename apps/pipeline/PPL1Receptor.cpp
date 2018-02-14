@@ -322,7 +322,9 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         }
         
         tleapFile << "source leaprc.protein.ff14SB\n"                
-                  << "source leaprc.gaff\n";
+                  << "source leaprc.gaff\n"
+		  << "loadoff atomic_ions.lib\n"
+                  << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
         
         for(unsigned int i=0; i<jobInput.nonRes.size(); ++i){
             tleapFile << "loadoff "<< libDir << jobInput.nonRes[i] <<".off \n";

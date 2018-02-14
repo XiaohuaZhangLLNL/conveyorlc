@@ -209,6 +209,8 @@ void SpMMGBSA::comRun(int poseID){
 
         tleapFile << "source leaprc.protein.ff14SB" << std::endl;
         tleapFile << "source leaprc.gaff" << std::endl;
+        tleapFile << "loadoff atomic_ions.lib\n";
+        tleapFile << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
         tleapFile << "loadamberparams  " << ligDir <<  "/ligand.frcmod" <<std::endl;
         tleapFile << "loadoff " << ligDir << "/LIG.lib" <<std::endl;
         tleapFile << "LIG = loadpdb Lig_"<< poseID <<".pdb" << std::endl;
@@ -239,6 +241,8 @@ void SpMMGBSA::comRun(int poseID){
 
         tleapFile << "source leaprc.protein.ff14SB" << std::endl;
         tleapFile << "source leaprc.gaff" << std::endl;
+        tleapFile << "loadoff atomic_ions.lib\n";
+        tleapFile << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
         tleapFile << "loadamberparams  " << ligDir  << "/ligand.frcmod" <<std::endl;
         tleapFile << "loadoff " << ligDir  << "/LIG.lib" <<std::endl;
         tleapFile << "COM = loadpdb Com_"<< poseID <<".pdb" << std::endl;
@@ -401,6 +405,8 @@ void SpMMGBSA::run(const std::string& dir, const std::string& ligand){
         
         tleapFile << "source leaprc.protein.ff14SB\n"                
                   << "source leaprc.gaff\n"
+                  << "loadoff atomic_ions.lib\n"
+                  << "loadamberparams frcmod.ions234lm_1264_tip3p\n"
                   << "REC = loadpdb rec_tmp.pdb\n"
                   << "saveamberparm REC REC.prmtop REC.inpcrd\n"
                   << "quit\n";
