@@ -235,6 +235,7 @@ int main(int argc, char* argv[]) {
                 if (count > world.size()-1) {
                     world.recv(mpi::any_source, outTag, jobOut);
                     toXML(jobOut, root, xmlFile);
+                  
 // add output here
                 }
                 int freeProc;
@@ -245,7 +246,7 @@ int main(int argc, char* argv[]) {
                 jobInput.ligBuffer = ligList[j];
                 
                 jobInput.nonRes = nonAAList[i];
-
+                 
                 if (jobInput.flexible) {
                     jobInput.fleBuffer = fleList[i];
                 }

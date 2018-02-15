@@ -194,7 +194,7 @@ void MMGBSA::run(std::string& poseID){
     
 //    boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
     double comEnergy=0;
-    success=pSanderOutput->getEAmber(sanderOut,comEnergy);
+    success=pSanderOutput->getEnergy(sanderOut,comEnergy);
 
     std::cout << "Complex GB Minimization Energy: " << comEnergy <<" kcal/mol."<< std::endl;   
     
