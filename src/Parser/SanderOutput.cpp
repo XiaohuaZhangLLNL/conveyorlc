@@ -32,28 +32,28 @@ bool SanderOutput::getEAmber(std::string sanderOutFile, double& energy){
         std::cout << "SanderOutput::getEAmber >> Cannot open file" << sanderOutFile << std::endl;
     }
 
-    static const boost::regex finalRegex("FINAL RESULTS");
+    std::vector<std::string> lineVector;
+
     static const boost::regex eamberRegex("EAMBER");
+    static const boost::regex enRegex("ENERGY");
     
     boost::smatch what;
     std::string fileLine="";
     
-    bool finalFlag=false;
-
+    //bool finalFlag=false;
     while(inFile){
         std::getline(inFile, fileLine);
+        lineVector.push_back(fileLine);
+    }
 
-        if(boost::regex_search(fileLine,what,finalRegex)){
-            finalFlag=true;
-        }
-        
-        if(finalFlag){
-            if(boost::regex_search(fileLine,what,eamberRegex)){
-                std::vector<std::string> tokens;
-                tokenize(fileLine, tokens);
-                energy=Sstrm<double, std::string>(tokens[2]);
-                return true;
-            }            
+    for(int i=lineVector.size()-1; i>0; i--){
+        std::string fileLine=lineVector[i];
+        if(boost::regex_search(fileLine,what,eamberRegex)){
+            std::cout << fileLine << std::endl;
+            std::vector<std::string> tokens;
+            tokenize(fileLine, tokens);
+            energy=Sstrm<double, std::string>(tokens[2]);
+            return true;            
         }
     }
     
