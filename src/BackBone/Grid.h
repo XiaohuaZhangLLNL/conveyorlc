@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <string>
+#include <sstream>
 
 namespace LBIND{
     
@@ -45,6 +46,8 @@ private:
     void siteCentroid(std::vector<Coor3d*>& clust, Coor3d& dockDim, Coor3d& centroid);
     void siteAverage(std::vector<Coor3d*>& clust, Coor3d& aveCoor);
     
+    void toOutput();
+    
 private:
     Complex *pComplex;
     int numSphere;
@@ -57,6 +60,8 @@ private:
     std::vector<Atom*> atomList;
     
     std::vector<std::vector<Coor3d*> > clusters;
+    
+    std::stringstream ss;
 
 };
 

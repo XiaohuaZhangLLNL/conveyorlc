@@ -6,6 +6,7 @@
  */
 
 #include <algorithm>
+#include <fstream>
 
 #include "Grid.h"
 #include "Structure/Complex.h"
@@ -14,6 +15,7 @@
 #include "Structure/Coor3d.h"
 #include "Parser/Pdb.h"
 #include "Structure/Sstrm.hpp"
+#include "Common/LBindException.h"
 
 namespace LBIND{
 
@@ -88,6 +90,7 @@ void Grid::run(double probeRadius, int numberSphere, int minVolume){
     
     clustGrids();
     
+    toOutput();
 }
 
 void Grid::generateSpPoints(){
@@ -132,9 +135,9 @@ void Grid::getGridBox(){
         if(pCoor->getZ()<zMin) zMin=pCoor->getZ();        
     }
     
-    std::cout << "Box dimension:" << std::endl;
-    std::cout << "   MIN  x=" << xMin << "     y=" << yMin << "     z=" << zMin << std::endl;
-    std::cout << "   MAX  x=" << xMax << "     y=" << yMax << "     z=" << zMax << std::endl;
+    ss << "Box dimension:" << std::endl;
+    ss << "   MIN  x=" << xMin << "     y=" << yMin << "     z=" << zMin << std::endl;
+    ss << "   MAX  x=" << xMax << "     y=" << yMax << "     z=" << zMax << std::endl;
     
     int xLowIndex=static_cast<int>(xMin-0.5);
     int yLowIndex=static_cast<int>(yMin-0.5);
@@ -177,7 +180,7 @@ void Grid::getGridBox(){
     
     
     // 
-    std::cout <<"Number of point in box: " << grids.size() <<std::endl;
+    ss <<"Number of point in box: " << grids.size() <<std::endl;
     
 
     
@@ -222,7 +225,7 @@ void Grid::getSiteGrids() {
         }
     }
     
-    std::cout <<"Number of point in cavity sites: " << tmpGrids.size() <<std::endl;
+    ss <<"Number of point in cavity sites: " << tmpGrids.size() <<std::endl;
     
     for(unsigned i=0; i<grids.size(); ++i){
         Coor3d *pGrid=grids[i];
@@ -231,7 +234,7 @@ void Grid::getSiteGrids() {
     grids.clear();  
     
     grids=tmpGrids;
-    std::cout <<"Number of point in cavity sites: " << grids.size() <<std::endl;
+    ss <<"Number of point in cavity sites: " << grids.size() <<std::endl;
 }
 
 void Grid::writeGridPDB(std::string& fileName, std::vector<Coor3d*>& outGrids, const std::string& resName){
@@ -305,7 +308,7 @@ void Grid::clustGrids(){
         }   
         
         clusters=tmpClusters;
-        std::cout << "Size of clusters: " << clusters.size() << std::endl;
+        ss << "Size of clusters: " << clusters.size() << std::endl;
         
     }
     
@@ -330,12 +333,12 @@ void Grid::clustGrids(){
         if(i!=0 && clusters[i].size()<minVol) break; 
         // always print out first one. if volume less than minVol don't print out.
         
-        std::cout << "================================================="  << std::endl;
+        ss << "================================================="  << std::endl;
         std::string numStr=Sstrm<std::string, int>(i+1);
         if(i<9){
             numStr="0"+numStr;
         }
-        std::cout << "Cluster " << numStr << "     size : " << clusters[i].size() << std::endl;
+        ss << "Cluster " << numStr << "     size : " << clusters[i].size() << std::endl;
         std::string filename="Grid-"+numStr+".pdb";
         std::string resName="C"+numStr;
         if(i>98){
@@ -349,7 +352,7 @@ void Grid::clustGrids(){
         siteCentroid(clusters[i]);
         
         siteSurface(clusters[i]);
-        std::cout << "================================================="  << std::endl;
+        ss << "================================================="  << std::endl;
     }
 }
 
@@ -444,14 +447,14 @@ void Grid::siteSurface(std::vector<Coor3d*>& clust){
         }
     }
     
-    std::cout << "      Surface"  << std::endl;
-    std::cout << "          Charged         Area:   " << chargeArea << std::endl;
-    std::cout << "          Polar           Area:   " << polarArea << std::endl;
-    std::cout << "          Hydrophobic     Area:   " << hdyrophobArea << std::endl;
-    std::cout << "          Special (Polar) Area:   " << specialPArea << std::endl;
-    std::cout << "          Special (Hydro) Area:   " << specialHArea << std::endl;
-    std::cout << "          total           Area:   " << chargeArea+polarArea+ hdyrophobArea+ specialPArea+specialHArea<< std::endl;
-    std::cout << "          Hydro/Polar    Ratio:   " << (hdyrophobArea+specialHArea)/(chargeArea+polarArea+ specialPArea)<< std::endl;
+    ss << "      Surface"  << std::endl;
+    ss << "          Charged         Area:   " << chargeArea << std::endl;
+    ss << "          Polar           Area:   " << polarArea << std::endl;
+    ss << "          Hydrophobic     Area:   " << hdyrophobArea << std::endl;
+    ss << "          Special (Polar) Area:   " << specialPArea << std::endl;
+    ss << "          Special (Hydro) Area:   " << specialHArea << std::endl;
+    ss << "          total           Area:   " << chargeArea+polarArea+ hdyrophobArea+ specialPArea+specialHArea<< std::endl;
+    ss << "          Hydro/Polar    Ratio:   " << (hdyrophobArea+specialHArea)/(chargeArea+polarArea+ specialPArea)<< std::endl;
     
 }
 
@@ -464,9 +467,9 @@ void Grid::siteCentroid(std::vector<Coor3d*>& clust) {
     }
     centroid=centroid/clust.size();
     
-    std::cout << "      Centroid:"  << std::endl;
+    ss << "      Centroid:"  << std::endl;
     
-    std::cout << "                  X= " <<centroid.getX() << 
+    ss << "                  X= " <<centroid.getX() << 
                                   " Y= " <<centroid.getY() << 
                                   " Z= " <<centroid.getZ() <<std::endl;
     
@@ -503,12 +506,12 @@ void Grid::siteCentroid(std::vector<Coor3d*>& clust) {
     if(zDock<22) zDock=22;
     
     
-    std::cout << "      Box dimension:" << std::endl;
-    std::cout << "          MIN         x= " << xMin << "     y= " << yMin << "     z= " << zMin << std::endl;
-    std::cout << "          MAX         x= " << xMax << "     y= " << yMax << "     z= " << zMax << std::endl; 
-    std::cout << "          Dimension   X= " << xDim << "     Y= " << yDim << "     Z= " << zDim << std::endl;
-    std::cout << "      Docking Box dimension Recommended (+/- 5 Angstroms):" << std::endl;
-    std::cout << "          Dimension   X= " << xDock << "     Y= " << yDock << "     Z= " << zDock << std::endl;
+    ss << "      Box dimension:" << std::endl;
+    ss << "          MIN         x= " << xMin << "     y= " << yMin << "     z= " << zMin << std::endl;
+    ss << "          MAX         x= " << xMax << "     y= " << yMax << "     z= " << zMax << std::endl; 
+    ss << "          Dimension   X= " << xDim << "     Y= " << yDim << "     Z= " << zDim << std::endl;
+    ss << "      Docking Box dimension Recommended (+/- 5 Angstroms):" << std::endl;
+    ss << "          Dimension   X= " << xDock << "     Y= " << yDock << "     Z= " << zDock << std::endl;
     
     double peudoVol=xDim*yDim*zDim;
     double minDim=std::min(std::min(xDim, yDim), zDim);
@@ -530,8 +533,8 @@ void Grid::siteCentroid(std::vector<Coor3d*>& clust) {
         effSize=clust.size()/std::sqrt(effRatioDim);
     }
     
-    std::cout << "      Box Shape:" << std::endl;
-    std::cout << "          Ratio Dimension = " << ratioDim << "            Occupied (%)= " << 100*occupied << std::endl
+    ss << "      Box Shape:" << std::endl;
+    ss << "          Ratio Dimension = " << ratioDim << "            Occupied (%)= " << 100*occupied << std::endl
               << "          Effect  Ratio Dimension =" << effRatioDim << "  Effect Girds= " << effSize << std::endl;
      
 
@@ -622,5 +625,21 @@ void Grid::siteCentroid(std::vector<Coor3d*>& clust, Coor3d& dockDim, Coor3d& ce
     dockDim.set(xDock, yDock, zDock);
 }
 
+
+void Grid::toOutput(){
+    std::string gridFileName="site.txt";
+    std::ofstream gridFile;
+    try {
+        gridFile.open(gridFileName.c_str());
+    }
+    catch(...){
+        std::string mesg="Grid::toOutput()\n\t Cannot open site.txt file: "+gridFileName;
+        throw LBindException(mesg);
+    }   
+
+    gridFile << ss.str() << std::endl;  
+    
+    gridFile.close();
+}
 
 } //namespace LBIND
