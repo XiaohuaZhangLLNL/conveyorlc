@@ -441,7 +441,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     pSurface->run(1.4, 960);
     std::cout << " Total SASA is: " << pSurface->getTotalSASA() << std::endl << std::endl;
 
-    boost::scoped_ptr<Grid> pGrid(new Grid(pComplex.get(), false));
+    boost::scoped_ptr<Grid> pGrid(new Grid(pComplex.get(), true));
     pGrid->run(1.4, 100, 50);
     
     Coor3d aveKeyResCoor;
