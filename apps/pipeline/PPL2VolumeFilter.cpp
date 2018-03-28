@@ -135,9 +135,11 @@ void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile){
 bool volumeFilter(JobOutData& jobOut, ElementContainer* pElementContainer) {
     bool jobStatus = false;
 
+    //std::cout << jobOut.sdfBuffer << std::endl;
     std::vector<std::string> tokens;
     const std::string& delimiters = "\n";
-    tokenize(jobOut.sdfBuffer, tokens, delimiters);
+    const bool trimEmpty = false;
+    tokenize(jobOut.sdfBuffer, tokens, delimiters, trimEmpty);
 
     if (tokens.size() < 5) {
         throw LBindException("SDF entry incomplete");
@@ -157,6 +159,8 @@ bool volumeFilter(JobOutData& jobOut, ElementContainer* pElementContainer) {
     std::vector<std::string> records;
     tokenize(tokens[3], records);
 
+   //std::cout << "record |" << tokens[3] << std::endl;
+
     if (records.size() < 2) {
         throw LBindException("SDF count line error");
         return jobStatus;
@@ -166,6 +170,7 @@ bool volumeFilter(JobOutData& jobOut, ElementContainer* pElementContainer) {
     std::map<std::string, int> mapElements;
     
     int atmNum = Sstrm<int, std::string>(records[0]);
+    int bndNum = Sstrm<int, std::string>(records[1]);
     for (int i = 4; i < atmNum + 4; ++i) {
         std::vector<std::string> atomBlocks;
         tokenize(tokens[i], atomBlocks);
@@ -194,6 +199,24 @@ bool volumeFilter(JobOutData& jobOut, ElementContainer* pElementContainer) {
         double v=4.0/3.0*PI*r*r*r;
         volume+=freq*v;
     }    
+
+    int hbondNum=0;
+    if(mapElements.find("H") != mapElements.end()){
+            hbondNum=mapElements["H"];
+    }
+
+    int heavybondNum=bndNum-hbondNum;
+    //std::cout << "bond " << bndNum << " hydrogen " << hbondNum <<std::endl;
+    if (heavybondNum < 0) {
+        throw LBindException("Number of heavy bonds is negative");
+        return jobStatus;
+    }
+
+    // Sphere-Sphere intersection Heavy-Heavy 7.844295  Heavy-Hydrogen 5.717829
+    // Heavy-Heavy      1.0/12*math.pi*(4.0*R+d)*(2.0*R-d)**2
+    // Heavy-Hydrogen   math.pi*(R+r-d)**2*(d**2+2*d*r-3*r**2+2*d*R+6*r*R-3*R**2)/12.0/d
+    // Subtract the Sphere-Sphere intersection
+    volume=volume-heavybondNum*7.844295 - hbondNum*5.717829;
        
     jobOut.volume=volume;
     
@@ -293,6 +316,7 @@ int main(int argc, char** argv) {
                         outFile <<jobOut.sdfBuffer;
                     }
                 }
+                //std::cout << contents << std::endl;
 
                 //std::string dir=ligList[i];
 
