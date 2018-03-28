@@ -25,13 +25,16 @@
 #include "Structure/Sstrm.hpp"
 #include "Structure/Constants.h"
 #include "Structure/Molecule.h"
+#include "Structure/ElementContainer.h"
+#include "Structure/Element.h"
+#include "Structure/ParmContainer.h"
 #include "Parser/Mol2.h"
 #include "Common/File.hpp"
 #include "Common/Tokenize.hpp"
 #include "Common/LBindException.h"
 #include "XML/XMLHeader.hpp"
 
-#include "PPL2LigandPO.h"
+#include "PPL2VolumeFilterPO.h"
 
 #include <boost/scoped_ptr.hpp>
 
@@ -81,8 +84,8 @@ public:
     void serialize(Archive & ar, const unsigned int version)
     {        
         ar & error;
-        ar & volume;
         ar & ligID;
+        ar & volume;
         ar & ligName;       
         ar & message; 
         ar & sdfBuffer;
@@ -90,8 +93,8 @@ public:
     }
     
     bool error;
+    int ligID;
     double volume;
-    std::string ligID;
     std::string ligName;   
     std::string message;
     std::string sdfBuffer;
@@ -102,7 +105,7 @@ void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile){
         XMLElement * element = new XMLElement("Ligand");
         
         XMLElement * pdbidEle = new XMLElement("LigID");
-        XMLText * pdbidTx= new XMLText(jobOut.ligID.c_str()); // has to use c-style string.
+        XMLText * pdbidTx= new XMLText(Sstrm<std::string, int>(jobOut.ligID)); 
         pdbidEle->LinkEndChild(pdbidTx);
         element->LinkEndChild(pdbidEle);
 
@@ -113,7 +116,7 @@ void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile){
 
         XMLElement * volEle = new XMLElement("Volume");
         XMLText * volTx= new XMLText(Sstrm<std::string, double>(jobOut.volume));
-        gbEle->LinkEndChild(volTx);        
+        volEle->LinkEndChild(volTx);        
         element->LinkEndChild(volEle);
         
         XMLElement * mesgEle = new XMLElement("Mesg");
@@ -145,9 +148,9 @@ bool volumeFilter(JobOutData& jobOut, ElementContainer* pElementContainer) {
     tokenize(tokens[0], titles); 
     
     if(titles.size()>0){
-        JobOutData.ligName=titles[0];
+        jobOut.ligName=titles[0];
     }else{
-        JobOutData.ligName="NoName";
+        jobOut.ligName="NoName";
     }
 
     // 61 63  0  0  1  0            999 V2000 - Line 4
@@ -162,18 +165,18 @@ bool volumeFilter(JobOutData& jobOut, ElementContainer* pElementContainer) {
     
     std::map<std::string, int> mapElements;
     
-    int atmNum = Sstrm<std::string, int>(records[0])
+    int atmNum = Sstrm<int, std::string>(records[0]);
     for (int i = 4; i < atmNum + 4; ++i) {
         std::vector<std::string> atomBlocks;
         tokenize(tokens[i], atomBlocks);
         if (atomBlocks.size() < 4) {
-            std::string lineNum = Sstrm<int, std::string>(i);
+            std::string lineNum = Sstrm<std::string, int>(i);
             std::string mesg = "SDF atom block line " + lineNum + " is wrong";
             throw LBindException(mesg);
             return jobStatus;
         }
         std::string element = atomBlocks[3];
-        if(mapElements.find(element) == mapOfWords.end()){
+        if(mapElements.find(element) == mapElements.end()){
             mapElements[element]=1;
         }else{
             mapElements[element]+=1;
@@ -182,17 +185,17 @@ bool volumeFilter(JobOutData& jobOut, ElementContainer* pElementContainer) {
 
     double volume=0.0;
     typedef std::map<std::string, int>::iterator MapIterator;
-    for(MapIterator it= mapElements.begin(); it != mapOfWords.end(); it++) {
+    for(MapIterator it= mapElements.begin(); it != mapElements.end(); it++) {
         //std::cout << it->first << " :: " << it->second << std::endl;
         std::string symbol=it->first;
         int freq=it->second;
         Element *pElement=pElementContainer->symbolToElement(symbol);
-        double r=pElement->getCovalentRadius();
+        double r=pElement->getVDWRadius();
         double v=4.0/3.0*PI*r*r*r;
         volume+=freq*v;
     }    
        
-    JobOutData.volume=volume;
+    jobOut.volume=volume;
     
     return true;
 }
@@ -221,19 +224,19 @@ int main(int argc, char** argv) {
     
     mpi::timer runingTime;
 
-    if (world.size() < 2) {
-        std::cerr << "Error: Total process less than 2" << std::endl;
-        return 1;
-    }
-       
     POdata podata;
     int error=0;
     
     if (world.rank() == 0) {        
-        bool success=PPL2LigandPO(argc, argv, podata);
+        bool success=PPL2VolumeFilterPO(argc, argv, podata);
         if(!success){
             error=1;           
         }        
+    }
+
+    if (world.size() < 2) {
+        std::cerr << "Error: Total process less than 2" << std::endl;
+        return 1;
     }
         
     std::cout << "Number of tasks= " << world.size() << " My rank= " << world.rank() << std::endl;    
@@ -286,8 +289,8 @@ int main(int argc, char** argv) {
                 if (count > world.size() - 1) {
                     world.recv(mpi::any_source, outTag, jobOut);
                     toXML(jobOut, root, xmlFile);
-                    if (jobOut.error && jobOut.volume > volumeCutoff) {
-                        outFile.write(jobOut.sdfBuffer);
+                    if (jobOut.error && jobOut.volume < volumeCutoff) {
+                        outFile <<jobOut.sdfBuffer;
                     }
                 }
 
@@ -295,7 +298,7 @@ int main(int argc, char** argv) {
 
                 int freeProc;
                 world.recv(mpi::any_source, rankTag, freeProc);
-                std::cout << "At Process: " << freeProc << " working on: " << dir << std::endl;
+                std::cout << "At Process: " << freeProc << " working on: " << count << std::endl;
                 world.send(freeProc, jobTag, jobFlag);
 
                 jobInput.sdfBuffer = contents;
@@ -308,15 +311,15 @@ int main(int argc, char** argv) {
             }
         }
 
-        int nJobs = ligList.size();
-        int ndata = (nJobs < world.size() - 1) ? nJobs : world.size();
+        int nJobs = count;
+        int ndata = (nJobs <= world.size() - 1) ? nJobs : world.size();
         std::cout << "ndata=" << ndata << " nJobs=" << nJobs << std::endl;
 
         for (int i = 0; i < ndata; ++i) {
             world.recv(mpi::any_source, outTag, jobOut);
             toXML(jobOut, root, xmlFile);
-            if (jobOut.error && jobOut.volume > volumeCutoff) {
-                outFile.write(jobOut.sdfBuffer);
+            if (jobOut.error && jobOut.volume < volumeCutoff) {
+                outFile <<jobOut.sdfBuffer;
             }
         } 
         
