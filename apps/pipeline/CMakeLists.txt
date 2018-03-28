@@ -4,6 +4,11 @@ target_link_libraries(PPL1Receptor LBind ${Boost_LIBRARIES} ${MPI_CXX_LIBRARIES}
 set_target_properties(PPL1Receptor PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(TARGETS PPL1Receptor DESTINATION bin)
 
+add_executable(PPL2VolumeFilter PPL2VolumeFilter.cpp PPL2VolumeFilterPO.cpp)
+target_link_libraries(PPL2VolumeFilter LBind ${Boost_LIBRARIES} ${MPI_CXX_LIBRARIES})
+set_target_properties(PPL2VolumeFilter PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+install(TARGETS PPL2VolumeFilter DESTINATION bin)
+
 add_executable(PPL2Ligand PPL2Ligand.cpp PPL2LigandPO.cpp)
 target_link_libraries(PPL2Ligand LBind ${Boost_LIBRARIES} ${MPI_CXX_LIBRARIES})
 set_target_properties(PPL2Ligand PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
