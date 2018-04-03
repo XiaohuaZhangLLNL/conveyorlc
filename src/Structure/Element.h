@@ -26,6 +26,8 @@ public:
     double getAtomicMass();
     void setValence(int valence);
     int getValence();
+    void setCovalent(int covalent);
+    int getCovalent();
     void setCovalentRadius(double radius);
     double getCovalentRadius();
     void setVDWRadius(double radius);
@@ -43,6 +45,9 @@ private:
 
     //! Standard valence
     int valence;
+
+    //! Estimate covalent
+    int covalent;
 
     //! Covalent radius
     double covalentRadius;

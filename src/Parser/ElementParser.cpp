@@ -62,6 +62,9 @@ void ElementParser::read(std::string& fileName) {
             if (nameStr == "valence") {
                 pElement->setValence(pAttrib->IntValue());
             }
+            if (nameStr == "covalent") {
+                pElement->setCovalent(pAttrib->IntValue());
+            }
             if (nameStr == "covalentRadius") {
                 pElement->setCovalentRadius(pAttrib->DoubleValue());
             }

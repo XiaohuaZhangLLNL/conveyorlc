@@ -60,10 +60,12 @@ public:
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
+        ar & protonate;
         ar & ligID;
         ar & sdfBuffer;        
     }
     
+    bool protonate;
     int ligID;
     std::string sdfBuffer;
 };
@@ -84,6 +86,7 @@ public:
     void serialize(Archive & ar, const unsigned int version)
     {        
         ar & error;
+        ar & protonate;
         ar & ligID;
         ar & volume;
         ar & ligName;       
@@ -93,6 +96,7 @@ public:
     }
     
     bool error;
+    bool protonate;
     int ligID;
     double volume;
     std::string ligName;   
@@ -206,13 +210,39 @@ bool volumeFilter(JobOutData& jobOut, ElementContainer* pElementContainer) {
     }
 
     int heavybondNum=bndNum-hbondNum;
-    //std::cout << "bond " << bndNum << " hydrogen " << hbondNum <<std::endl;
+
+    if(!jobOut.protonate){ // The ligands are not protonated 
+		           // estimate the number of bonds with hydrogens
+	
+    	int estimatedBond=0;
+    	for(MapIterator it= mapElements.begin(); it != mapElements.end(); it++) {
+        	std::string symbol=it->first;
+        	int freq=it->second;
+        	Element *pElement=pElementContainer->symbolToElement(symbol);
+            if(pElement->getAtomicNumber()!=1){ 
+        	estimatedBond+=freq*pElement->getCovalent();
+	    }
+    	}
+
+	int estimatedH=estimatedBond/2-heavybondNum;
+
+	if(estimatedH>0){
+        	// Including volume of hydrogens for the un-protonated compounds
+        	// r=1.2          4.0/3.0*math.pi*r*r*r
+        	// excluding anything h count prevously
+        	volume+=(estimatedH-hbondNum)*7.238229473870882; 
+		hbondNum=estimatedH;
+	}
+
+    }
+    //std::cout << "estimeateH = " << estimatedH<< " hydrogen " << hbondNum <<std::endl;
     if (heavybondNum < 0) {
         throw LBindException("Number of heavy bonds is negative");
         return jobStatus;
     }
 
     // Sphere-Sphere intersection Heavy-Heavy 7.844295  Heavy-Hydrogen 5.717829
+    // R=1.7 r=1.2 d_Hv_Hv=1.5 d_Hv_H=1.0
     // Heavy-Heavy      1.0/12*math.pi*(4.0*R+d)*(2.0*R-d)**2
     // Heavy-Hydrogen   math.pi*(R+r-d)**2*(d**2+2*d*r-3*r**2+2*d*R+6*r*R-3*R**2)/12.0/d
     // Subtract the Sphere-Sphere intersection
@@ -327,6 +357,7 @@ int main(int argc, char** argv) {
 
                 jobInput.sdfBuffer = contents;
                 jobInput.ligID = count;
+                jobInput.protonate = podata.protonate;
 
                 world.send(freeProc, inpTag, jobInput);
 
@@ -373,6 +404,7 @@ int main(int argc, char** argv) {
             world.recv(0, inpTag, jobInput);
                         
             jobOut.ligID=jobInput.ligID;
+            jobOut.protonate=jobInput.protonate;
             jobOut.sdfBuffer=jobInput.sdfBuffer;
             jobOut.message="Finished!";
             try{

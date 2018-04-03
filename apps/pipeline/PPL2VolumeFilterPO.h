@@ -17,6 +17,7 @@ struct POdata{
     std::string xmlRst;
     double volume;
     bool restart;
+    bool protonate;
 };
 
 bool PPL2VolumeFilterPO(int argc, char** argv, POdata& podata);

@@ -29,7 +29,7 @@ bool PPL2VolumeFilterPO(int argc, char** argv, POdata& podata) {
                 ("sdf", value<std::string > (&podata.sdfFile), "input SDF file name")
                 ("xmlout", value<std::string > (&podata.xmlOut)->default_value("PPL2VFTrack.xml"), "xml tracking file name")
                 ("output", value<std::string > (&podata.outputFile), "output SDF filename")
-//                ("restart", value<bool>(&podata.restart)->default_value(false), "Flag to restart failed calculation")
+                ("protonate", value<bool>(&podata.protonate)->default_value(true), "use the protonated ligand")
                 ("xmlrst", value<std::string > (&podata.xmlRst), "xml restart file name")
                 ("vol", value<double> (&podata.volume), "Volume cutoff")
                 ;   

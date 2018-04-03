@@ -55,6 +55,12 @@ void Element::setValence(int valence){
 int Element::getValence(){
     return this->valence;
 }
+void Element::setCovalent(int covalent){
+    this->covalent=covalent;
+}
+int Element::getCovalent(){
+    return this->covalent;
+}
 void Element::setCovalentRadius(double radius){
     this->covalentRadius=radius;
 }
