@@ -12,7 +12,7 @@
 #include "Common/Tokenize.hpp"
 #include "BackBone/Surface.h"
 #include "BackBone/Grid.h"
-#include "calcSASAPO.h"
+#include "calcSitePO.h"
 #include "Parser/Pdb.h"
 #include "Structure/ParmContainer.h"
 
@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 
         POdata podata;
 
-        bool success=calcSASAPO(argc, argv, podata);
+        bool success=calcSitePO(argc, argv, podata);
         if(!success){
             return 1;
         }    
@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
 
         pGrid->run(podata.radius, podata.gridSphNum, podata.minVol);
 
-        delete pElementContainer;
+        //delete pElementContainer;
 
         std::cout << "\nTotal Calculation Time: " << runingTime.elapsed() << " Seconds."<< std::endl;
     

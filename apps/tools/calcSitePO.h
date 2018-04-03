@@ -1,5 +1,5 @@
 /* 
- * File:   calcSASAPO.h
+ * File:   calcSitePO.h
  * Author: zhang
  *
  * Created on February 20, 2014, 4:59 PM
@@ -19,7 +19,7 @@ struct POdata{
     int minVol;
 };
 
-bool calcSASAPO(int argc, char** argv, POdata& podata);
+bool calcSitePO(int argc, char** argv, POdata& podata);
 
 #endif	/* CALCSASAPO_H */
 

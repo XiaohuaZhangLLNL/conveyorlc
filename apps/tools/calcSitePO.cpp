@@ -1,11 +1,11 @@
 /* 
- * File:   calcSASAPO.cpp
+ * File:   calcSitePO.cpp
  * Author: zhang
  * 
  * Created on February 20, 2014, 4:59 PM
  */
 
-#include "calcSASAPO.h"
+#include "calcSitePO.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -19,7 +19,7 @@ using namespace boost::program_options;
 /*
  * 
  */
-bool calcSASAPO(int argc, char** argv, POdata& podata) {
+bool calcSitePO(int argc, char** argv, POdata& podata) {
     
     bool help;
     positional_options_description positional;
