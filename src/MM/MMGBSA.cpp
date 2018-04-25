@@ -313,12 +313,15 @@ void MMGBSA::run(std::string& poseID, bool restart){
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
     
-    sanderOut="Rec_minGB.out";
+    sanderOut="Rec_minGB.out 1.pdbqt";
     double recEnergy=0;
     success=pSanderOutput->getEnergy(sanderOut, recEnergy); 
     
     bindGBen=comEnergy-recEnergy-ligGBen;
-      
+
+    cmd="rm -f Rec_min.pdb "+poseID+".pdbqt"+" *.in Lig*.pdb leap.log fort.7 REC.* Rec_min.rst rec_tmp.pdb";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());      
 }
 
 double MMGBSA::getbindGB(){
