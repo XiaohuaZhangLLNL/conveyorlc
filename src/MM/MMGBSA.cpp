@@ -43,7 +43,7 @@ MMGBSA::MMGBSA(const MMGBSA& orig) {
 MMGBSA::~MMGBSA() {
 }
 
-void MMGBSA::run(std::string& poseID){
+void MMGBSA::run(std::string& poseID, bool restart){
     
     std::string libDir=WORKDIR+"/lib/";
     std::string ligDir=WORKDIR+"/scratch/lig/"+ligID+"/";
@@ -53,11 +53,7 @@ void MMGBSA::run(std::string& poseID){
     
     std::string cmd="mkdir -p "+poseDir;
     system(cmd.c_str());
-    chdir(poseDir.c_str());
-    
-    if(!this->checkRun(poseID)){
-        return;
-    }    
+    chdir(poseDir.c_str());  
     
     std::string sanderOut=ligDir+"LIG_minGB.out";
     boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
@@ -296,23 +292,6 @@ double MMGBSA::getbindGB(){
 
 double MMGBSA::getScore(){
     return score;
-}
-
-bool MMGBSA::checkRun(std::string& poseID){
-    std::string sanderOutFile="Com_min_GB_"+poseID+".out";
-  
-    std::ifstream inFile(sanderOutFile.c_str());
-    
-    if(!inFile){
-        return true;
-    }
-    
-    int i=system("grep 'FINAL RESULTS' file");
-    if(i==0){
-        return false;
-    }
-    
-    return true;    
 }
 
 

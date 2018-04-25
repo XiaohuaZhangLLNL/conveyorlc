@@ -11,6 +11,7 @@
 #include <sstream>
 #include <cstring>
 #include <vector>
+#include <string>
 
 
 #include "MM/MMGBSA.h"
@@ -27,6 +28,7 @@
 #include <boost/mpi.hpp>
 #include <boost/mpi/environment.hpp>
 #include <boost/mpi/communicator.hpp>
+#include <mpi.h>
 
 namespace mpi = boost::mpi;
 
@@ -52,12 +54,14 @@ public:
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
+        ar & restart;
         ar & dirBuffer;  
         ar & ligBuffer;
         ar & poseBuffer;
         ar & nonRes;
     }
  
+    bool restart;
     std::string dirBuffer;
     std::string ligBuffer;
     std::string poseBuffer;
@@ -148,20 +152,61 @@ void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile) {
         
 }
 
+bool isRun(std::string& checkfile, JobOutData& jobOut){
+    
+     std::ifstream inFile(checkFile.c_str());
+    
+    if(!inFile){
+        return false;
+    }  
+     
+    std::string fileLine=""; 
+    std::string delimiter=":";
+    while(inFile){
+        std::getline(inFile, fileLine);
+            std::vector<std::string> tokens;
+            tokenize(fileLine, tokens, delimiter); 
+            if(tokens.size()!=2) continue;
+            if(tokens[0]=="vina"){
+                jobOut.score=Sstrm<double, std::string>(tokens[1]);
+            }
+            if(tokens[0]=="GBSA"){
+                jobOut.gbbind=Sstrm<double, std::string>(tokens[1]);
+            }
+            if(tokens[0]=="Mesg"){
+                jobOut.message=tokens[1];
+            }            
+    }  
+    return true;
+}
+
+void checkPoint(std::string& checkfile, JobOutData& jobOut){
+    
+    std::ofstream outFile(checkFile.c_str());
+    
+    outFile << "vina : " << jobOut.score << "\n"
+            << "GBSA : " << jobOut.gbbind << "\n"
+            << "Mesg : " << jobOut.message << "\n";
+    outFile.close();
+}
 
 bool mmgbsa(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir) {
 
     jobOut.recID=jobInput.dirBuffer;
     jobOut.ligID=jobInput.ligBuffer;
-    jobOut.poseID=jobInput.poseBuffer;    
+    jobOut.poseID=jobInput.poseBuffer;   
+    
+    std::string checkfile=workDir+"/scratch/com/"+jobOut.recID+"/gbsa/lig_"+jobOut.ligID+"/pose_"+jobOut.poseID+"/checkpoint.txt";
+    
+    if(isRun(checkfile, jobOut)) return true;
     
     boost::scoped_ptr<MMGBSA> pMMGBSA(new MMGBSA(jobInput.dirBuffer, jobInput.ligBuffer, jobInput.nonRes, workDir));
-    pMMGBSA->run(jobInput.poseBuffer); 
+    pMMGBSA->run(jobInput.poseBuffer, jobInput.restart); 
   
     jobOut.gbbind=pMMGBSA->getbindGB(); 
     jobOut.score=pMMGBSA->getScore();
 
-          
+    checkPoint(checkfile, jobOut);      
     return true;
 }
 
@@ -272,15 +317,15 @@ int main(int argc, char** argv) {
     
     POdata podata;
     int error=0;
-    
+ 
     if (world.rank() == 0) {        
         bool success=PPL4mmgbsaPO(argc, argv, podata);
         if(!success){
             error=1;
             return 1;
-        }        
+        }
     }
-   
+    
     
     std::cout << "Number of tasks= " << world.size() << " My rank= " << world.rank() << std::endl;
 
@@ -345,7 +390,8 @@ int main(int argc, char** argv) {
                         << " Pose: " << xmlList[i]->poseIDs[j] << std::endl;
                 //                MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD);
                 world.send(freeProc, jobTag, jobFlag);
-
+                
+                jobInput.restart=podata.restart;
                 jobInput.dirBuffer = xmlList[i]->recID;
                 jobInput.ligBuffer = xmlList[i]->ligID;
                 jobInput.poseBuffer= xmlList[i]->poseIDs[j];

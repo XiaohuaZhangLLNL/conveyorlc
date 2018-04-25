@@ -30,6 +30,7 @@ bool PPL4mmgbsaPO(int argc, char** argv, POdata& podata) {
 //                ("ligList", value<std::string > (&podata.ligFile), "ligand directory file name")
 //                ("output", value<std::string > (&podata.outputFile), "output filename")
                 ("xml", value<std::string > (&podata.xmlFile), "JobTracking XML filename")
+                ("restart", value<bool>(&podata.restart)->default_value(false), "Flag to restart calculation")
 //                ("PB", value<bool>(&podata.pbFlag)->default_value(true), "Turn on/off PB calculation (Default on).")
                 ;   
         options_description info("Optional:");

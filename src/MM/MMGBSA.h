@@ -42,7 +42,6 @@ private:
      */    
 //    void comRun(int poseID); 
     
-    bool checkRun(std::string& poseID); 
 //    /**
 //     * 
 //     */
