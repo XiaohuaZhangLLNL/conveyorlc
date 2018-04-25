@@ -26,7 +26,7 @@ public:
      * \param ligand the ligand name under the ligLibDir
      * 
      */    
-    void run(std::string& poseID);
+    void run(std::string& poseID, bool restart);
     
     double getbindGB();
     double getScore();

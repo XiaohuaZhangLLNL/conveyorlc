@@ -154,7 +154,7 @@ void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile) {
 
 bool isRun(std::string& checkfile, JobOutData& jobOut){
     
-     std::ifstream inFile(checkFile.c_str());
+     std::ifstream inFile(checkfile.c_str());
     
     if(!inFile){
         return false;
@@ -166,6 +166,7 @@ bool isRun(std::string& checkfile, JobOutData& jobOut){
         std::getline(inFile, fileLine);
             std::vector<std::string> tokens;
             tokenize(fileLine, tokens, delimiter); 
+
             if(tokens.size()!=2) continue;
             if(tokens[0]=="vina"){
                 jobOut.score=Sstrm<double, std::string>(tokens[1]);
@@ -182,11 +183,11 @@ bool isRun(std::string& checkfile, JobOutData& jobOut){
 
 void checkPoint(std::string& checkfile, JobOutData& jobOut){
     
-    std::ofstream outFile(checkFile.c_str());
+    std::ofstream outFile(checkfile.c_str());
     
-    outFile << "vina : " << jobOut.score << "\n"
-            << "GBSA : " << jobOut.gbbind << "\n"
-            << "Mesg : " << jobOut.message << "\n";
+    outFile << "vina:" << jobOut.score << "\n"
+            << "GBSA:" << jobOut.gbbind << "\n"
+            << "Mesg:" << jobOut.message << "\n";
     outFile.close();
 }
 
