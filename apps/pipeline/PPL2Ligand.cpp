@@ -77,9 +77,11 @@ public:
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
+        ar & ambVersion;
         ar & dirBuffer;        
     }
     
+    int ambVersion;
     std::string dirBuffer;
 };
 
@@ -167,7 +169,7 @@ void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile){
 }
 
 
-bool preLigands(JobOutData& jobOut, std::string& workDir) {
+bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir) {
     
     bool jobStatus=false;
     
@@ -223,7 +225,7 @@ bool preLigands(JobOutData& jobOut, std::string& workDir) {
     std::string output="ligand.mol2";
     std::string options=" -c bcc -nc "+ chargeStr;
         
-    boost::scoped_ptr<Amber> pAmber(new Amber());
+    boost::scoped_ptr<Amber> pAmber(new Amber(jobInput.ambVersion));
     pAmber->antechamber(tmpFile, output, options);
     
     pAmber->parmchk(output);
@@ -289,7 +291,13 @@ bool preLigands(JobOutData& jobOut, std::string& workDir) {
     }
     
     //! Use ambpdb generated PDB file for PDBQT.
-    cmd="ambpdb -p LIG.prmtop -c LIG_min.rst > LIG_minTmp.pdb ";
+    if(jobInput.ambVersion==16){
+        cmd="ambpdb -p LIG.prmtop -c LIG_min.rst > LIG_minTmp.pdb "; 
+    }else{
+        cmd="ambpdb -p LIG.prmtop < LIG_min.rst > LIG_minTmp.pdb ";
+    } 
+    
+    
     std::cout <<cmd <<std::endl;
     echo="echo ";
     echo=echo+cmd+" >> log";
@@ -548,6 +556,7 @@ int main(int argc, char** argv) {
 
 //            strcpy(jobInput.dirBuffer, dir.c_str());
             jobInput.dirBuffer=dir;
+            jobInput.ambVersion=podata.version;
 
 //            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);
             world.send(freeProc, inpTag, jobInput);
@@ -593,7 +602,7 @@ int main(int argc, char** argv) {
             jobOut.ligID=jobInput.dirBuffer;
             jobOut.message="Finished!";
             try{
-                bool jobStatus=preLigands(jobOut, workDir);            
+                bool jobStatus=preLigands(jobInput, jobOut, workDir);            
                 jobOut.error=jobStatus;
             } catch (LBindException& e){
                 jobOut.message= e.what();  

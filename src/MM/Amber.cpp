@@ -21,10 +21,22 @@
 namespace LBIND {
 
 Amber::Amber() {
+    version=10;
+    AMBERPATH=getenv("AMBERHOME");
+}    
+    
+Amber::Amber(int amberVersion) {
+    version=amberVersion;
     AMBERPATH=getenv("AMBERHOME");
 }
 
 Amber::Amber(Protein* pProt) : pProtein(pProt){
+    version=10;
+    AMBERPATH=getenv("AMBERHOME");
+}
+
+Amber::Amber(Protein* pProt, int amberVersion) : pProtein(pProt){
+    version=amberVersion;
     AMBERPATH=getenv("AMBERHOME");
 }
 
@@ -81,11 +93,18 @@ void Amber::ligLeapInput(std::string pdbid, std::string ligName, std::string tle
         std::string mesg="Amber::createLeapInput()\n\t Cannot open VMD file: "+tleapFName;
         throw LBindException(mesg);
     }   
-       
-    tleapFile << "source leaprc.protein.ff14SB" << std::endl;
+
+    if(version==16){
+        tleapFile << "source leaprc.protein.ff14SB" << std::endl;
+    }else{
+        tleapFile << "source leaprc.ff99SB" << std::endl;
+    }    
+
     tleapFile << "source leaprc.gaff" << std::endl;
-    tleapFile << "loadoff atomic_ions.lib\n";
-    tleapFile << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
+    if(version==16){
+       tleapFile   << "loadoff atomic_ions.lib\n"
+              << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
+    }
     tleapFile << ligName <<" = loadmol2 " << pdbid <<"-lig-"<< ligName << ".mol2 " << std::endl;
     tleapFile << "check " << ligName << std::endl;
     tleapFile << "loadamberparams " << pdbid <<"-lig-"<< ligName << ".frcmod" << std::endl;
@@ -107,10 +126,17 @@ void Amber::comLeapInput(std::string pdbid, std::string ligName, std::string tle
         throw LBindException(mesg);
     }   
     
-    tleapFile << "source leaprc.protein.ff14SB" << std::endl;
+    if(version==16){
+        tleapFile << "source leaprc.protein.ff14SB" << std::endl;
+    }else{
+        tleapFile << "source leaprc.ff99SB" << std::endl;
+    }
+    
     tleapFile << "source leaprc.gaff" << std::endl;
-    tleapFile << "loadoff atomic_ions.lib\n";
-    tleapFile << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
+    if(version==16){
+       tleapFile   << "loadoff atomic_ions.lib\n"
+              << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
+    }
     tleapFile << "loadamberparams " << pdbid <<"-lig-"<< ligName << ".frcmod" << std::endl;
     tleapFile << "loadoff " << ligName <<".lib " << std::endl;
     tleapFile << "complex = loadpdb ../" << pdbid << ".pdb " << std::endl;
@@ -132,10 +158,17 @@ void Amber::tleapInput(std::string& mol2FName, std::string& ligName, std::string
     
     std::string mol2FBase=mol2FName.substr(0,mol2FName.size()-5);
        
-    tleapFile << "source leaprc.protein.ff14SB" << std::endl;
+    if(version==16){
+        tleapFile << "source leaprc.protein.ff14SB" << std::endl;
+    }else{
+        tleapFile << "source leaprc.ff99SB" << std::endl;
+    }
+    
     tleapFile << "source leaprc.gaff" << std::endl;
-    tleapFile << "loadoff atomic_ions.lib\n";
-    tleapFile << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
+    if(version==16){
+       tleapFile   << "loadoff atomic_ions.lib\n"
+              << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
+    }
     tleapFile << "loadamberparams " << mol2FBase << ".frcmod" << std::endl;    
     tleapFile << ligName <<" = loadmol2 " << mol2FName << std::endl;
     tleapFile << "check " << ligName << std::endl;

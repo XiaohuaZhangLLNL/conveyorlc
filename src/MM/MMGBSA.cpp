@@ -24,17 +24,19 @@
 
 namespace LBIND{
 
-MMGBSA::MMGBSA(const std::string& dir, const std::string& ligand, const std::string& workDir) {
+MMGBSA::MMGBSA(const std::string& dir, const std::string& ligand, const std::string& workDir, int amberVersion) {
     WORKDIR=workDir;
     recID=dir;
-    ligID=ligand; 
+    ligID=ligand;
+    version=amberVersion;
 }
 
-MMGBSA::MMGBSA(const std::string& dir, const std::string& ligand, std::vector<std::string>& nonStdRes, const std::string& workDir) {
+MMGBSA::MMGBSA(const std::string& dir, const std::string& ligand, std::vector<std::string>& nonStdRes, const std::string& workDir, int amberVersion) {
     WORKDIR=workDir;
     recID=dir;
     ligID=ligand; 
     nonRes=nonStdRes;
+    version=amberVersion;
 }
 
 MMGBSA::MMGBSA(const MMGBSA& orig) {
@@ -88,9 +90,18 @@ void MMGBSA::run(std::string& poseID, bool restart){
             std::string mesg="mmgbsa::receptor()\n\t Cannot open tleap file: "+tleapFName;
             throw LBindException(mesg);
         }   
-
-        tleapFile << "source leaprc.protein.ff14SB" << std::endl;
+        if(version==16){
+            tleapFile << "source leaprc.protein.ff14SB" << std::endl;
+        }else{
+            tleapFile << "source leaprc.ff99SB" << std::endl;
+        }
         tleapFile << "source leaprc.gaff" << std::endl;
+
+        if(version==16){
+           tleapFile   << "loadoff atomic_ions.lib\n"
+                  << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
+        }        
+        
         tleapFile << "loadamberparams  " << ligDir <<  "/ligand.frcmod" <<std::endl;
         tleapFile << "loadoff " << ligDir << "/LIG.lib" <<std::endl;
         tleapFile << "LIG = loadpdb Lig_"<< poseID <<".pdb" << std::endl;
@@ -125,9 +136,18 @@ void MMGBSA::run(std::string& poseID, bool restart){
             throw LBindException(mesg);
         }   
 
-        tleapFile << "source leaprc.protein.ff14SB" << std::endl;
+        if(version==16){
+            tleapFile << "source leaprc.protein.ff14SB" << std::endl;
+        }else{
+            tleapFile << "source leaprc.ff99SB" << std::endl;
+        }
         tleapFile << "source leaprc.gaff" << std::endl;
 
+        if(version==16){
+           tleapFile   << "loadoff atomic_ions.lib\n"
+                  << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
+        }        
+        
         for(unsigned int i=0; i<nonRes.size(); ++i){
             tleapFile << "loadoff "<< libDir << nonRes[i] <<".off \n";
             tleapFile << "loadamberparams "<< libDir << nonRes[i] <<".frcmod \n";
@@ -195,7 +215,12 @@ void MMGBSA::run(std::string& poseID, bool restart){
     std::cout << "Complex GB Minimization Energy: " << comEnergy <<" kcal/mol."<< std::endl;   
     
     // receptor energy calculation
-    cmd="ambpdb -p Com.prmtop -aatm -c Com_min"+poseID+".rst > Com_min.pdb";
+    if (version == 16) {
+        cmd="ambpdb -p Com.prmtop -aatm -c Com_min"+poseID+".rst > Com_min.pdb";
+    } else {
+        cmd="ambpdb -p Com.prmtop -aatm < Com_min"+poseID+".rst > Com_min.pdb";
+    }
+    
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
     
@@ -216,9 +241,19 @@ void MMGBSA::run(std::string& poseID, bool restart){
             throw LBindException(mesg);
         }
         
-        tleapFile << "source leaprc.protein.ff14SB\n"                
-                  << "source leaprc.gaff\n";
+        if (version == 16) {
+            tleapFile << "source leaprc.protein.ff14SB\n";
+        } else {
+            tleapFile << "source leaprc.ff99SB\n";
+        }
 
+        tleapFile << "source leaprc.gaff\n";
+
+        if(version==16){
+           tleapFile   << "loadoff atomic_ions.lib\n"
+                  << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
+        }        
+        
         for(unsigned int i=0; i<nonRes.size(); ++i){
             tleapFile << "loadoff "<< libDir << nonRes[i] <<".off \n";
             tleapFile << "loadamberparams "<< libDir << nonRes[i] <<".frcmod \n";

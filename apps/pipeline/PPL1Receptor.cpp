@@ -86,6 +86,7 @@ public:
     {
        ar & protonateFlg;
         ar & getPDBflg;
+        ar & ambVersion;
         ar & dirBuffer;  
         ar & keyRes;
         ar & nonRes;
@@ -93,6 +94,7 @@ public:
     
     bool protonateFlg;
     bool getPDBflg;
+    int ambVersion;
     std::string dirBuffer;
     std::vector<std::string> keyRes;
     std::vector<std::string> nonRes;
@@ -282,7 +284,12 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             return jobStatus;        
         }     
 
-        cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/reduce_wwPDB_het_dict.txt\" >& rec_rd.pdb";
+        if(jobInput.ambVersion==16){
+            cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/amber16_reduce_wwPDB_het_dict.txt\" >& rec_rd.pdb";
+        }else{
+            cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/amber10_reduce_wwPDB_het_dict.txt\" >& rec_rd.pdb";
+        }
+        
         std::cout <<cmd <<std::endl;
         system(cmd.c_str()); 
 
@@ -321,10 +328,17 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             throw LBindException(mesg);
         }
         
-        tleapFile << "source leaprc.protein.ff14SB\n"                
-                  << "source leaprc.gaff\n"
-		  << "loadoff atomic_ions.lib\n"
+        if(jobInput.ambVersion==16){
+            tleapFile << "source leaprc.protein.ff14SB\n";    
+        }else{
+            tleapFile << "source leaprc.ff99SB\n";
+        }
+        
+        tleapFile << "source leaprc.gaff\n";
+        if(jobInput.ambVersion==16){
+	   tleapFile   << "loadoff atomic_ions.lib\n"
                   << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
+        }
         
         for(unsigned int i=0; i<jobInput.nonRes.size(); ++i){
             tleapFile << "loadoff "<< libDir << jobInput.nonRes[i] <<".off \n";
@@ -395,8 +409,12 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         return jobStatus;          
     }
     
-       
-    cmd="ambpdb -p REC.prmtop -aatm -c Rec_min.rst > Rec_min_0.pdb";
+    if(jobInput.ambVersion==16){
+        cmd="ambpdb -p REC.prmtop -aatm -c Rec_min.rst > Rec_min_0.pdb";   
+    }else{
+        cmd="ambpdb -p REC.prmtop -aatm < Rec_min.rst > Rec_min_0.pdb";
+    }   
+    
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
 
@@ -410,8 +428,13 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     cmd="grep -v END Rec_min_0.pdb > Rec_min.pdb ";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
+
+    if(jobInput.ambVersion==16){
+        cmd="ambpdb -p REC.prmtop -c Rec_min.rst > Rec_min_1.pdb";  
+    }else{
+        cmd="ambpdb -p REC.prmtop < Rec_min.rst > Rec_min_1.pdb";
+    } 
     
-    cmd="ambpdb -p REC.prmtop -c Rec_min.rst > Rec_min_1.pdb";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());     
     
@@ -641,6 +664,7 @@ int main(int argc, char** argv) {
             jobInput.dirBuffer=dirList[i]->pdbFile;
             jobInput.keyRes=dirList[i]->keyRes;
             jobInput.nonRes=dirList[i]->nonRes;
+            jobInput.ambVersion=podata.version;
 
 //            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);
             world.send(freeProc, inpTag, jobInput);            

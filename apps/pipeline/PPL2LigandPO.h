@@ -17,6 +17,7 @@ struct POdata{
     std::string xmlRst;
     int firstLigID;
     bool restart;
+    int version;
 };
 
 bool PPL2LigandPO(int argc, char** argv, POdata& podata);

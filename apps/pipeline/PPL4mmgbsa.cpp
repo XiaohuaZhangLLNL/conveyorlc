@@ -55,6 +55,7 @@ public:
     void serialize(Archive & ar, const unsigned int version)
     {
         ar & restart;
+        ar & ambVersion;
         ar & dirBuffer;  
         ar & ligBuffer;
         ar & poseBuffer;
@@ -62,6 +63,7 @@ public:
     }
  
     bool restart;
+    int ambVersion;
     std::string dirBuffer;
     std::string ligBuffer;
     std::string poseBuffer;
@@ -201,7 +203,7 @@ bool mmgbsa(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir) {
     
     if(isRun(checkfile, jobOut)) return true;
     
-    boost::scoped_ptr<MMGBSA> pMMGBSA(new MMGBSA(jobInput.dirBuffer, jobInput.ligBuffer, jobInput.nonRes, workDir));
+    boost::scoped_ptr<MMGBSA> pMMGBSA(new MMGBSA(jobInput.dirBuffer, jobInput.ligBuffer, jobInput.nonRes, workDir, jobInput.ambVersion));
     pMMGBSA->run(jobInput.poseBuffer, jobInput.restart); 
   
     jobOut.gbbind=pMMGBSA->getbindGB(); 
@@ -393,6 +395,7 @@ int main(int argc, char** argv) {
                 world.send(freeProc, jobTag, jobFlag);
                 
                 jobInput.restart=podata.restart;
+                jobInput.ambVersion=podata.version;
                 jobInput.dirBuffer = xmlList[i]->recID;
                 jobInput.ligBuffer = xmlList[i]->ligID;
                 jobInput.poseBuffer= xmlList[i]->poseIDs[j];

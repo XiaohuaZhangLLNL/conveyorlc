@@ -16,6 +16,7 @@ struct POdata{
 //    std::string outputFile;
     std::string xmlFile;
     bool restart;
+    int version;
 //    bool pbFlag;
 };
 

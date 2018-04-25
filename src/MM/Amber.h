@@ -15,7 +15,9 @@ namespace LBIND {
 class Amber {
 public:
     Amber();
+    Amber(int amberVersion);
     Amber(Protein* pProt);
+    Amber(Protein* pProt, int amberVersion);
     Amber(const Amber& orig);
     virtual ~Amber();
     
@@ -38,6 +40,7 @@ private:
     void comLeapInput(std::string pdbid, std::string ligName, std::string tleapFName);
     
 private:
+    int version;
     Protein* pProtein;
     std::string AMBERPATH;
 };

@@ -28,6 +28,7 @@ bool PPL1ReceptorPO(int argc, char** argv, POdata& podata) {
         inputs.add_options()
                 ("input", value<std::string > (&podata.inputFile), "PDB file list for input")
                 ("output", value<std::string > (&podata.outputFile), "output filename")
+                ("version", value<int>(&podata.version)->default_value(10), "AMBER Version")
                 ("protonate", value<std::string> (&podata.protonateFlg)->default_value("on"), "Protonate protein by default")
                 ;   
         options_description info("Optional:");
