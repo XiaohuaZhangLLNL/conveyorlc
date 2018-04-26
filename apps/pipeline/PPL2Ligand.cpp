@@ -170,16 +170,58 @@ void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile){
         
 }
 
+bool isRun(std::string& checkfile, JobOutData& jobOut){
+    
+     std::ifstream inFile(checkfile.c_str());
+    
+    if(!inFile){
+        return false;
+    }  
+     
+    std::string fileLine=""; 
+    std::string delimiter=":";
+    while(inFile){
+        std::getline(inFile, fileLine);
+            std::vector<std::string> tokens;
+            tokenize(fileLine, tokens, delimiter); 
+
+            if(tokens.size()!=2) continue;
+            if(tokens[0]=="ligName"){
+                jobOut.ligName=tokens[1];
+            }
+            if(tokens[0]=="GBSA"){
+                jobOut.gbEn=Sstrm<double, std::string>(tokens[1]);
+            }
+            if(tokens[0]=="Mesg"){
+                jobOut.message=tokens[1];
+            }            
+    }  
+    return true;
+}
+
+void checkPoint(std::string& checkfile, JobOutData& jobOut){
+    
+    std::ofstream outFile(checkfile.c_str());
+    
+    outFile << "ligName:" << jobOut.ligName << "\n"
+            << "GBSA:" << jobOut.gbEn << "\n"
+            << "Mesg:" << jobOut.message << "\n";
+    outFile.close();
+}
 
 bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir) {
     
     bool jobStatus=false;
     
-    chdir(workDir.c_str());
+    //chdir(workDir.c_str());
     // ! Goto sub directory
     std::string subDir=workDir+"/scratch/lig/"+jobOut.ligID;  
     jobOut.pdbFilePath="scratch/lig/"+jobOut.ligID+"/LIG_min.pdb";
     jobOut.pdbqtPath="scratch/lig/"+jobOut.ligID+"/LIG_min.pdbqt";
+    
+    std::string checkfile=workDir+"/scratch/lig/"+jobOut.ligID+"/checkpoint.txt";    
+    if(isRun(checkfile, jobOut)) return true;
+    
     jobOut.gbEn=0.0;        
     std::string sdfPath=subDir+"/ligand.sdf";
   
@@ -311,8 +353,7 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
     }else{
         cmd="ambpdb -p LIG.prmtop < LIG_min.rst > LIG_minTmp.pdb ";
     } 
-    
-    
+       
     std::cout <<cmd <<std::endl;
     echo="echo ";
     echo=echo+cmd+" >> log";
@@ -345,6 +386,11 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         return jobStatus;        
     } 
     
+    checkPoint(checkfile, jobOut);
+    
+    cmd="rm -f *.in divcon.pdb fort.7 leap.log ligand.mol2 mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
+    std::cout <<cmd <<std::endl;    
+    system(cmd.c_str());
     
     jobStatus=true;
     return jobStatus;
