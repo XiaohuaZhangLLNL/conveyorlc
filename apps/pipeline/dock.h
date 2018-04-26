@@ -99,6 +99,7 @@ public:
 
 int dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir);
 
+void getScores(std::string& log, std::vector<double>& scores);
 
 #endif	/* DOCKING_H */
 
