@@ -78,11 +78,13 @@ public:
     void serialize(Archive & ar, const unsigned int version)
     {
         ar & ambVersion;
-        ar & dirBuffer;        
+        ar & dirBuffer; 
+        ar & sdfBuffer;
     }
     
     int ambVersion;
     std::string dirBuffer;
+    std::string sdfBuffer;
 };
 
 //struct JobInputData{        
@@ -178,9 +180,22 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
     std::string subDir=workDir+"/scratch/lig/"+jobOut.ligID;  
     jobOut.pdbFilePath="scratch/lig/"+jobOut.ligID+"/LIG_min.pdb";
     jobOut.pdbqtPath="scratch/lig/"+jobOut.ligID+"/LIG_min.pdbqt";
-    jobOut.gbEn=0.0;
-        
+    jobOut.gbEn=0.0;        
     std::string sdfPath=subDir+"/ligand.sdf";
+  
+    std::string cmd="mkdir -p "+subDir;
+    system(cmd.c_str());  
+    
+    std::ofstream outFile;
+    try {
+        outFile.open(sdfPath.c_str());
+    }
+    catch(...){
+        std::cout << "preLigands >> Cannot open file" << sdfPath << std::endl;
+    }
+
+    outFile <<jobInput.sdfBuffer;
+    outFile.close();     
     
     if(!fileExist(sdfPath)){
         std::string message=sdfPath+" does not exist.";
@@ -193,7 +208,7 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
     std::string sdfFile="ligand.sdf";
     std::string pdb1File="ligand.pdb";
     
-    std::string cmd="babel -isdf " + sdfFile + " -opdb " +pdb1File +" >> log";
+    cmd="babel -isdf " + sdfFile + " -opdb " +pdb1File +" >> log";
     std::cout << cmd << std::endl;
     std::string echo="echo ";
     echo=echo+cmd+" > log";
@@ -491,31 +506,7 @@ int main(int argc, char** argv) {
             error=1;           
         }        
     }
-
-//    MPI_Bcast(&error, 1, MPI_INT, 0, MPI_COMM_WORLD);
-//    if (error !=0) {
-//        MPI_Finalize();
-//        return 1;
-//    } 
-    
-    std::vector<std::string> ligList;
-    std::vector<std::string> sLigList;
-    // split SDF file
-    if(world.rank()==0){
-
-        splitSDF(podata, ligList, workDir); 
-        if(podata.restart){
-            xmlEJobs(podata.xmlRst, sLigList);
-        }
-
-        for(unsigned i=0; i<sLigList.size(); ++i){
-            std::string rmLig=sLigList[i];
-            ligList.erase(std::remove(ligList.begin(), ligList.end(), rmLig), ligList.end());            
-        }
-    }
-    
-    std::cout << "Number of tasks= " << world.size() << " My rank= " << world.rank() << std::endl;    
-        
+               
     if (world.rank() == 0) {
                 
 //! Tracking error using XML file
@@ -538,32 +529,59 @@ int main(int argc, char** argv) {
         fflush(xmlFile);         
  //! END of XML header
 
-        for(int i=0; i <ligList.size(); ++i){
-            if(i >world.size()-1){
-//                MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
-                world.recv(mpi::any_source, outTag, jobOut);
-                toXML(jobOut, root, xmlFile);
-            } 
+// Open output file
+        std::ofstream outFile;
+        outFile.open(podata.outputFile.c_str());
 
-            std::string dir=ligList[i];
+        // Start to read in the SDF file
+        std::ifstream inFile;
+        try {
+            inFile.open(podata.sdfFile.c_str());
+        } catch (...) {
+            std::cout << "preLigands >> Cannot open file" << podata.sdfFile << std::endl;
+        }
 
-            int freeProc;
-//            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
-            world.recv(mpi::any_source, rankTag, freeProc);
-            std::cout << "At Process: " << freeProc << " working on: " << dir << std::endl;
-//            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
-            world.send(freeProc, jobTag, jobFlag);
+        const std::string delimter = "$$$$";
+        std::string fileLine = "";
+        std::string contents = "";
 
-//            strcpy(jobInput.dirBuffer, dir.c_str());
-            jobInput.dirBuffer=dir;
-            jobInput.ambVersion=podata.version;
+        int count = 0;
 
-//            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);
-            world.send(freeProc, inpTag, jobInput);
+        while (inFile) {
+            std::getline(inFile, fileLine);
+            contents = contents + fileLine + "\n";
+            if (fileLine.size() >= 4 && fileLine.compare(0, 4, delimter) == 0) {
+                            
+                if(count >= world.size()-1){
+    //                MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
+                    world.recv(mpi::any_source, outTag, jobOut);
+                    toXML(jobOut, root, xmlFile);
+                } 
+
+                std::string dir=Sstrm<std::string, int>(count+1);
+
+                int freeProc;
+    //            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
+                world.recv(mpi::any_source, rankTag, freeProc);
+                std::cout << "At Process: " << freeProc << " working on: " << dir << std::endl;
+    //            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
+                world.send(freeProc, jobTag, jobFlag);
+
+    //            strcpy(jobInput.dirBuffer, dir.c_str());
+                jobInput.dirBuffer=dir;
+                jobInput.sdfBuffer=contents;
+                jobInput.ambVersion=podata.version;
+
+    //            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);
+                world.send(freeProc, inpTag, jobInput);
+                
+                contents = ""; //! clean up the contents for the next structure.
+                count++;
+            }
                              
         }
 
-        int nJobs=ligList.size();
+        int nJobs=count;
         int ndata=(nJobs<world.size()-1)? nJobs: world.size();
         std::cout << "ndata=" << ndata << " nJobs=" << nJobs << std::endl;
     

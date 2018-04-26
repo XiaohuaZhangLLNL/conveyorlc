@@ -14,7 +14,6 @@ struct POdata{
     std::string sdfFile;
     std::string outputFile;
     std::string xmlOut;
-    std::string xmlRst;
     int firstLigID;
     bool restart;
     int version;

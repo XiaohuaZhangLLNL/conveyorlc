@@ -30,8 +30,7 @@ bool PPL2LigandPO(int argc, char** argv, POdata& podata) {
                 ("xmlout", value<std::string > (&podata.xmlOut)->default_value("PPL2Track.xml"), "xml tracking file name")
                 ("output", value<std::string > (&podata.outputFile), "output filename")
                 ("version", value<int>(&podata.version)->default_value(10), "AMBER Version")
-//                ("restart", value<bool>(&podata.restart)->default_value(false), "Flag to restart failed calculation")
-                ("xmlrst", value<std::string > (&podata.xmlRst), "xml restart file name")
+                ("restart", value<bool>(&podata.restart)->default_value(false), "To restart the calculation")
                 ("firstLigID", value<int> (&podata.firstLigID)->default_value(1), "First ligID default from 1")
                 ;   
         options_description info("Optional:");
@@ -63,16 +62,11 @@ bool PPL2LigandPO(int argc, char** argv, POdata& podata) {
 
         podata.restart=false;
         
-        if (vm.count("sdf") <= 0 && vm.count("xmlrst") <=0) {
-            std::cerr << "Missing input SDF file or restart xml file.\n" << "\nCorrect usage:\n" << desc << '\n';
+        if (vm.count("sdf") <= 0) {
+            std::cerr << "Missing input SDF file.\n" << "\nCorrect usage:\n" << desc << '\n';
             return false;
         }
-                
-        if(vm.count("xmlrst") >0){ 
-            podata.restart=true;
-        }
-        
-        
+                        
     }catch (boost::filesystem::filesystem_error& e) {
         std::cerr << "\n\nFile system error: " << e.what() << '\n';
         return false;
