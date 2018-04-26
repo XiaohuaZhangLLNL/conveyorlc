@@ -50,6 +50,21 @@ double Coor3d::getZ()
     return this->z;
 }
 
+void Coor3d::setX(double x)
+{
+    this->x=x;
+}
+
+void Coor3d::setY(double y)
+{
+    this->y=y;
+}
+
+void Coor3d::setZ(double z)
+{
+    this->z=z;
+}
+
 double Coor3d::length(){
     return sqrt(x*x+y*y+z*z);
 }

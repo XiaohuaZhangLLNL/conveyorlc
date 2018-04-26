@@ -239,6 +239,72 @@ void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile){
         fflush(xmlTmpFile);     
 }
 
+bool isRun(std::string& checkfile, JobOutData& jobOut){
+    
+     std::ifstream inFile(checkfile.c_str());
+    
+    if(!inFile){
+        return false;
+    }  
+     
+    std::string fileLine=""; 
+    std::string delimiter=":";
+    while(inFile){
+        std::getline(inFile, fileLine);
+            std::vector<std::string> tokens;
+            tokenize(fileLine, tokens, delimiter); 
+
+            if(tokens.size()!=2) continue;
+            if(tokens[0]=="PDBQTPath"){
+                jobOut.recPath=tokens[1];
+            }
+            if(tokens[0]=="GBEN"){
+                jobOut.gbEn=Sstrm<double, std::string>(tokens[1]);
+            }
+            if(tokens[0]=="Volume"){
+                jobOut.volume=Sstrm<int, std::string>(tokens[1]);
+            }
+            if(tokens[0]=="cx"){
+                jobOut.centroid.setX(Sstrm<double, std::string>(tokens[1]) );
+            }
+            if(tokens[0]=="cy"){
+                jobOut.centroid.setY(Sstrm<double, std::string>(tokens[1]) );
+            }
+            if(tokens[0]=="cz"){
+                jobOut.centroid.setZ(Sstrm<double, std::string>(tokens[1]) );
+            }
+            if(tokens[0]=="dx"){
+                jobOut.dimension.setX(Sstrm<double, std::string>(tokens[1]) );
+            }
+            if(tokens[0]=="dy"){
+                jobOut.dimension.setY(Sstrm<double, std::string>(tokens[1]) );
+            }
+            if(tokens[0]=="dz"){
+                jobOut.dimension.setZ(Sstrm<double, std::string>(tokens[1]) );
+            }
+            if(tokens[0]=="Mesg"){
+                jobOut.message=tokens[1];
+            }            
+    }  
+    return true;
+}
+
+void checkPoint(std::string& checkfile, JobOutData& jobOut){
+    
+    std::ofstream outFile(checkfile.c_str());
+    
+    outFile << "PDBQTPath:" << jobOut.recPath << "\n"
+            << "GBEN:" << jobOut.gbEn << "\n"
+            << "Volume:" << jobOut.volume << "\n"
+            << "cx:" << jobOut.centroid.getX() << "\n"
+            << "cy:" << jobOut.centroid.getY() << "\n"
+            << "cz:" << jobOut.centroid.getZ() << "\n"
+            << "dx:" << jobOut.dimension.getX() << "\n"
+            << "dy:" << jobOut.dimension.getY() << "\n"
+            << "dz:" << jobOut.dimension.getZ() << "\n"
+            << "Mesg:" << jobOut.message << "\n";
+    outFile.close();
+}
 
 bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, std::string& dataPath){
     
@@ -246,7 +312,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     
     chdir(workDir.c_str());
     jobOut.pdbFilePath=jobInput.dirBuffer; 
-    jobOut.nonRes=jobInput.nonRes;
+    jobOut.nonRes=jobInput.nonRes;    
     if(!fileExist(jobOut.pdbFilePath)){
         std::string mesg="PPL1Receptor::preReceptors: PDB file "+jobOut.pdbFilePath+" does NOT exist.";
         throw LBindException(mesg);  
@@ -255,8 +321,12 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     
 //    std::string pdbBasename;
     getFileBasename(jobOut.pdbFilePath, jobOut.pdbid);
-        
     std::string recDir=workDir+"/scratch/com/"+jobOut.pdbid+"/rec";
+    
+    //For restart
+    std::string checkfile=recDir+"/checkpoint.txt";    
+    if(isRun(checkfile, jobOut)) return true;
+        
     std::string libDir=workDir+"/lib/";
     std::string cmd="mkdir -p "+recDir;
     system(cmd.c_str());  
@@ -491,6 +561,8 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
              << dockDim.getX() << " " << dockDim.getY() << " "  << dockDim.getZ() << "\n";
     outFile.close();
     //delete pElementContainer;
+
+    checkPoint(checkfile, jobOut);     
     
     //END    
     jobStatus=true;

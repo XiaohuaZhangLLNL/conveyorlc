@@ -33,6 +33,9 @@ public:
     double getX();
     double getY();
     double getZ();
+    void setX(double x);
+    void setY(double y);
+    void setZ(double z);
     double length();
     void normalize();
     double dist(const Coor3d* coord);
