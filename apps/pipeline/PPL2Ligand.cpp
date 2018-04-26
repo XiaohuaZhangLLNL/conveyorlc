@@ -250,7 +250,7 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
     std::string sdfFile="ligand.sdf";
     std::string pdb1File="ligand.pdb";
     
-    cmd="babel -isdf " + sdfFile + " -opdb " +pdb1File +" >> log";
+    cmd="obabel -isdf " + sdfFile + " -opdb -O " +pdb1File +" >> log";
     std::cout << cmd << std::endl;
     std::string echo="echo ";
     echo=echo+cmd+" > log";

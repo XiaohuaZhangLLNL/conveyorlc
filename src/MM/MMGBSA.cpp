@@ -76,7 +76,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
 //    std::cout << "Score=" << score << std::endl;
 
     std::string posePDB="Lig_"+poseID+".pdb";    
-    cmd="babel -ipdbqt "+ligpdbqt+" -opdb "+posePDB;
+    cmd="obabel -ipdbqt "+ligpdbqt+" -opdb -O "+posePDB;
     system(cmd.c_str());
     
        

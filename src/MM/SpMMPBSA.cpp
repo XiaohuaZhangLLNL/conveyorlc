@@ -483,7 +483,7 @@ void SpMMPBSA::run(const std::string& dir, const std::string& ligand){
     std::string poses="../../n_"+dir+"_vina/poses/"+ligand+".pdbqt";
     std::string posePDB=ligand+".pdb";
     
-    cmd="babel -ipdbqt "+poses+" -opdb "+posePDB;
+    cmd="obabel -ipdbqt "+poses+" -opdb -O "+posePDB;
     system(cmd.c_str());
     
     boost::scoped_ptr<Pdb> pPdb(new Pdb());

@@ -70,7 +70,7 @@ bool preLigands(std::string& dir) {
     std::string sdfFile="ligand.sdf";
     std::string pdb1File="ligand.pdb";
     
-    std::string cmd="babel -isdf " + sdfFile + " -opdb " +pdb1File;
+    std::string cmd="obabel -isdf " + sdfFile + " -opdb -O " +pdb1File;
     std::cout << cmd << std::endl;
     system(cmd.c_str());
     
