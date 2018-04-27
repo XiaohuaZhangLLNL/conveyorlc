@@ -24,6 +24,8 @@ Grid::Grid(Complex *pCom)  :
     numSphere(100),
     minVol(50),
     probe(1.4),
+    spacing(1.4),
+    cutoffCoef(1.1),
     outputPDB(true)
 {
 }
@@ -33,6 +35,8 @@ Grid::Grid(Complex *pCom, bool outPDB)  :
     numSphere(100),
     minVol(50),
     probe(1.4),
+    spacing(1.4),
+    cutoffCoef(1.1),
     outputPDB(outPDB)
 {
 }
@@ -55,7 +59,15 @@ Grid::~Grid() {
     
 }
 
-void Grid::run(double probeRadius, int numberSphere, int minVolume){
+void Grid::setSpacing(double spacing){
+    this->spacing=spacing;
+}
+
+void Grid::setCutoffCoef(double cutoffCoeff){
+    this->cutoffCoef=cutoffCoeff;
+}
+
+void Grid::run(double probeRadius, int numberSphere, double minVolume){
     probe=probeRadius;
     numSphere=numberSphere;
     minVol=minVolume;
@@ -139,20 +151,20 @@ void Grid::getGridBox(){
     ss << "   MIN  x=" << xMin << "     y=" << yMin << "     z=" << zMin << std::endl;
     ss << "   MAX  x=" << xMax << "     y=" << yMax << "     z=" << zMax << std::endl;
     
-    int xLowIndex=static_cast<int>(xMin-0.5);
-    int yLowIndex=static_cast<int>(yMin-0.5);
-    int zLowIndex=static_cast<int>(zMin-0.5);
+    int xLowIndex=static_cast<int>(xMin/spacing)-1;
+    int yLowIndex=static_cast<int>(yMin/spacing)-1;
+    int zLowIndex=static_cast<int>(zMin/spacing)-1;
 
-    int xHighIndex=static_cast<int>(xMax+1.5);
-    int yHighIndex=static_cast<int>(yMax+1.5);
-    int zHighIndex=static_cast<int>(zMax+1.5);
+    int xHighIndex=static_cast<int>(xMax/spacing)+1;
+    int yHighIndex=static_cast<int>(yMax/spacing)+1;
+    int zHighIndex=static_cast<int>(zMax/spacing)+1;
         
     for(int i=xLowIndex; i<xHighIndex; ++i){
         for(int j=yLowIndex; j<yHighIndex; ++j){
             for(int k=zLowIndex; k<zHighIndex; ++k){
-                double xGrid=static_cast<double>(i);
-                double yGrid=static_cast<double>(j);
-                double zGrid=static_cast<double>(k);
+                double xGrid=static_cast<double>(i)*spacing;
+                double yGrid=static_cast<double>(j)*spacing;
+                double zGrid=static_cast<double>(k)*spacing;
                 bool isOverlap=false;
                 
                 for(unsigned m=0; m<atomList.size(); ++m){                    
@@ -326,11 +338,12 @@ void Grid::clustGrids(){
 //    clusters=tmpClusters2; 
     
 
-       
+    double spacing3=spacing*spacing*spacing;   
     
     for (unsigned i = 0; i < clusters.size(); ++i) {
         
-        if(i!=0 && clusters[i].size()<minVol) break; 
+        double volume=clusters[i].size()*spacing3;
+        if(i!=0 && volume<minVol) break; 
         // always print out first one. if volume less than minVol don't print out.
         
         ss << "================================================="  << std::endl;
@@ -339,6 +352,7 @@ void Grid::clustGrids(){
             numStr="0"+numStr;
         }
         ss << "Cluster " << numStr << "     size : " << clusters[i].size() << std::endl;
+        ss << "Cluster " << numStr << "     volume : " << volume << std::endl;
         std::string filename="Grid-"+numStr+".pdb";
         std::string resName="C"+numStr;
         if(i>98){
@@ -357,9 +371,10 @@ void Grid::clustGrids(){
 }
 
 bool Grid::mergeGrids(std::vector<Coor3d*>& clustI, std::vector<Coor3d*>& clustJ){
+    double coutoff=spacing*spacing*cutoffCoef*cutoffCoef;
     for(unsigned i=0; i<clustI.size(); ++i){
         for(unsigned j=0; j<clustJ.size(); ++j){
-            if(clustJ[j]->dist2(clustI[i]) <1.2){ // Should <=1. 
+            if(clustJ[j]->dist2(clustI[i]) <coutoff){ // Should <=1. 
                 for(unsigned j=0; j<clustJ.size(); ++j){
                     clustI.push_back(clustJ[j]);
                 }
@@ -544,18 +559,20 @@ void Grid::getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid){
     siteCentroid(this->clusters[0], dockDim, centroid);
 }
 
-void Grid::getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid, int& size){
-    size=this->clusters[0].size();
+void Grid::getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid, double& volume){
+    volume=this->clusters[0].size()*spacing*spacing*spacing;
     siteCentroid(this->clusters[0], dockDim, centroid);
 }
 
-bool Grid::getKeySiteGeo(Coor3d& aveKeyResCoor, Coor3d& dockDim, Coor3d& centroid, int& size){
+bool Grid::getKeySiteGeo(Coor3d& aveKeyResCoor, Coor3d& dockDim, Coor3d& centroid, double& volume){
     
     double curDist2=BIGPOSITIVE;
     int index=-1;
     
+    double spacing3=spacing*spacing*spacing;
+    
     for(unsigned i=0; i<clusters.size(); ++i){
-        if(clusters[i].size() > minVol){
+        if(clusters[i].size()*spacing3 > minVol){
             Coor3d clustCent;
             siteAverage(clusters[i], clustCent);
             if(clustCent.dist2(aveKeyResCoor)<curDist2){
@@ -566,7 +583,7 @@ bool Grid::getKeySiteGeo(Coor3d& aveKeyResCoor, Coor3d& dockDim, Coor3d& centroi
     }
     if(index==-1) index=0;
     
-    size=this->clusters[index].size();
+    volume=this->clusters[index].size()*spacing3;
     siteCentroid(this->clusters[index], dockDim, centroid); 
     return true;
 }

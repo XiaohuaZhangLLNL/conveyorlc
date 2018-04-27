@@ -29,6 +29,12 @@ bool PPL1ReceptorPO(int argc, char** argv, POdata& podata) {
                 ("input", value<std::string > (&podata.inputFile), "PDB file list for input")
                 ("output", value<std::string > (&podata.outputFile), "output filename")
                 ("version", value<int>(&podata.version)->default_value(10), "AMBER Version")
+                ("radius", value<double>(&podata.radius)->default_value(1.40), "probe sphere radius (Default=1.4 angstroms).")
+                ("surfSphNum", value<int>(&podata.surfSphNum)->default_value(960), "number of sphere vectors for surface (Default=960).")
+                ("gridSphNum", value<int>(&podata.gridSphNum)->default_value(100), "number of sphere vectors for grid (Default=100).")        
+                ("spacing", value<double>(&podata.spacing)->default_value(1.4), "Grid spacing")
+                ("cutoffCoef", value<double>(&podata.cutoffCoef)->default_value(1.1), "Cutoff Coefficient")
+                ("minVolume", value<double>(&podata.minVol)->default_value(50), "minimum volume for a site (Default=50).")
                 ("protonate", value<std::string> (&podata.protonateFlg)->default_value("on"), "Protonate protein by default")
                 ;   
         options_description info("Optional:");

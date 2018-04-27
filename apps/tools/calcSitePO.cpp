@@ -36,9 +36,11 @@ bool calcSitePO(int argc, char** argv, POdata& podata) {
                 ("surfSphNum", value<int>(&podata.surfSphNum)->default_value(960), "number of sphere vectors for surface (Default=960).")
                 ("gridSphNum", value<int>(&podata.gridSphNum)->default_value(100), "number of sphere vectors for grid (Default=100).")
                 ("minVolume", value<int>(&podata.minVol)->default_value(50), "minimum volume for a site (Default=50).")
+                ("spacing", value<double>(&podata.spacing)->default_value(1.4), "Grid spacing")
+                ("cutoffCoef", value<double>(&podata.cutoffCoef)->default_value(1.1), "Cutoff Coefficient")
                 ("help", bool_switch(&help), "display usage summary")
                 ;
-        options_description desc;
+        options_description desc; 
         desc.add(inputs).add(info);        
 
         variables_map vm;

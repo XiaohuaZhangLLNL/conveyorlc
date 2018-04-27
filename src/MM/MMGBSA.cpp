@@ -319,9 +319,20 @@ void MMGBSA::run(std::string& poseID, bool restart){
     
     bindGBen=comEnergy-recEnergy-ligGBen;
 
-    cmd="rm -f Rec_min.pdb "+poseID+".pdbqt"+" *.in Lig*.pdb leap.log fort.7 REC.* Rec_min.rst rec_tmp.pdb";
+    cmd="rm -f Rec_min.pdb "+poseID+".pdbqt *.in Lig*.pdb leap.log fort.7 REC.* Rec_min.rst rec_tmp.pdb mmgbsa_results.tar.gz";
     std::cout <<cmd <<std::endl;
-    system(cmd.c_str());      
+    system(cmd.c_str());   
+    
+    std::string fileList="Com.inpcrd  Com.prmtop  Com_1.pdb  Com_leap.log  Com_min.pdb  Com_min1.rst  "
+            "Com_min_GB_1.out  Lig_leap.log  Rec_minGB.out  rec_leap.log";
+    cmd="tar -zcf mmgbsa_results.tar.gz "+fileList;
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());
+    
+    cmd="rm -f "+fileList;
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());
+    
 }
 
 double MMGBSA::getbindGB(){

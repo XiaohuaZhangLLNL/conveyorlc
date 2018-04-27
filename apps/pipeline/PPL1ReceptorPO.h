@@ -14,6 +14,12 @@ struct POdata{
     std::string inputFile;
     std::string outputFile;
     std::string protonateFlg;
+    double radius;
+    int surfSphNum;
+    int gridSphNum;
+    double spacing;
+    double cutoffCoef;
+    double minVol;
     int version;
 };
 

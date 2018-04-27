@@ -87,6 +87,12 @@ public:
        ar & protonateFlg;
         ar & getPDBflg;
         ar & ambVersion;
+        ar & surfSphNum;
+        ar & gridSphNum;
+        ar & radius;
+        ar & spacing;
+        ar & cutoffCoef;
+        ar & minVol;
         ar & dirBuffer;  
         ar & keyRes;
         ar & nonRes;
@@ -95,6 +101,12 @@ public:
     bool protonateFlg;
     bool getPDBflg;
     int ambVersion;
+    int surfSphNum;
+    int gridSphNum;
+    double radius;    
+    double spacing;
+    double cutoffCoef;
+    double minVol;
     std::string dirBuffer;
     std::vector<std::string> keyRes;
     std::vector<std::string> nonRes;
@@ -129,7 +141,7 @@ public:
     }
     
     bool error;
-    int volume;
+    double volume;
     double gbEn;
     Coor3d centroid;
     Coor3d dimension;
@@ -185,7 +197,7 @@ void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile){
         element->LinkEndChild(siteEle); 
         
         XMLElement * volEle = new XMLElement("Volume");
-        XMLText * volTx= new XMLText(Sstrm<std::string, int>(jobOut.volume));
+        XMLText * volTx= new XMLText(Sstrm<std::string, double>(jobOut.volume));
         volEle->LinkEndChild(volTx);         
         siteEle->LinkEndChild(volEle);  
         
@@ -262,7 +274,7 @@ bool isRun(std::string& checkfile, JobOutData& jobOut){
                 jobOut.gbEn=Sstrm<double, std::string>(tokens[1]);
             }
             if(tokens[0]=="Volume"){
-                jobOut.volume=Sstrm<int, std::string>(tokens[1]);
+                jobOut.volume=Sstrm<double, std::string>(tokens[1]);
             }
             if(tokens[0]=="cx"){
                 jobOut.centroid.setX(Sstrm<double, std::string>(tokens[1]) );
@@ -465,7 +477,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     
     cmd="sander -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
     std::cout <<cmd <<std::endl;
-    system(cmd.c_str());  
+    //system(cmd.c_str());  
     
     boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
     std::string sanderOut="Rec_minGB.out";
@@ -531,11 +543,13 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
 
     boost::scoped_ptr<Surface> pSurface(new Surface(pComplex.get()));
     std::cout << "Start Calculation " << std::endl;
-    pSurface->run(1.4, 960);
+    pSurface->run(jobInput.radius, jobInput.surfSphNum);
     std::cout << " Total SASA is: " << pSurface->getTotalSASA() << std::endl << std::endl;
 
     boost::scoped_ptr<Grid> pGrid(new Grid(pComplex.get(), true));
-    pGrid->run(1.4, 100, 50);
+    pGrid->setSpacing(jobInput.spacing);
+    pGrid->setCutoffCoef(jobInput.cutoffCoef);
+    pGrid->run(jobInput.radius, jobInput.gridSphNum, jobInput.minVol);
     
     Coor3d aveKeyResCoor;
     bool hasKeyResCoor=pPdb->aveKeyResCoor(pdbFile, jobInput.keyRes, aveKeyResCoor);
@@ -737,6 +751,12 @@ int main(int argc, char** argv) {
             jobInput.keyRes=dirList[i]->keyRes;
             jobInput.nonRes=dirList[i]->nonRes;
             jobInput.ambVersion=podata.version;
+            jobInput.surfSphNum=podata.surfSphNum;
+            jobInput.gridSphNum=podata.gridSphNum;
+            jobInput.radius=podata.radius;
+            jobInput.spacing=podata.spacing;
+            jobInput.cutoffCoef=podata.cutoffCoef;
+            jobInput.minVol=podata.minVol;
 
 //            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);
             world.send(freeProc, inpTag, jobInput);            

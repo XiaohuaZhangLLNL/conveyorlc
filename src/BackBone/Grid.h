@@ -26,11 +26,15 @@ public:
     virtual ~Grid();
     
     
-    void run(double probeRadius, int numberSphere, int minVolume);
+    void run(double probeRadius, int numberSphere, double minVolume);
     void getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid);
-    void getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid, int& size);
+    void getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid, double& volume);
     
-    bool getKeySiteGeo(Coor3d& aveKeyResCoor, Coor3d& dockDim, Coor3d& centroid, int& size);
+    bool getKeySiteGeo(Coor3d& aveKeyResCoor, Coor3d& dockDim, Coor3d& centroid, double& volume);
+    
+    //void setNumSphere(int numSphere);
+    void setSpacing(double spacing);
+    void setCutoffCoef(double cutoffCoeff);
         
 private:
     void generateSpPoints();
@@ -53,6 +57,8 @@ private:
     int numSphere;
     unsigned minVol;
     double probe;
+    double spacing;
+    double cutoffCoef;
     bool outputPDB;
     
     std::vector<Coor3d*> spPoints;

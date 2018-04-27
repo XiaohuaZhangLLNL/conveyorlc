@@ -197,7 +197,7 @@ int dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
         getScores(logStr, jobOut.scores);
         jobOut.mesg="Finished!";
         jobOut.nonRes=jobInput.nonRes;
-        
+
         
     } catch (file_error& e) {
         std::cerr << "\n\nError: could not open \"" << e.name.string() << "\" for " << (e.in ? "reading" : "writing") << ".\n";

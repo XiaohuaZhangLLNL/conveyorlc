@@ -14,6 +14,8 @@ struct POdata{
     std::string pdbFile;
     std::string outputFile;
     double radius;
+    double spacing;
+    double cutoffCoef;
     int surfSphNum;
     int gridSphNum;
     int minVol;
