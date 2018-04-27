@@ -32,10 +32,10 @@ bool calcSitePO(int argc, char** argv, POdata& podata) {
                 ;   
         options_description info("Optional:");
         info.add_options()
-                ("radius", value<double>(&podata.radius)->default_value(1.40), "probe sphere radius (Default=1.4 angstroms).")
-                ("surfSphNum", value<int>(&podata.surfSphNum)->default_value(960), "number of sphere vectors for surface (Default=960).")
-                ("gridSphNum", value<int>(&podata.gridSphNum)->default_value(100), "number of sphere vectors for grid (Default=100).")
-                ("minVolume", value<int>(&podata.minVol)->default_value(50), "minimum volume for a site (Default=50).")
+                ("radius", value<double>(&podata.radius)->default_value(1.40), "probe sphere radius")
+                ("surfSphNum", value<int>(&podata.surfSphNum)->default_value(960), "number of sphere vectors for surface")
+                ("gridSphNum", value<int>(&podata.gridSphNum)->default_value(100), "number of sphere vectors for grid")
+                ("minVolume", value<int>(&podata.minVol)->default_value(50), "minimum volume for a site")
                 ("spacing", value<double>(&podata.spacing)->default_value(1.4), "Grid spacing")
                 ("cutoffCoef", value<double>(&podata.cutoffCoef)->default_value(1.1), "Cutoff Coefficient")
                 ("help", bool_switch(&help), "display usage summary")
