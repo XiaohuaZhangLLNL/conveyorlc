@@ -313,7 +313,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
     
-    sanderOut="Rec_minGB.out 1.pdbqt";
+    sanderOut="Rec_minGB.out";
     double recEnergy=0;
     success=pSanderOutput->getEnergy(sanderOut, recEnergy); 
     
