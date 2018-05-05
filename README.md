@@ -308,3 +308,177 @@ The "pretty" version the MM/GBSA output
 </Complex>
 ```
 
+## 3 Work with Maestro workflow
+
+The following set up works on Cab/Syrah. For other machines, change the commands accordingly.
+
+### 3.1 Set up python virtual environment
+
+```
+  use -l python
+  use python-2.7.10
+  which pip
+  pip install --user virtualenv
+  pip install --user -U virtualenv
+  pip install --user virtualenvwrapper
+  export WORKON_HOME=~/.venvs
+  pip list
+  pip show virtualenvwrapper
+  source /g/g92/zhang30/.local/bin/virtualenvwrapper.sh 
+  echo $WORKON_HOME
+```
+
+put the following two command into your .bashrc or .cshrc
+
+```
+  export WORKON_HOME=~/.venvs
+  source /g/g92/zhang30/.local/bin/virtualenvwrapper.sh
+```
+
+### 3.2 Create a virtual environment for conveyorLC
+
+```
+  mkvirtualenv conveyorlc
+```
+
+### 3.3 Install maestro workflow
+
+```
+  git clone git@github.com:LLNL/maestrowf.git
+  cd maestrowf/
+  git fetch --all
+  git checkout -t origin/bugfix/dependency_ordering
+  pip install -e .
+```
+
+### 3.4 Run the workflow to lauch the conveyorlc pipeline 
+
+```
+  workon conveyorlc
+  mv run_converyorlc.yaml ~/W/ConveyorLC/workflow
+  cd ~/W/ConveyorLC/workflow
+  maestro run -h
+  maestro run ./run_converyorlc.yaml
+
+```
+
+The "maestro run" will crearte a subdirectory using time stamp (i.e. run_converyorlc_20180504-155630)
+To check the job status, run "maestro status"
+
+```
+(conveyorlc)[zhang30@syrah256 workflow]$  maestro status run_converyorlc_20180504-155630
+
+Step Name     Workspace                        State              Run Time        Elapsed Time    Start Time                  Submit Time                 End Time                      Number Restarts
+------------  -------------------------------  -----------------  --------------  --------------  --------------------------  --------------------------  --------------------------  -----------------
+PPL4parseXML  run_converyorlc_20180504-155630  State.INITIALIZED  --:--:--        --:--:--        --                          --                          --                                          0
+PPL1Receptor  run_converyorlc_20180504-155630  State.FINISHED     0:12:01.079873  0:13:01.157428  2018-05-04 15:57:36.256237  2018-05-04 15:56:36.178682  2018-05-04 16:09:37.336110                  0
+PPL4mmgbsa    run_converyorlc_20180504-155630  State.RUNNING      --:--:--        0:30:03.091956  2018-05-04 16:12:37.699076  2018-05-04 16:11:37.603008  --                                          0
+PPL2Ligand    run_converyorlc_20180504-155630  State.FINISHED     0:01:00.053917  0:02:00.187536  2018-05-04 15:57:36.256309  2018-05-04 15:56:36.122690  2018-05-04 15:58:36.310226                  0
+PPL3Docking   run_converyorlc_20180504-155630  State.FINISHED     0:01:00.096606  0:02:00.202646  2018-05-04 16:10:37.473674  2018-05-04 16:09:37.367634  2018-05-04 16:11:37.570280                  0
+```
+
+All the results are under the run_converyorlc_20180504-155630 subdirectory.
+
+
+### 3.4 run_converyorlc.yaml sample file
+
+```
+description:
+    name: run_converyorlc
+    description: |
+        Run the conveyorlc code.
+
+env:
+    variables:
+        OUTPUT_PATH:    ./
+
+    labels:
+        SETUP_MAIN: |
+            export LBindData=$(CONVERYOR_BIN)/data
+            export PATH=$(CONVERYOR_BIN)/bin:$(BIN_HOME)/bin:$PATH
+            export AMBERHOME=$(BIN_HOME)/amber10
+            export PATH=$AMBERHOME/bin/:$PATH
+            export INPUTDIR=$(INPUT_DIR)
+
+    dependencies:
+        paths:
+            - name: BIN_HOME
+              path: /usr/gapps/aha/cab
+
+            - name: CONVERYOR_BIN
+              path: /usr/gapps/aha/cab/conveyorlc_test
+
+            - name: INPUT_DIR
+              path: /g/g92/zhang30/W/ConveyorLC/workflow
+
+batch:
+    type: slurm
+    host: syrah
+    bank: bbs
+    queue: pdebug
+
+study:
+    - name: PPL1Receptor
+      description: Run Lingand preparation step of the pipeline.
+      run:
+          cmd: |
+              $(SETUP_MAIN)
+              $(LAUNCHER)[1n, 3p] PPL1Receptor --input $(INPUT_DIR)/pdb.list --output out
+          restart: |
+              $(SETUP_MAIN)
+              $(LAUNCHER)[1n, 3p] PPL1Receptor --input $(INPUT_DIR)/pdb.list --output out
+          walltime: "00:30:00"
+          nodes: 1
+          procs: 3
+
+    - name: PPL2Ligand
+      description: Run Lingand preparation step of the pipeline.
+      run:
+          cmd: |
+              $(SETUP_MAIN)
+              $(LAUNCHER)[1n, 16p] PPL2Ligand --sdf $(INPUT_DIR)/pur2.sdf
+          restart: |
+              $(SETUP_MAIN)
+              $(LAUNCHER)[1n, 16p] PPL2Ligand --sdf $(INPUT_DIR)/pur2.sdf
+          walltime: "00:30:00"
+          nodes: 1
+          procs: 16
+
+    - name: PPL3Docking
+      description: Run docking calculations.
+      run:
+          cmd: |
+              $(SETUP_MAIN)
+              $(LAUNCHER)[1n, 4p] PPL3Docking --recXML PPL1Track.xml --ligXML PPL2Track.xml --exhaustiveness 2 --num_modes 1
+          restart: |
+              $(SETUP_MAIN)
+              $(LAUNCHER)[1n, 4p] PPL3Docking --recXML PPL1Track.xml --ligXML PPL2Track.xml --exhaustiveness 2 --num_modes 1
+          depends: [PPL1Receptor, PPL2Ligand]
+          walltime: "00:30:00"
+          nodes: 1
+          procs: 4
+          cores per task: 4
+
+    - name: PPL4mmgbsa
+      description: Run docking calculations.
+      run:
+          cmd: |
+              $(SETUP_MAIN)
+              $(LAUNCHER)[1n, 16p] PPL4mmgbsa --comXML PPL3Track.xml
+          restart: |
+              $(SETUP_MAIN)
+              $(LAUNCHER)[1n, 16p] PPL4mmgbsa --comXML PPL3Track.xml
+          depends: [PPL3Docking]
+          walltime: "00:30:00"
+          nodes: 1
+          procs: 16
+
+    - name: PPL4parseXML
+      description: Convert PPL4Track.xml to readable XML file.
+      run:
+          cmd: |
+              $(SETUP_MAIN)
+              PPL4parseXML --inXML PPL4TrackTemp.xml --outXML PPL4Parse.xml
+          depends: [PPL4mmgbsa]
+```
+
