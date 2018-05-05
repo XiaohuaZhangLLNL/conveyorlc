@@ -24,15 +24,17 @@
 
 namespace LBIND{
 
-MMGBSA::MMGBSA(const std::string& dir, const std::string& ligand, const std::string& workDir, int amberVersion) {
+MMGBSA::MMGBSA(const std::string& dir, const std::string& ligand, const std::string& workDir, const std::string& inputDir, int amberVersion) {
     WORKDIR=workDir;
+    INPUTDIR=inputDir;
     recID=dir;
     ligID=ligand;
     version=amberVersion;
 }
 
-MMGBSA::MMGBSA(const std::string& dir, const std::string& ligand, std::vector<std::string>& nonStdRes, const std::string& workDir, int amberVersion) {
+MMGBSA::MMGBSA(const std::string& dir, const std::string& ligand, std::vector<std::string>& nonStdRes, const std::string& workDir, const std::string& inputDir, int amberVersion) {
     WORKDIR=workDir;
+    INPUTDIR=inputDir;
     recID=dir;
     ligID=ligand; 
     nonRes=nonStdRes;
@@ -47,7 +49,7 @@ MMGBSA::~MMGBSA() {
 
 void MMGBSA::run(std::string& poseID, bool restart){
     
-    std::string libDir=WORKDIR+"/lib/";
+    std::string libDir=INPUTDIR+"/lib/";
     std::string ligDir=WORKDIR+"/scratch/lig/"+ligID+"/";
     std::string recDir=WORKDIR+"/scratch/com/"+recID+"/rec/";
     std::string dockDir=WORKDIR+"/scratch/com/"+recID+"/dock/"+ligID+"/";
@@ -323,8 +325,8 @@ void MMGBSA::run(std::string& poseID, bool restart){
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());   
     
-    std::string fileList="Com.inpcrd  Com.prmtop  Com_1.pdb  Com_leap.log  Com_min.pdb  Com_min1.rst  "
-            "Com_min_GB_1.out  Lig_leap.log  Rec_minGB.out  rec_leap.log";
+    std::string fileList="Com.inpcrd  Com.prmtop  Com_"+poseID+".pdb  Com_leap.log  Com_min.pdb  Com_min"+poseID+".rst  "
+            "Com_min_GB_"+poseID+".out  Lig_leap.log  Rec_minGB.out  rec_leap.log";
     cmd="tar -zcf mmgbsa_results.tar.gz "+fileList;
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());

@@ -193,7 +193,7 @@ void checkPoint(std::string& checkfile, JobOutData& jobOut){
     outFile.close();
 }
 
-bool mmgbsa(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir) {
+bool mmgbsa(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, std::string& inputDir) {
 
     jobOut.recID=jobInput.dirBuffer;
     jobOut.ligID=jobInput.ligBuffer;
@@ -203,7 +203,7 @@ bool mmgbsa(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir) {
     
     if(isRun(checkfile, jobOut)) return true;
     
-    boost::scoped_ptr<MMGBSA> pMMGBSA(new MMGBSA(jobInput.dirBuffer, jobInput.ligBuffer, jobInput.nonRes, workDir, jobInput.ambVersion));
+    boost::scoped_ptr<MMGBSA> pMMGBSA(new MMGBSA(jobInput.dirBuffer, jobInput.ligBuffer, jobInput.nonRes, workDir, inputDir, jobInput.ambVersion));
     pMMGBSA->run(jobInput.poseBuffer, jobInput.restart); 
   
     jobOut.gbbind=pMMGBSA->getbindGB(); 
@@ -297,7 +297,18 @@ int main(int argc, char** argv) {
         workDir=WORKDIR;
     }
     
-
+    //! get  input directory
+    char* INPUTDIR=getenv("INPUTDIR");
+    std::string inputDir;
+    if(INPUTDIR==0) {
+        // use current working directory for input directory
+        char BUFFER[200];
+        getcwd(BUFFER, sizeof (BUFFER));
+        inputDir = BUFFER;        
+    }else{
+        inputDir = INPUTDIR;
+    }
+      
     int jobFlag=1; // 1: doing job,  0: done job
     
     JobInputData jobInput;
@@ -444,7 +455,7 @@ int main(int argc, char** argv) {
             
             jobOut.message="Finished!";
             try{
-                jobOut.error=mmgbsa(jobInput, jobOut, workDir);            
+                jobOut.error=mmgbsa(jobInput, jobOut, workDir, inputDir);            
             } catch (LBindException& e){
                 jobOut.message= e.what();  
             }            

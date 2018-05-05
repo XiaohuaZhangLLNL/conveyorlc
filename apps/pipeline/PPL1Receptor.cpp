@@ -318,12 +318,12 @@ void checkPoint(std::string& checkfile, JobOutData& jobOut){
     outFile.close();
 }
 
-bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, std::string& dataPath){
+bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, std::string& inputDir, std::string& dataPath){
     
     bool jobStatus=false;
     
     chdir(workDir.c_str());
-    jobOut.pdbFilePath=jobInput.dirBuffer; 
+    jobOut.pdbFilePath=inputDir+"/"+jobInput.dirBuffer; 
     jobOut.nonRes=jobInput.nonRes;    
     if(!fileExist(jobOut.pdbFilePath)){
         std::string mesg="PPL1Receptor::preReceptors: PDB file "+jobOut.pdbFilePath+" does NOT exist.";
@@ -339,7 +339,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     std::string checkfile=recDir+"/checkpoint.txt";    
     if(isRun(checkfile, jobOut)) return true;
         
-    std::string libDir=workDir+"/lib/";
+    std::string libDir=inputDir+"/lib/";
     std::string cmd="mkdir -p "+recDir;
     system(cmd.c_str());  
     
@@ -640,6 +640,19 @@ int main(int argc, char** argv) {
     }else{
         workDir=WORKDIR;
     }
+    
+    //! get  input directory
+    char* INPUTDIR=getenv("INPUTDIR");
+    std::string inputDir;
+    if(INPUTDIR==0) {
+        // use current working directory for input directory
+        char BUFFER[200];
+        getcwd(BUFFER, sizeof (BUFFER));
+        inputDir = BUFFER;        
+    }else{
+        inputDir = INPUTDIR;
+    }
+    
     //! get LBindData
     char* LBINDDATA=getenv("LBindData");
 
@@ -801,7 +814,7 @@ int main(int argc, char** argv) {
             jobOut.message="Finished!";
 //            strcpy(jobOut.message, "Finished!");
             try{
-                jobOut.error=preReceptor(jobInput, jobOut, workDir, dataPath);            
+                jobOut.error=preReceptor(jobInput, jobOut, workDir, inputDir, dataPath);            
             } catch (LBindException& e){
 //                std::string message= e.what();  
 //                strcpy(jobOut.message, message.c_str());
