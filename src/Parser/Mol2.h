@@ -13,6 +13,7 @@
 namespace LBIND{
 
     class Molecule;
+    class Coor3d;
     
 class Mol2 {
 public:
@@ -21,6 +22,7 @@ public:
     virtual ~Mol2();
     
     void read(const std::string& fileName, Molecule* pMolecule);
+    bool calcAverageCoor(const std::string& fileName, Coor3d& aveCoor);
     
 private:
 

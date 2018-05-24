@@ -14,6 +14,7 @@
 #include <sstream>
 
 #include "Parser/Pdb.h"
+#include "Parser/Mol2.h"
 #include "Parser/SanderOutput.h"
 #include "MM/VinaLC.h"
 #include "Structure/Sstrm.hpp"
@@ -93,7 +94,8 @@ public:
         ar & spacing;
         ar & cutoffCoef;
         ar & minVol;
-        ar & dirBuffer;  
+        ar & dirBuffer; 
+        ar & subRes;
         ar & keyRes;
         ar & nonRes;
     }
@@ -108,6 +110,7 @@ public:
     double cutoffCoef;
     double minVol;
     std::string dirBuffer;
+    std::string subRes;
     std::vector<std::string> keyRes;
     std::vector<std::string> nonRes;
 };
@@ -134,6 +137,7 @@ public:
         ar & dimension;  
         ar & pdbid;
         ar & pdbFilePath;
+        ar & subRes;
         ar & recPath;
         ar & message; 
         ar & nonRes;
@@ -147,6 +151,7 @@ public:
     Coor3d dimension;
     std::string pdbid;
     std::string pdbFilePath;
+    std::string subRes;
     std::string recPath;
     std::string message;
     std::vector<std::string> nonRes;
@@ -324,6 +329,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     
     chdir(workDir.c_str());
     jobOut.pdbFilePath=inputDir+"/"+jobInput.dirBuffer; 
+    jobOut.subRes=inputDir+"/"+jobInput.subRes;
     jobOut.nonRes=jobInput.nonRes;    
     if(!fileExist(jobOut.pdbFilePath)){
         std::string mesg="PPL1Receptor::preReceptors: PDB file "+jobOut.pdbFilePath+" does NOT exist.";
@@ -551,14 +557,35 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     pGrid->setCutoffCoef(jobInput.cutoffCoef);
     pGrid->run(jobInput.radius, jobInput.gridSphNum, jobInput.minVol);
     
+    
+    // Calculate the average coordinates for identify active site cavity
+    // Priority 1. Crystal substrate 2. Key residues 3. Top volume
     Coor3d aveKeyResCoor;
-    bool hasKeyResCoor=pPdb->aveKeyResCoor(pdbFile, jobInput.keyRes, aveKeyResCoor);
- 
+    
+    bool hasSubResCoor=false;
+    std::cout << "jobOut.subRes=" << jobOut.subRes << std::endl;
+    if(fileExist(jobOut.subRes)){
+        std::string subResFileName=jobOut.subRes;
+        std::string fileExtension=subResFileName.substr(subResFileName.find_last_of(".") + 1);
+        std::cout << "fileExtension=" << fileExtension << std::endl;
+        if( fileExtension == "mol2") {
+            boost::scoped_ptr<Mol2> pMol2(new Mol2());
+            hasSubResCoor=pMol2->calcAverageCoor(subResFileName, aveKeyResCoor);
+            std::cout << "Average coordinates of sbustrate: " << aveKeyResCoor << std::endl;
+        }
+    }
+    
+    bool hasKeyResCoor=false;
+    if(!hasSubResCoor){
+        hasKeyResCoor=pPdb->aveKeyResCoor(pdbFile, jobInput.keyRes, aveKeyResCoor);
+        std::cout << "Average coordinates of key residues: " << aveKeyResCoor << std::endl;
+    }
+        
     Coor3d dockDim;
     Coor3d centroid; 
     
     bool hasKeyDockGeo=false;
-    if(hasKeyResCoor){
+    if(hasKeyResCoor || hasSubResCoor){
         hasKeyDockGeo=pGrid->getKeySiteGeo(aveKeyResCoor, dockDim, centroid, jobOut.volume);
     }
     
@@ -585,6 +612,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
 
 struct RecData{
     std::string pdbFile;
+    std::string subRes;
     std::vector<std::string> keyRes; // key residues to help locate binding site
     std::vector<std::string> nonRes; //non-standard residue list
 };
@@ -618,6 +646,8 @@ void saveStrList(std::string& fileName, std::vector<RecData*>& strList){
                     pRecData->keyRes=strTokens;
                 }else if(flg=="NonRes"){
                     pRecData->nonRes=strTokens;
+                }else if(flg=="SubRes"){
+                    pRecData->subRes=strTokens[0];
                 }
             }
             strList.push_back(pRecData);
@@ -763,6 +793,7 @@ int main(int argc, char** argv) {
             jobInput.dirBuffer=dirList[i]->pdbFile;
             jobInput.keyRes=dirList[i]->keyRes;
             jobInput.nonRes=dirList[i]->nonRes;
+            jobInput.subRes=dirList[i]->subRes;
             jobInput.ambVersion=podata.version;
             jobInput.surfSphNum=podata.surfSphNum;
             jobInput.gridSphNum=podata.gridSphNum;

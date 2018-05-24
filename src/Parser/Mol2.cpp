@@ -95,4 +95,12 @@ void Mol2::read(const std::string& fileName, Molecule* pMolecule){
     pMolecule->setCharge(totalCharge);
 }
 
+bool Mol2::calcAverageCoor(const std::string& fileName, Coor3d& aveCoor){
+    Molecule* pMolecule=new Molecule();
+    read(fileName, pMolecule);
+    pMolecule->center(aveCoor);    
+    delete pMolecule;
+    return true;
+}
+
 } //namespace LBIND

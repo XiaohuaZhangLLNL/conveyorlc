@@ -308,6 +308,36 @@ The "pretty" version the MM/GBSA output
 </Complex>
 ```
 
+The calculated data are stored under the scratch directory. The directory structure is:
+
+```
+scratch/     
+
+    com/                        --- directory for all complexes
+        receptor/               --- directory for complex named “receptor” (receptor.pdb)
+            dock/               --- directory for docking calculation
+                1/              --- docking ligand 1
+                2/              --- docking ligand 2
+                ...
+            gbsa/               --- directory for gbsa calculation
+                lig_1/          --- ligand 1
+                    pose_1/     --- rescoring pose 1
+                    pose_2/     --- rescoring pose 2
+                    ...
+                lig_2/          --- ligand 2
+                    pose_1/     --- rescoring pose 1
+                    pose_2/     --- rescoring pose 2
+                    ...
+            rec/                --- directory for receptor preparation                         
+        ...
+
+    lig/                        --- directory for ligand preparation  
+        1/                      --- ligand 1 preparation
+        2/                      --- ligand 2 preparation
+        ...
+
+```
+
 ## 3 Work with Maestro workflow
 
 The following set up works on Cab/Syrah. For other machines, change the commands accordingly.
@@ -351,7 +381,7 @@ put the following two command into your .bashrc or .cshrc
   pip install -e .
 ```
 
-### 3.4 Run the workflow to lauch the conveyorlc pipeline 
+### 3.4 Run the workflow to launch the conveyorlc pipeline 
 
 ```
   workon conveyorlc
@@ -399,6 +429,7 @@ env:
             export AMBERHOME=$(BIN_HOME)/amber10
             export PATH=$AMBERHOME/bin/:$PATH
             export INPUTDIR=$(INPUT_DIR)
+            export WORKDIR=$(OUTPUT_DIR)
 
     dependencies:
         paths:
@@ -449,10 +480,10 @@ study:
       run:
           cmd: |
               $(SETUP_MAIN)
-              $(LAUNCHER)[1n, 4p] PPL3Docking --recXML PPL1Track.xml --ligXML PPL2Track.xml --exhaustiveness 2 --num_modes 1
+              $(LAUNCHER)[1n, 4p] PPL3Docking --recXML $(PPL1Receptor.workspace)/PPL1Track.xml --ligXML $(PPL2Ligand.workspace)/PPL2Track.xml --exhaustiveness 2 --num_modes 1
           restart: |
               $(SETUP_MAIN)
-              $(LAUNCHER)[1n, 4p] PPL3Docking --recXML PPL1Track.xml --ligXML PPL2Track.xml --exhaustiveness 2 --num_modes 1
+              $(LAUNCHER)[1n, 4p] PPL3Docking --recXML $(PPL1Receptor.workspace)/PPL1Track.xml --ligXML $(PPL2Ligand.workspace)/PPL2Track.xml --exhaustiveness 2 --num_modes 1
           depends: [PPL1Receptor, PPL2Ligand]
           walltime: "00:30:00"
           nodes: 1
@@ -464,10 +495,10 @@ study:
       run:
           cmd: |
               $(SETUP_MAIN)
-              $(LAUNCHER)[1n, 16p] PPL4mmgbsa --comXML PPL3Track.xml
+              $(LAUNCHER)[1n, 16p] PPL4mmgbsa --comXML $(PPL3Docking.workspace)/PPL3Track.xml
           restart: |
               $(SETUP_MAIN)
-              $(LAUNCHER)[1n, 16p] PPL4mmgbsa --comXML PPL3Track.xml
+              $(LAUNCHER)[1n, 16p] PPL4mmgbsa --comXML $(PPL3Docking.workspace)/PPL3Track.xml
           depends: [PPL3Docking]
           walltime: "00:30:00"
           nodes: 1
@@ -478,7 +509,8 @@ study:
       run:
           cmd: |
               $(SETUP_MAIN)
-              PPL4parseXML --inXML PPL4TrackTemp.xml --outXML PPL4Parse.xml
+              PPL4parseXML --inXML $(PPL4mmgbsa.workspace)/PPL4TrackTemp.xml --outXML PPL4Parse.xml
           depends: [PPL4mmgbsa]
+
 ```
 
