@@ -121,15 +121,17 @@ inline void geometry(JobInputData& jobInput, std::vector<double>& geo){
     }    
 }
 
-bool isRun(JobInputData& jobInput, JobOutData& jobOut){
+bool isRun(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
     
-    std::string checkfile ="scratch/com/" + jobInput.recBuffer + "/dock/" + jobInput.ligBuffer+"/scores.log";
+    std::string checkfile =workDir + "/scratch/com/" + jobInput.recBuffer + "/dock/" + jobInput.ligBuffer+"/scores.log";
     std::ifstream inFile(checkfile.c_str());
      
     if(!inFile){
         return false;
     } 
     
+    //std::cout << checkfile << std::endl;
+
     std::string logStr="";
     std::string fileLine;
     
@@ -326,7 +328,7 @@ int main(int argc, char* argv[]) {
             
 //            std::cout << "world.rank()=" << world.rank() 
 //                    << " Rec=" << jobInput.recBuffer << " Lig=" << jobInput.ligBuffer << std::endl;
-            if(!isRun(jobInput, jobOut)) {
+            if(!isRun(jobInput, jobOut, workDir)) {
                 dockjob(jobInput, jobOut, workDir); 
             }
             world.send(0, outTag, jobOut);
