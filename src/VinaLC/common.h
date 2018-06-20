@@ -192,11 +192,11 @@ struct internal_error {
 	internal_error(const std::string& file_, unsigned line_) : file(file_), line(line_) {}
 };
 
-#ifdef NDEBUG
+//#ifdef NDEBUG
 	#define VINA_CHECK(P) do { if(!(P)) throw internal_error(__FILE__, __LINE__); } while(false)
-#else
-	#define VINA_CHECK(P) assert(P)
-#endif
+//#else
+//	#define VINA_CHECK(P) assert(P)
+//#endif
 
 const fl pi = fl(3.1415926535897931);
 

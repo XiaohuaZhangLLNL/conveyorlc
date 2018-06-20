@@ -85,7 +85,8 @@ public:
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
-       ar & protonateFlg;
+        ar & protonateFlg;
+        ar & minimizeFlg;
         ar & getPDBflg;
         ar & ambVersion;
         ar & surfSphNum;
@@ -101,6 +102,7 @@ public:
     }
     
     bool protonateFlg;
+    bool minimizeFlg;
     bool getPDBflg;
     int ambVersion;
     int surfSphNum;
@@ -466,10 +468,20 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         minFile << "title..\n" 
                 << "&cntrl\n" 
                 << "  imin   = 1,\n" 
-                << "  ntmin   = 3,\n" 
-                << "  maxcyc = 2000,\n" 
-                << "  ncyc   = 1000,\n" 
-                << "  ntpr   = 200,\n" 
+                << "  ntmin   = 3,\n";
+
+ 
+	if(jobInput.minimizeFlg){
+            minFile << "  maxcyc = 2000,\n" 
+                    << "  ncyc   = 1000,\n";
+        }else{
+
+            minFile << "  maxcyc = 0,\n" 
+                    << "  ncyc   = 0,\n";
+	}
+
+
+        minFile << "  ntpr   = 200,\n" 
                 << "  ntb    = 0,\n" 
                 << "  igb    = 5,\n" 
                 << "  gbsa   = 1,\n"
@@ -766,6 +778,12 @@ int main(int argc, char** argv) {
            jobInput.protonateFlg=true;
         }else{
            jobInput.protonateFlg=false;
+        }
+
+        if(podata.minimizeFlg=="on"){
+           jobInput.minimizeFlg=true;
+        }else{
+           jobInput.minimizeFlg=false;
         }
        
         std::vector<RecData*> dirList;        
