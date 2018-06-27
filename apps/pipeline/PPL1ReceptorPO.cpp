@@ -36,6 +36,7 @@ bool PPL1ReceptorPO(int argc, char** argv, POdata& podata) {
                 ("cutoffCoef", value<double>(&podata.cutoffCoef)->default_value(1.1), "Cutoff Coefficient")
                 ("minVolume", value<double>(&podata.minVol)->default_value(50), "minimum volume for a site")
                 ("protonate", value<std::string> (&podata.protonateFlg)->default_value("on"), "Protonate protein by default")
+                ("minimize", value<std::string> (&podata.minimizeFlg)->default_value("on"), "Run minimization by default")
                 ;   
         options_description info("Optional:");
         info.add_options()
