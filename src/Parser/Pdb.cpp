@@ -707,7 +707,8 @@ bool Pdb::aveKeyResCoor(const std::string& inFileName, std::vector<std::string>&
         inFile.open(inFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::cutByRadius >> Cannot open file" << inFileName << std::endl;
+        std::cout << "PDB::aveKeyResCoor >> Cannot open file" << inFileName << std::endl;
+        return false;
     }
         
     std::string fileLine="";    
@@ -774,6 +775,58 @@ bool Pdb::aveKeyResCoor(const std::string& inFileName, std::vector<std::string>&
     keyResList.clear();
     
     return true;
+}
+
+bool Pdb::calcAverageCoor(const std::string& fileName, Coor3d& aveCoor){
+    
+    std::ifstream inFile;
+    try {
+        inFile.open(fileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::calcAverageCoor >> Cannot open file" << fileName << std::endl;
+        return false;
+    }
+        
+    std::string fileLine="";    
+    
+    const std::string atomStr="ATOM";
+    const std::string hetatmStr="HETATM";   
+    
+    double xSum=0;
+    double ySum=0;
+    double zSum=0;
+    
+    int count=0;
+    
+    while(std::getline(inFile, fileLine)){
+
+        if(fileLine.compare(0,4, atomStr)==0 || fileLine.compare(0,6, hetatmStr)==0){
+                        
+            std::string xstr= fileLine.substr(30,8);
+            double x=atof(xstr.c_str());
+            std::string ystr= fileLine.substr(38,8);
+            double y=atof(ystr.c_str());
+            std::string zstr= fileLine.substr(46,8);
+            double z=atof(zstr.c_str());
+            
+            xSum=xSum+x;
+            ySum=ySum+y;            
+            zSum=zSum+z;
+            ++count;
+        }   
+    }
+    inFile.close(); 
+    
+    if(count==0) return false;
+    
+    xSum=xSum/count;
+    ySum=ySum/count;            
+    zSum=zSum/count;    
+    
+    aveCoor.set(xSum, ySum, zSum);
+       
+    return true;    
 }
 
 bool Pdb::readByModel(const std::string& inFileName, const std::string& outFileName, int modelID, double& score){

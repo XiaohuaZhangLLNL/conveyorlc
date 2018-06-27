@@ -572,6 +572,9 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             boost::scoped_ptr<Mol2> pMol2(new Mol2());
             hasSubResCoor=pMol2->calcAverageCoor(subResFileName, aveKeyResCoor);
             std::cout << "Average coordinates of sbustrate: " << aveKeyResCoor << std::endl;
+        }else if(fileExtension == "pdb"){
+            hasSubResCoor=pPdb->calcAverageCoor(subResFileName, aveKeyResCoor);
+            std::cout << "Average coordinates of sbustrate: " << aveKeyResCoor << std::endl;
         }
     }
     
