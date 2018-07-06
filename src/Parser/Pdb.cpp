@@ -1951,7 +1951,7 @@ void Pdb::getDisulfide(const std::string& inFileName, std::vector<std::vector<in
             for(unsigned int j=i+1; j<cysList.size(); ++j){
                 Coor3d* pCoorI=cysList[i]->getCoords();
                 Coor3d* pCoorJ=cysList[j]->getCoords();
-                if(pCoorI->dist2(pCoorJ) < 6.25){ // cut off 2.5 Angstroms
+                if(pCoorI->dist2(pCoorJ) < 4.41){ // disulfide bond is 2.05 A use cut off 2.1 Angstroms 
                     std::vector<int> tmpPair;
                     tmpPair.push_back(resIDList[i]);
                     tmpPair.push_back(resIDList[j]);
