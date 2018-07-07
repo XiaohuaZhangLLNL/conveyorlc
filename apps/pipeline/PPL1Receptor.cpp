@@ -406,9 +406,9 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
 
     }
     
-    std::string b4pdbqt=stdPdbFile;
+    std::string b4pdbqt="rec_std.pdb";
     
-    if(!jobInput.minimizeFlg){
+    if(jobInput.minimizeFlg){
 
         std::string tleapFName="rec_leap.in";
 
