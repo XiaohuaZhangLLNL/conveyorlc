@@ -37,6 +37,8 @@ bool PPL1ReceptorPO(int argc, char** argv, POdata& podata) {
                 ("minVolume", value<double>(&podata.minVol)->default_value(50), "minimum volume for a site")
                 ("protonate", value<std::string> (&podata.protonateFlg)->default_value("on"), "Protonate protein by default")
                 ("minimize", value<std::string> (&podata.minimizeFlg)->default_value("on"), "Run minimization by default")
+                ("site", value<std::string> (&podata.siteFlg)->default_value("on"), "Run site calculation by default")
+                ("forceRedo", value<std::string> (&podata.forceRedoFlg)->default_value("off"), "Not to redo calculation by default")
                 ;   
         options_description info("Optional:");
         info.add_options()

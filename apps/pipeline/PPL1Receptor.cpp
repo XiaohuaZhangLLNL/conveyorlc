@@ -87,6 +87,8 @@ public:
     {
         ar & protonateFlg;
         ar & minimizeFlg;
+        ar & siteFlg;
+        ar & forceRedoFlg;
         ar & getPDBflg;
         ar & ambVersion;
         ar & surfSphNum;
@@ -103,6 +105,8 @@ public:
     
     bool protonateFlg;
     bool minimizeFlg;
+    bool siteFlg;
+    bool forceRedoFlg;
     bool getPDBflg;
     int ambVersion;
     int surfSphNum;
@@ -344,8 +348,11 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     std::string recDir=workDir+"/scratch/com/"+jobOut.pdbid+"/rec";
     
     //For restart
-    std::string checkfile=recDir+"/checkpoint.txt";    
-    if(isRun(checkfile, jobOut)) return true;
+    std::string checkfile=recDir+"/checkpoint.txt"; 
+    // If force re-do the calculation skip check the checkfile and continue calculation (by default not force re-do)
+    if(!jobInput.forceRedoFlg){ 
+        if(isRun(checkfile, jobOut)) return true;
+    }
         
     std::string libDir=inputDir+"/lib/";
     std::string cmd="mkdir -p "+recDir;
@@ -545,7 +552,15 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         return jobStatus;        
     } 
     jobOut.recPath="scratch/com/"+jobOut.pdbid+"/rec/"+jobOut.pdbid+".pdbqt";
-    
+   
+    // Skip the site calculation
+    if(!jobInput.siteFlg){
+        checkPoint(checkfile, jobOut);         
+ 
+        jobStatus=true;
+        return jobStatus;
+    }
+      
     // Get geometry
     std::string stdPDBfile="rec_std.pdb";    
     boost::scoped_ptr<Complex> pComplex(new Complex());
@@ -785,7 +800,19 @@ int main(int argc, char** argv) {
         }else{
            jobInput.minimizeFlg=false;
         }
-       
+        
+        if(podata.siteFlg=="on"){
+           jobInput.siteFlg=true;
+        }else{
+           jobInput.siteFlg=false;
+        }        
+
+        if(podata.forceRedoFlg=="on"){
+           jobInput.forceRedoFlg=true;
+        }else{
+           jobInput.forceRedoFlg=false;
+        }                
+        
         std::vector<RecData*> dirList;        
         
         saveStrList(podata.inputFile, dirList);
