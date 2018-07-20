@@ -336,6 +336,13 @@ scratch/
         2/                      --- ligand 2 preparation
         ...
 
+
+For the docking complex: the receptor is in scratch/com/receptor/rec/receptor.pdbqt
+                                           The ligand  is in  scratch/com/receptor/dock/1/poses.pdbqt  (multiple poses)
+
+For the rescoring comlex : scratch/com/receptor/gbsa/lig_1/pose_1/mmgbsa_results.tar.gz
+                                    Unzip the mmgbsa_results.tar.gz. You will find  Com_min.pdb
+
 ```
 
 ## 3 Work with Maestro workflow
