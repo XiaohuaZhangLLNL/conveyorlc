@@ -418,7 +418,9 @@ int main(int argc, char** argv) {
         }
         
         int nJobs=count;
-        int ndata=(nJobs<world.size()-1)? nJobs: world.size()-1;
+        int nWorkers=world.size()-1;
+        int ndata=(nJobs<nWorkers)? nJobs: nWorkers;
+        //int ndata=(nJobs<world.size()-1)? nJobs: world.size()-1;
         std::cout << "ndata=" << ndata << " nJobs=" << nJobs << std::endl;
     
         for(unsigned i=0; i < ndata; ++i){

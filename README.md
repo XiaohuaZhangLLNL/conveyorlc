@@ -121,6 +121,37 @@ srun -N 2 -n 24 PPL1Receptor --input pdb.list --output out
 
 ```
 
+The pdb.list can take many different input formats
+
+```
+# 1. Comments start with '#'
+#
+# 2. The first column of the input always is the path/pdb_file
+#    The second column and third one are optional
+#
+pdb/2y2vA_A.pdb
+#
+# 3. To specify key residues in the active site to help identify the binding site start with "KeyRes:"
+#    residues separated by '|' and are in <three-letter-residue-name>.<residue-id>[.<chain-id>] format
+#
+pdb/2y2vA_A.pdb KeyRes:SGB.203|GLU.202.A
+#
+# 4. To specify non-standard residues in receptor start with "NonRes:"
+#    nonstandard residues also separated by '|'
+#
+pdb/2y2vA_A.pdb KeyRes:SGB.203|GLU.202.A NonRes:SGB
+pdb/2y2vA_A.pdb NonRes:SGB
+#
+# 5. To specify substrate ligand for site identification start with "SubRes:" and follow by the relative 
+#    path to ligand file
+# 
+pdb/sarinXtalnAChE.pdb SubRes:pdb/ligand.pdb  NonRes:SGB
+pdb/1a50_protein.pdb SubRes:pdb/1a50_ligand.mol2
+#
+
+```
+
+
 #### 2.2.2 running the ligand preparation
 
 ```
@@ -141,6 +172,24 @@ test -f /usr/gapps/kras/quartz/amber16/amber.sh && source /usr/gapps/kras/quartz
 
 
 srun -N 10 -n 160 PPL1Receptor --sdf ligand.sdf
+
+```
+
+Requirement for the SDF file:
+```
+1. Convert you ligand coordinates into SDF file
+2. Add total charge fields for each ligand in SDF file, for example:
+
+> <i_user_TOTAL_CHARGE>
+-2
+
+3. After calculation, you can find the ligand parameters in:
+
+scratch/lig/1/LIG.lib, LIG.prmtop,  LIG.inpcrd
+scratch/lig/2/LIG.lib, LIG.prmtop,  LIG.inpcrd
+...
+
+1, 2, .. correspond to the sequence of ligands appearing in the SDF file
 
 ```
 
