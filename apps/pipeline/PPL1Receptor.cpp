@@ -454,8 +454,9 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
                     tleapFile << "bond REC."<< pair[0] <<".SG REC." << pair[1] <<".SG \n";
                 }
             }        
-
-            tleapFile << "saveamberparm REC REC.prmtop REC.inpcrd\n"
+            
+            tleapFile << "set default PBRadii mbondi2\n"
+                      << "saveamberparm REC REC.prmtop REC.inpcrd\n"
                       << "quit\n";
 
             tleapFile.close();

@@ -107,6 +107,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
         tleapFile << "loadamberparams  " << ligDir <<  "/ligand.frcmod" <<std::endl;
         tleapFile << "loadoff " << ligDir << "/LIG.lib" <<std::endl;
         tleapFile << "LIG = loadpdb Lig_"<< poseID <<".pdb" << std::endl;
+        tleapFile << "set default PBRadii mbondi2" << std::endl;
         tleapFile << "savepdb LIG Lig_lp_"<< poseID <<".pdb" << std::endl;            
         tleapFile << "quit " << std::endl;
 
@@ -166,6 +167,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
             }
         }  
         
+        tleapFile << "set default PBRadii mbondi2" << std::endl;
         tleapFile << "saveamberparm COM Com.prmtop Com.inpcrd"<< std::endl;            
         tleapFile << "quit " << std::endl;
 
@@ -268,7 +270,8 @@ void MMGBSA::run(std::string& poseID, bool restart){
             if(pair.size()==2){
                 tleapFile << "bond REC."<< pair[0] <<".SG REC." << pair[1] <<".SG \n";
             }
-        }          
+        } 
+        tleapFile << "set default PBRadii mbondi2" << std::endl;
         tleapFile << "saveamberparm REC REC.prmtop REC.inpcrd\n"
                   << "quit\n";
         

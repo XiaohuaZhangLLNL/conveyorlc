@@ -97,6 +97,7 @@ void SpMMPBSA::recRun(const std::string& dir){
                   << "loadoff atomic_ions.lib\n"
                   << "loadamberparams frcmod.ions234lm_1264_tip3p\n"
                   << "REC = loadpdb rec_rd.pdb\n"
+                  << "set default PBRadii mbondi2\n" 
                   << "saveamberparm REC REC.prmtop REC.inpcrd\n"
                   << "quit\n";
         
@@ -312,6 +313,7 @@ void SpMMPBSA::comRun(const std::string& ligand, int poseID){
         tleapFile << "loadamberparams  " << ligLibDir << ligand << "/ligand.frcmod" <<std::endl;
         tleapFile << "loadoff " << ligLibDir << ligand << "/LIG.lib" <<std::endl;
         tleapFile << "LIG = loadpdb Lig_"<< poseID <<".pdb" << std::endl;
+        tleapFile << "set default PBRadii mbondi2" << std::endl;
         tleapFile << "savepdb LIG Lig_lp_"<< poseID <<".pdb" << std::endl;            
         tleapFile << "quit " << std::endl;
 
@@ -344,6 +346,7 @@ void SpMMPBSA::comRun(const std::string& ligand, int poseID){
         tleapFile << "loadamberparams  " << ligLibDir << ligand << "/ligand.frcmod" <<std::endl;
         tleapFile << "loadoff " << ligLibDir << ligand << "/LIG.lib" <<std::endl;
         tleapFile << "COM = loadpdb Com_"<< poseID <<".pdb" << std::endl;
+        tleapFile << "set default PBRadii mbondi2" << std::endl;
         tleapFile << "saveamberparm COM Com.prmtop Com.inpcrd"<< std::endl;            
         tleapFile << "quit " << std::endl;
 
