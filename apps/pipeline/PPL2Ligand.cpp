@@ -388,7 +388,7 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
     
     checkPoint(checkfile, jobOut);
     
-    cmd="rm -f *.in divcon.pdb fort.7 leap.log ligand.mol2 mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
+    cmd="rm -f *.in divcon.pdb fort.7 leap.log mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
     std::cout <<cmd <<std::endl;    
     system(cmd.c_str());
     
