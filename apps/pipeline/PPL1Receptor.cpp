@@ -335,7 +335,11 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     
     chdir(workDir.c_str());
     jobOut.pdbFilePath=inputDir+"/"+jobInput.dirBuffer; 
-    jobOut.subRes=inputDir+"/"+jobInput.subRes;
+    if(jobInput.subRes.size()!=0){
+    	jobOut.subRes=inputDir+"/"+jobInput.subRes;
+    }else{
+    	jobOut.subRes="";
+    }
     jobOut.nonRes=jobInput.nonRes;    
     if(!fileExist(jobOut.pdbFilePath)){
         std::string mesg="PPL1Receptor::preReceptors: PDB file "+jobOut.pdbFilePath+" does NOT exist.";
@@ -366,11 +370,13 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     
     std::string pdbFile;
     getPathFileName(jobOut.pdbFilePath, pdbFile);
-      
+    
     std::string checkFName="";
     if(jobInput.protonateFlg){
+        boost::scoped_ptr<Pdb> pPdb(new Pdb() );
+        pPdb->selectAForm(pdbFile, "rec_AForm.pdb");
          //! begin energy minimization of receptor 
-        cmd="reduce -Quiet -Trim  "+pdbFile+" >& rec_noh.pdb ";
+        cmd="reduce -Quiet -Trim  rec_AForm.pdb >& rec_noh.pdb ";
         std::cout <<cmd <<std::endl;
         system(cmd.c_str());
 
@@ -588,8 +594,8 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     Coor3d aveKeyResCoor;
     
     bool hasSubResCoor=false;
-    std::cout << "jobOut.subRes=" << jobOut.subRes << std::endl;
     if(fileExist(jobOut.subRes)){
+        std::cout << "jobOut.subRes=" << jobOut.subRes << std::endl;
         std::string subResFileName=jobOut.subRes;
         std::string fileExtension=subResFileName.substr(subResFileName.find_last_of(".") + 1);
         std::cout << "fileExtension=" << fileExtension << std::endl;
@@ -606,7 +612,9 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     bool hasKeyResCoor=false;
     if(!hasSubResCoor){
         hasKeyResCoor=pPdb->aveKeyResCoor(pdbFile, jobInput.keyRes, aveKeyResCoor);
-        std::cout << "Average coordinates of key residues: " << aveKeyResCoor << std::endl;
+        if(hasKeyResCoor){
+            std::cout << "Average coordinates of key residues: " << aveKeyResCoor << std::endl;
+        }
     }
         
     Coor3d dockDim;

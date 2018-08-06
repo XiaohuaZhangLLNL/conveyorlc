@@ -963,6 +963,45 @@ int Pdb::splitByModel(const std::string& inFileName, const std::string& outFileB
     
 }
 
+void Pdb::selectAForm(const std::string& inFileName, const std::string& outFileName)
+{
+    // If PDB structure has multiple side-chain conformations, pick only "A" form
+    std::ifstream inFile;
+    try {
+        inFile.open(inFileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::calcAverageCoor >> Cannot open file" << inFileName << std::endl;
+    }
+    
+    std::ofstream outFile;
+    try {
+        outFile.open(outFileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::read >> Cannot open file" << outFileName << std::endl;
+    }    
+        
+    std::string fileLine="";    
+    
+    const std::string atomStr="ATOM";  
+        
+    while(std::getline(inFile, fileLine)){
+
+        if(fileLine.compare(0,4, atomStr)==0){                        
+            std::string formStr=fileLine.substr(16,1);
+            if((formStr!=" ") && (formStr!="A")) continue;
+            if(formStr=="A") fileLine[16]=' ';
+        }   
+        outFile << fileLine << std::endl;
+    }
+    inFile.close(); 
+    outFile.close();
+       
+    return;    
+    
+}
+
 void Pdb::write(const std::string& fileName, Complex* pComplex)
 {
     std::ofstream outFile;
