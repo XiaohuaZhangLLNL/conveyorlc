@@ -442,10 +442,8 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             }
 
             tleapFile << "source leaprc.gaff\n";
-            if(jobInput.ambVersion==16){
-               tleapFile   << "loadoff atomic_ions.lib\n"
-                      << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
-            }
+
+	    tleapFile << "source leaprc.water.tip3p\n";
 
             for(unsigned int i=0; i<jobInput.nonRes.size(); ++i){
                 tleapFile << "loadoff "<< libDir << jobInput.nonRes[i] <<".off \n";

@@ -101,10 +101,9 @@ void Amber::ligLeapInput(std::string pdbid, std::string ligName, std::string tle
     }    
 
     tleapFile << "source leaprc.gaff" << std::endl;
-    if(version==16){
-       tleapFile   << "loadoff atomic_ions.lib\n"
-              << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
-    }
+
+    tleapFile << "source leaprc.water.tip3p\n";
+
     tleapFile << ligName <<" = loadmol2 " << pdbid <<"-lig-"<< ligName << ".mol2 " << std::endl;
     tleapFile << "check " << ligName << std::endl;
     tleapFile << "loadamberparams " << pdbid <<"-lig-"<< ligName << ".frcmod" << std::endl;
@@ -133,10 +132,8 @@ void Amber::comLeapInput(std::string pdbid, std::string ligName, std::string tle
     }
     
     tleapFile << "source leaprc.gaff" << std::endl;
-    if(version==16){
-       tleapFile   << "loadoff atomic_ions.lib\n"
-              << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
-    }
+    tleapFile << "source leaprc.water.tip3p\n";
+
     tleapFile << "loadamberparams " << pdbid <<"-lig-"<< ligName << ".frcmod" << std::endl;
     tleapFile << "loadoff " << ligName <<".lib " << std::endl;
     tleapFile << "complex = loadpdb ../" << pdbid << ".pdb " << std::endl;
@@ -165,10 +162,9 @@ void Amber::tleapInput(std::string& mol2FName, std::string& ligName, std::string
     }
     
     tleapFile << "source leaprc.gaff" << std::endl;
-    if(version==16){
-       tleapFile   << "loadoff atomic_ions.lib\n"
-              << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
-    }
+
+    tleapFile << "source leaprc.water.tip3p\n";
+
     tleapFile << "loadamberparams " << mol2FBase << ".frcmod" << std::endl;    
     tleapFile << ligName <<" = loadmol2 " << mol2FName << std::endl;
     tleapFile << "check " << ligName << std::endl;

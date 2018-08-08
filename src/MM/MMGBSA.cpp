@@ -99,10 +99,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
         }
         tleapFile << "source leaprc.gaff" << std::endl;
 
-        if(version==16){
-           tleapFile   << "loadoff atomic_ions.lib\n"
-                  << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
-        }        
+        tleapFile << "source leaprc.water.tip3p\n";
         
         tleapFile << "loadamberparams  " << ligDir <<  "/ligand.frcmod" <<std::endl;
         tleapFile << "loadoff " << ligDir << "/LIG.lib" <<std::endl;
@@ -146,10 +143,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
         }
         tleapFile << "source leaprc.gaff" << std::endl;
 
-        if(version==16){
-           tleapFile   << "loadoff atomic_ions.lib\n"
-                  << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
-        }        
+        tleapFile << "source leaprc.water.tip3p\n";
         
         for(unsigned int i=0; i<nonRes.size(); ++i){
             tleapFile << "loadoff "<< libDir << nonRes[i] <<".off \n";
@@ -253,10 +247,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
 
         tleapFile << "source leaprc.gaff\n";
 
-        if(version==16){
-           tleapFile   << "loadoff atomic_ions.lib\n"
-                  << "loadamberparams frcmod.ions234lm_1264_tip3p\n";
-        }        
+        tleapFile << "source leaprc.water.tip3p\n";
         
         for(unsigned int i=0; i<nonRes.size(); ++i){
             tleapFile << "loadoff "<< libDir << nonRes[i] <<".off \n";
