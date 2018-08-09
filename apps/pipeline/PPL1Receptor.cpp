@@ -544,11 +544,19 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         std::cout <<cmd <<std::endl;
         system(cmd.c_str());   
                 
-        b4pdbqt="Rec_min_1.pdb";
+        b4pdbqt="Rec_min_0.pdb";
     }
     
-    cmd="prepare_receptor4.py -r "+b4pdbqt+" -o "+jobOut.pdbid+".pdbqt";
-    system(cmd.c_str());
+    {
+        boost::scoped_ptr<Pdb> pPdb(new Pdb() );
+        pPdb->standardlize(b4pdbqt, "std4pdbqt.pdb");
+    	//cmd="prepare_receptor4.py -r "+b4pdbqt+" -o "+jobOut.pdbid+".pdbqt";
+    	cmd="obabel -ipdb std4pdbqt.pdb -opdbqt -xr -O temp.pdbqt >& pdbqt.log";
+    	system(cmd.c_str());
+    	cmd="grep -v REMARK temp.pdbqt > " + jobOut.pdbid+".pdbqt";
+    	system(cmd.c_str());
+    
+    }
     
     checkFName=jobOut.pdbid+".pdbqt";
     if(!fileExist(checkFName)){
