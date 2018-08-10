@@ -239,6 +239,9 @@ void Pdb::guessElement(std::string& atomType, const std::string& resName, const 
                 }else if((resNChomp.substr(0,2)=="CU") 
                         &&(atomNChomp.substr(0,2)=="CU" || atomNChomp.substr(0,2)=="Cu")){
                     atomType="Cu";
+                }else if((resNChomp.substr(0,2)=="CO") 
+                        &&(atomNChomp.substr(0,2)=="CO" || atomNChomp.substr(0,2)=="Co")){
+                    atomType="Co";                    
                 }else{
                    atomType="C"; 
                 }
@@ -264,6 +267,9 @@ void Pdb::guessElement(std::string& atomType, const std::string& resName, const 
                 }else if((resNChomp.substr(0,2)=="MN") 
                         &&(atomNChomp.substr(0,2)=="MN" || atomNChomp.substr(0,2)=="Mn")){
                     atomType="Mn";
+                }else if((resNChomp.substr(0,2)=="MO") 
+                        &&(atomNChomp.substr(0,2)=="MO" || atomNChomp.substr(0,2)=="Mo")){
+                    atomType="Mo";                    
                 }else{
                    atomType="X"; 
                 }                
@@ -271,6 +277,9 @@ void Pdb::guessElement(std::string& atomType, const std::string& resName, const 
                 if((resNChomp.substr(0,2)=="NA") 
                         &&(atomNChomp.substr(0,2)=="NA" || atomNChomp.substr(0,2)=="Na")){
                     atomType="Na";
+                }else if((resNChomp.substr(0,2)=="NI") 
+                        &&(atomNChomp.substr(0,2)=="NI" || atomNChomp.substr(0,2)=="Ni")){
+                    atomType="Ni";     
                 }else{
                    atomType="N"; 
                 }              
