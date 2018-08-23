@@ -80,11 +80,13 @@ public:
         ar & ambVersion;
         ar & dirBuffer; 
         ar & sdfBuffer;
+        ar & cmpName;
     }
     
     int ambVersion;
     std::string dirBuffer;
     std::string sdfBuffer;
+    std::string cmpName;
 };
 
 //struct JobInputData{        
@@ -272,7 +274,11 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
     
     boost::scoped_ptr<Sdf> pSdf(new Sdf());
     std::string info=pSdf->getInfo(sdfFile, keyword);
-    jobOut.ligName=pSdf->getTitle(sdfFile);
+    if(jobInput.cmpName=="NoName"){
+        jobOut.ligName=pSdf->getTitle(sdfFile);
+    }else{
+        jobOut.ligName=pSdf->getInfo(sdfFile, jobInput.cmpName);
+    }
     
     std::cout << "Charge:" << info << std::endl;
     int charge=Sstrm<int, std::string>(info);
@@ -574,6 +580,9 @@ int main(int argc, char** argv) {
         fprintf(xmlFile, "    <!-- Tracking calculation error using XML file -->\n");
         fflush(xmlFile);         
  //! END of XML header
+        
+        // Pass the ligand name option
+        jobInput.cmpName=podata.cmpName;
 
 // Open output file
         std::ofstream outFile;

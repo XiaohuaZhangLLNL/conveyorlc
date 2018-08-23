@@ -64,7 +64,8 @@ std::string Sdf::getInfo(const std::string& fileName, const std::string& keyword
     std::string fileLine="";
     std::string info="";
 
-    static const boost::regex terRegex(keyword.c_str());  
+    //static const boost::regex terRegex(keyword.c_str());  
+    const boost::regex terRegex(keyword.c_str());  
     boost::smatch what;
     
     int count=3;
@@ -77,6 +78,7 @@ std::string Sdf::getInfo(const std::string& fileName, const std::string& keyword
         }
         if(count==1){            
             info=fileLine;
+            return info;
         }
         count=count+1;
     }
