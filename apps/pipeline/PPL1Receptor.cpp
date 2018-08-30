@@ -436,7 +436,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             }
 
             if(jobInput.ambVersion==16){
-                tleapFile << "source leaprc.protein.ff14SB\n";    
+                tleapFile << "source leaprc.ff14SB\n";    
             }else{
                 tleapFile << "source leaprc.ff99SB\n";
             }

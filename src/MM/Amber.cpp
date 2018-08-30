@@ -95,7 +95,7 @@ void Amber::ligLeapInput(std::string pdbid, std::string ligName, std::string tle
     }   
 
     if(version==16){
-        tleapFile << "source leaprc.protein.ff14SB" << std::endl;
+        tleapFile << "source leaprc.ff14SB" << std::endl;
     }else{
         tleapFile << "source leaprc.ff99SB" << std::endl;
     }    
@@ -108,6 +108,7 @@ void Amber::ligLeapInput(std::string pdbid, std::string ligName, std::string tle
     tleapFile << "check " << ligName << std::endl;
     tleapFile << "loadamberparams " << pdbid <<"-lig-"<< ligName << ".frcmod" << std::endl;
     tleapFile << "saveoff " << ligName <<" " << ligName <<".lib " << std::endl;
+    tleapFile << "set default PBRadii mbondi2" << std::endl;
     tleapFile << "saveamberparm " << ligName <<" " << ligName <<".prmtop " << ligName <<".inpcrd" << std::endl;
     tleapFile << "quit " << std::endl;
     
@@ -126,7 +127,7 @@ void Amber::comLeapInput(std::string pdbid, std::string ligName, std::string tle
     }   
     
     if(version==16){
-        tleapFile << "source leaprc.protein.ff14SB" << std::endl;
+        tleapFile << "source leaprc.ff14SB" << std::endl;
     }else{
         tleapFile << "source leaprc.ff99SB" << std::endl;
     }
@@ -137,6 +138,7 @@ void Amber::comLeapInput(std::string pdbid, std::string ligName, std::string tle
     tleapFile << "loadamberparams " << pdbid <<"-lig-"<< ligName << ".frcmod" << std::endl;
     tleapFile << "loadoff " << ligName <<".lib " << std::endl;
     tleapFile << "complex = loadpdb ../" << pdbid << ".pdb " << std::endl;
+    tleapFile << "set default PBRadii mbondi2" << std::endl;
     tleapFile << "saveamberparm complex " << pdbid <<".prmtop " << pdbid <<".inpcrd" << std::endl;
     tleapFile << "quit " << std::endl;
     
@@ -156,7 +158,7 @@ void Amber::tleapInput(std::string& mol2FName, std::string& ligName, std::string
     std::string mol2FBase=mol2FName.substr(0,mol2FName.size()-5);
        
     if(version==16){
-        tleapFile << "source leaprc.protein.ff14SB" << std::endl;
+        tleapFile << "source leaprc.ff14SB" << std::endl;
     }else{
         tleapFile << "source leaprc.ff99SB" << std::endl;
     }

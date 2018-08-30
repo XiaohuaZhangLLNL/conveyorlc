@@ -92,7 +92,7 @@ void SpMMPBSA::recRun(const std::string& dir){
             throw LBindException(mesg);
         }
         
-        tleapFile << "source leaprc.protein.ff14SB\n"                
+        tleapFile << "source leaprc.ff14SB\n"                
                   << "source leaprc.gaff\n"
                   << "source leaprc.water.tip3p\n"
                   << "REC = loadpdb rec_rd.pdb\n"
@@ -305,7 +305,7 @@ void SpMMPBSA::comRun(const std::string& ligand, int poseID){
             throw LBindException(mesg);
         }   
 
-        tleapFile << "source leaprc.protein.ff14SB" << std::endl;
+        tleapFile << "source leaprc.ff14SB" << std::endl;
         tleapFile << "source leaprc.gaff" << std::endl;
         tleapFile << "source leaprc.water.tip3p\n";
         tleapFile << "loadamberparams  " << ligLibDir << ligand << "/ligand.frcmod" <<std::endl;
@@ -337,7 +337,7 @@ void SpMMPBSA::comRun(const std::string& ligand, int poseID){
             throw LBindException(mesg);
         }   
 
-        tleapFile << "source leaprc.protein.ff14SB" << std::endl;
+        tleapFile << "source leaprc.ff14SB" << std::endl;
         tleapFile << "source leaprc.gaff" << std::endl;
         tleapFile << "source leaprc.water.tip3p\n";
         tleapFile << "loadamberparams  " << ligLibDir << ligand << "/ligand.frcmod" <<std::endl;

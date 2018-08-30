@@ -362,7 +362,7 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
        
     std::cout <<cmd <<std::endl;
     echo="echo ";
-    echo=echo+cmd+" >> log";
+    echo=echo+"\'"+cmd+"\'  >> log";
     system(echo.c_str());    
     system(cmd.c_str());    
 
@@ -384,7 +384,7 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
     echo=echo+cmd+" >> log";
     system(echo.c_str());    
     system(cmd.c_str());
-    
+
     checkFName="LIG_min.pdbqt";
     if(!fileExist(checkFName)){
         std::string message="LIG_min.pdbqt PDBQT file does not exist.";
@@ -392,9 +392,18 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         return jobStatus;        
     } 
     
+    //! fix the Br element type
+    cmd="sed -i '/Br.* LIG/{s! B ! Br!}' LIG_min.pdbqt";
+    std::cout << cmd << std::endl;
+    echo="echo ";
+    echo=echo+cmd+" >> log";
+    system(echo.c_str());
+    system(cmd.c_str());
+
     checkPoint(checkfile, jobOut);
     
-    cmd="rm -f *.in divcon.pdb fort.7 leap.log mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
+    //cmd="rm -f *.in divcon.pdb fort.7 leap.log mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
+    cmd="rm -f divcon.pdb fort.7 leap.log mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
     std::cout <<cmd <<std::endl;    
     system(cmd.c_str());
     

@@ -93,7 +93,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
             throw LBindException(mesg);
         }   
         if(version==16){
-            tleapFile << "source leaprc.protein.ff14SB" << std::endl;
+            tleapFile << "source leaprc.ff14SB" << std::endl;
         }else{
             tleapFile << "source leaprc.ff99SB" << std::endl;
         }
@@ -137,7 +137,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
         }   
 
         if(version==16){
-            tleapFile << "source leaprc.protein.ff14SB" << std::endl;
+            tleapFile << "source leaprc.ff14SB" << std::endl;
         }else{
             tleapFile << "source leaprc.ff99SB" << std::endl;
         }
@@ -240,7 +240,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
         }
         
         if (version == 16) {
-            tleapFile << "source leaprc.protein.ff14SB\n";
+            tleapFile << "source leaprc.ff14SB\n";
         } else {
             tleapFile << "source leaprc.ff99SB\n";
         }
