@@ -346,12 +346,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     	jobOut.subRes="";
     }
     jobOut.nonRes=jobInput.nonRes;    
-    if(!fileExist(jobOut.pdbFilePath)){
-        std::string mesg="PPL1Receptor::preReceptors: PDB file "+jobOut.pdbFilePath+" does NOT exist.";
-        throw LBindException(mesg);  
-        return jobStatus; 
-    }
-    
+
 //    std::string pdbBasename;
     getFileBasename(jobOut.pdbFilePath, jobOut.pdbid);
     std::string recDir=workDir+"/scratch/com/"+jobOut.pdbid+"/rec";
@@ -362,302 +357,307 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     if(!jobInput.forceRedoFlg){ 
         if(isRun(checkfile, jobOut)) return true;
     }
-        
-    std::string libDir=inputDir+"/lib/";
-    std::string cmd="mkdir -p "+recDir;
-    system(cmd.c_str());  
     
-    cmd="cp "+jobOut.pdbFilePath+" "+recDir;
-    system(cmd.c_str());  
-    
-    // cd to the rec directory to perform calculation
-    chdir(recDir.c_str());
-    
-    std::string pdbFile;
-    getPathFileName(jobOut.pdbFilePath, pdbFile);
-    
-    std::string checkFName="";
-    if(jobInput.protonateFlg){
-        boost::scoped_ptr<Pdb> pPdb(new Pdb() );
-        pPdb->selectAForm(pdbFile, "rec_AForm.pdb");
-         //! begin energy minimization of receptor 
-        cmd="reduce -Quiet -Trim  rec_AForm.pdb >& rec_noh.pdb ";
-        std::cout <<cmd <<std::endl;
-        system(cmd.c_str());
+    try{
 
-        checkFName="rec_noh.pdb";
-        if(!fileExist(checkFName)){
-            std::string message=checkFName+" does not exist.";
-            throw LBindException(message);  
-            return jobStatus;        
-        }     
-
-        if(jobInput.ambVersion==16 || jobInput.ambVersion==13){
-            cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/amber16_reduce_wwPDB_het_dict.txt\" >& rec_rd.pdb";
-        }else{
-            cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/amber10_reduce_wwPDB_het_dict.txt\" >& rec_rd.pdb";
+        if(!fileExist(jobOut.pdbFilePath)){
+            std::string mesg="PPL1Receptor::preReceptors: PDB file "+jobOut.pdbFilePath+" does NOT exist.";
+            throw LBindException(mesg);   
         }
-        
-        std::cout <<cmd <<std::endl;
-        system(cmd.c_str()); 
-
-
-        checkFName="rec_rd.pdb";
-        if(!fileExist(checkFName)){
-            std::string message=checkFName+" does not exist.";
-            throw LBindException(message); 
-            return jobStatus;        
-        }  
-    }else{
-       checkFName=pdbFile;
-    }
     
-    std::vector<std::vector<int> > ssList;
-    {
-        boost::scoped_ptr<Pdb> pPdb(new Pdb() );
-        pPdb->getDisulfide(checkFName, ssList);
-        
-        std::string stdPdbFile="rec_std.pdb";
-        
-        pPdb->standardlizeSS(checkFName, stdPdbFile, ssList);
-        
+        std::string libDir=inputDir+"/lib/";
+        std::string cmd="mkdir -p "+recDir;
+        system(cmd.c_str());  
 
-    }
-    
-    std::string b4pdbqt="rec_std.pdb";
-    
-    if(jobInput.minimizeFlg){
+        cmd="cp "+jobOut.pdbFilePath+" "+recDir;
+        system(cmd.c_str());  
 
-        std::string tleapFName="rec_leap.in";
+        // cd to the rec directory to perform calculation
+        chdir(recDir.c_str());
 
-        {
-            std::ofstream tleapFile;
-            try {
-                tleapFile.open(tleapFName.c_str());
-            }
-            catch(...){
-                std::string mesg="mmpbsa::receptor()\n\t Cannot open tleap file: "+tleapFName;
-                throw LBindException(mesg);
-            }
+        std::string pdbFile;
+        getPathFileName(jobOut.pdbFilePath, pdbFile);
+
+        std::string checkFName="";
+        if(jobInput.protonateFlg){
+            boost::scoped_ptr<Pdb> pPdb(new Pdb() );
+            pPdb->selectAForm(pdbFile, "rec_AForm.pdb");
+             //! begin energy minimization of receptor 
+            cmd="reduce -Quiet -Trim  rec_AForm.pdb >& rec_noh.pdb ";
+            std::cout <<cmd <<std::endl;
+            system(cmd.c_str());
+
+            checkFName="rec_noh.pdb";
+            if(!fileExist(checkFName)){
+                std::string message=checkFName+" does not exist.";
+                throw LBindException(message);       
+            }     
 
             if(jobInput.ambVersion==16 || jobInput.ambVersion==13){
-                tleapFile << "source leaprc.ff14SB\n";    
+                cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/amber16_reduce_wwPDB_het_dict.txt\" >& rec_rd.pdb";
             }else{
-                tleapFile << "source leaprc.ff99SB\n";
+                cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/amber10_reduce_wwPDB_het_dict.txt\" >& rec_rd.pdb";
             }
 
-            tleapFile << "source leaprc.gaff\n";
+            std::cout <<cmd <<std::endl;
+            system(cmd.c_str()); 
 
-	    tleapFile << "source leaprc.water.tip3p\n";
 
-            for(unsigned int i=0; i<jobInput.nonRes.size(); ++i){
-                tleapFile << "loadoff "<< libDir << jobInput.nonRes[i] <<".off \n";
-                tleapFile << "loadamberparams "<< libDir << jobInput.nonRes[i] <<".frcmod \n";
-            }
-
-            tleapFile << "REC = loadpdb rec_std.pdb\n";
-
-            for(unsigned int i=0; i<ssList.size(); ++i){
-                std::vector<int> pair=ssList[i];
-                if(pair.size()==2){
-                    tleapFile << "bond REC."<< pair[0] <<".SG REC." << pair[1] <<".SG \n";
-                }
-            }        
-            
-            tleapFile << "set default PBRadii mbondi2\n"
-                      << "saveamberparm REC REC.prmtop REC.inpcrd\n"
-                      << "quit\n";
-
-            tleapFile.close();
+            checkFName="rec_rd.pdb";
+            if(!fileExist(checkFName)){
+                std::string message=checkFName+" does not exist.";
+                throw LBindException(message);         
+            }  
+        }else{
+           checkFName=pdbFile;
         }
 
-        cmd="tleap -f rec_leap.in >& rec_leap.log";
-        std::cout <<cmd <<std::endl;
-        system(cmd.c_str());
-
-        std::string minFName="Rec_minGB.in";
+        std::vector<std::vector<int> > ssList;
         {
-            std::ofstream minFile;
-            try {
-                minFile.open(minFName.c_str());
+            boost::scoped_ptr<Pdb> pPdb(new Pdb() );
+            pPdb->getDisulfide(checkFName, ssList);
+
+            std::string stdPdbFile="rec_std.pdb";
+
+            pPdb->standardlizeSS(checkFName, stdPdbFile, ssList);
+
+
+        }
+
+        std::string b4pdbqt="rec_std.pdb";
+
+        if(jobInput.minimizeFlg){
+
+            std::string tleapFName="rec_leap.in";
+
+            {
+                std::ofstream tleapFile;
+                try {
+                    tleapFile.open(tleapFName.c_str());
+                }
+                catch(...){
+                    std::string mesg="mmpbsa::receptor()\n\t Cannot open tleap file: "+tleapFName;
+                    throw LBindException(mesg);
+                }
+
+                if(jobInput.ambVersion==16 || jobInput.ambVersion==13){
+                    tleapFile << "source leaprc.ff14SB\n";    
+                }else{
+                    tleapFile << "source leaprc.ff99SB\n";
+                }
+
+                tleapFile << "source leaprc.gaff\n";
+
+                tleapFile << "source leaprc.water.tip3p\n";
+
+                for(unsigned int i=0; i<jobInput.nonRes.size(); ++i){
+                    tleapFile << "loadoff "<< libDir << jobInput.nonRes[i] <<".off \n";
+                    tleapFile << "loadamberparams "<< libDir << jobInput.nonRes[i] <<".frcmod \n";
+                }
+
+                tleapFile << "REC = loadpdb rec_std.pdb\n";
+
+                for(unsigned int i=0; i<ssList.size(); ++i){
+                    std::vector<int> pair=ssList[i];
+                    if(pair.size()==2){
+                        tleapFile << "bond REC."<< pair[0] <<".SG REC." << pair[1] <<".SG \n";
+                    }
+                }        
+
+                tleapFile << "set default PBRadii mbondi2\n"
+                          << "saveamberparm REC REC.prmtop REC.inpcrd\n"
+                          << "quit\n";
+
+                tleapFile.close();
             }
-            catch(...){
-                std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
-                throw LBindException(mesg);
+
+            cmd="tleap -f rec_leap.in >& rec_leap.log";
+            std::cout <<cmd <<std::endl;
+            system(cmd.c_str());
+
+            std::string minFName="Rec_minGB.in";
+            {
+                std::ofstream minFile;
+                try {
+                    minFile.open(minFName.c_str());
+                }
+                catch(...){
+                    std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
+                    throw LBindException(mesg);
+                }   
+
+                minFile << "title..\n" 
+                        << "&cntrl\n" 
+                        << "  imin   = 1,\n" 
+                        << "  ntmin   = 3,\n"
+                        << "  maxcyc = 2000,\n" 
+                        << "  ncyc   = 1000,\n"
+                        << "  ntpr   = 200,\n" 
+                        << "  ntb    = 0,\n" 
+                        << "  igb    = 5,\n" 
+                        << "  gbsa   = 1,\n"
+                        << "  cut    = 15,\n" 
+                        << "  ntr=1,\n" 
+                        << "  restraint_wt=5.0,\n" 
+                        << "  restraintmask='!@H=',\n"        
+                        << " /\n" << std::endl;
+                minFile.close();    
+            }
+            if(jobInput.ambVersion==13){
+                cmd="sander13 -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
+            }else{
+                cmd="sander -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
+            }
+            std::cout <<cmd <<std::endl;
+            system(cmd.c_str());  
+
+            boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
+            std::string sanderOut="Rec_minGB.out";
+            double recGBen=0;
+            bool success=pSanderOutput->getEnergy(sanderOut, recGBen);
+            jobOut.gbEn=recGBen;
+
+            if(!success){
+                std::string message="Receptor GB minimization fails.";
+                throw LBindException(message);           
+            }
+
+            if(jobInput.ambVersion==16){
+                cmd="ambpdb -p REC.prmtop -aatm -c Rec_min.rst > Rec_min_0.pdb";   
+            }else{
+                cmd="ambpdb -p REC.prmtop -aatm < Rec_min.rst > Rec_min_0.pdb";
             }   
 
-            minFile << "title..\n" 
-                    << "&cntrl\n" 
-                    << "  imin   = 1,\n" 
-                    << "  ntmin   = 3,\n"
-                    << "  maxcyc = 2000,\n" 
-                    << "  ncyc   = 1000,\n"
-                    << "  ntpr   = 200,\n" 
-                    << "  ntb    = 0,\n" 
-                    << "  igb    = 5,\n" 
-                    << "  gbsa   = 1,\n"
-                    << "  cut    = 15,\n" 
-                    << "  ntr=1,\n" 
-                    << "  restraint_wt=5.0,\n" 
-                    << "  restraintmask='!@H=',\n"        
-                    << " /\n" << std::endl;
-            minFile.close();    
-        }
-	if(jobInput.ambVersion==13){
-            cmd="sander13 -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
-	}else{
-            cmd="sander -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
-        }
-        std::cout <<cmd <<std::endl;
-        system(cmd.c_str());  
+            std::cout <<cmd <<std::endl;
+            system(cmd.c_str());  
 
-        boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
-        std::string sanderOut="Rec_minGB.out";
-        double recGBen=0;
-        bool success=pSanderOutput->getEnergy(sanderOut, recGBen);
-        jobOut.gbEn=recGBen;
+            checkFName="Rec_min_0.pdb";
+            if(!fileExist(checkFName)){
+                std::string message=checkFName+" does not exist.";
+                throw LBindException(message);         
+            }  
 
-        if(!success){
-            std::string message="Receptor GB minimization fails.";
-            throw LBindException(message); 
-            return jobStatus;          
+            cmd="grep -v END Rec_min_0.pdb > Rec_min.pdb ";
+            std::cout <<cmd <<std::endl;
+            system(cmd.c_str());  
+
+            if(jobInput.ambVersion==16){
+                cmd="ambpdb -p REC.prmtop -c Rec_min.rst > Rec_min_1.pdb";  
+            }else{
+                cmd="ambpdb -p REC.prmtop < Rec_min.rst > Rec_min_1.pdb";
+            } 
+
+            std::cout <<cmd <<std::endl;
+            system(cmd.c_str());   
+
+            b4pdbqt="Rec_min_0.pdb";
         }
 
-        if(jobInput.ambVersion==16){
-            cmd="ambpdb -p REC.prmtop -aatm -c Rec_min.rst > Rec_min_0.pdb";   
-        }else{
-            cmd="ambpdb -p REC.prmtop -aatm < Rec_min.rst > Rec_min_0.pdb";
-        }   
+        {
+            boost::scoped_ptr<Pdb> pPdb(new Pdb() );
+            pPdb->standardlize(b4pdbqt, "std4pdbqt.pdb");
+            //cmd="prepare_receptor4.py -r "+b4pdbqt+" -o "+jobOut.pdbid+".pdbqt";
+            cmd="obabel -ipdb std4pdbqt.pdb -opdbqt -xr -O temp.pdbqt >& pdbqt.log";
+            system(cmd.c_str());
+            cmd="grep -v REMARK temp.pdbqt > " + jobOut.pdbid+".pdbqt";
+            system(cmd.c_str());
 
-        std::cout <<cmd <<std::endl;
-        system(cmd.c_str());  
+        }
 
-        checkFName="Rec_min_0.pdb";
+        checkFName=jobOut.pdbid+".pdbqt";
         if(!fileExist(checkFName)){
             std::string message=checkFName+" does not exist.";
-            throw LBindException(message); 
-            return jobStatus;        
-        }  
-
-        cmd="grep -v END Rec_min_0.pdb > Rec_min.pdb ";
-        std::cout <<cmd <<std::endl;
-        system(cmd.c_str());  
-
-        if(jobInput.ambVersion==16){
-            cmd="ambpdb -p REC.prmtop -c Rec_min.rst > Rec_min_1.pdb";  
-        }else{
-            cmd="ambpdb -p REC.prmtop < Rec_min.rst > Rec_min_1.pdb";
+            throw LBindException(message);         
         } 
+        jobOut.recPath="scratch/com/"+jobOut.pdbid+"/rec/"+jobOut.pdbid+".pdbqt";
 
-        std::cout <<cmd <<std::endl;
-        system(cmd.c_str());   
-                
-        b4pdbqt="Rec_min_0.pdb";
-    }
-    
-    {
-        boost::scoped_ptr<Pdb> pPdb(new Pdb() );
-        pPdb->standardlize(b4pdbqt, "std4pdbqt.pdb");
-    	//cmd="prepare_receptor4.py -r "+b4pdbqt+" -o "+jobOut.pdbid+".pdbqt";
-    	cmd="obabel -ipdb std4pdbqt.pdb -opdbqt -xr -O temp.pdbqt >& pdbqt.log";
-    	system(cmd.c_str());
-    	cmd="grep -v REMARK temp.pdbqt > " + jobOut.pdbid+".pdbqt";
-    	system(cmd.c_str());
-    
-    }
-    
-    checkFName=jobOut.pdbid+".pdbqt";
-    if(!fileExist(checkFName)){
-        std::string message=checkFName+" does not exist.";
-        throw LBindException(message);  
-        return jobStatus;        
-    } 
-    jobOut.recPath="scratch/com/"+jobOut.pdbid+"/rec/"+jobOut.pdbid+".pdbqt";
-   
-    // Skip the site calculation
-    if(!jobInput.siteFlg){
-        checkPoint(checkfile, jobOut);         
- 
-        jobStatus=true;
-        return jobStatus;
-    }
-      
-    // Get geometry
-    std::string stdPDBfile="rec_std.pdb";    
-    boost::scoped_ptr<Complex> pComplex(new Complex());
-    boost::scoped_ptr<Pdb> pPdb(new Pdb());
-    pPdb->parse(stdPDBfile, pComplex.get());
-
-    boost::scoped_ptr<ParmContainer> pParmContainer(new ParmContainer());
-    ElementContainer* pElementContainer = pParmContainer->addElementContainer();
-    pComplex->assignElement(pElementContainer);
-
-    boost::scoped_ptr<Surface> pSurface(new Surface(pComplex.get()));
-    std::cout << "Start Calculation " << std::endl;
-    pSurface->run(jobInput.radius, jobInput.surfSphNum);
-    std::cout << " Total SASA is: " << pSurface->getTotalSASA() << std::endl << std::endl;
-
-    boost::scoped_ptr<Grid> pGrid(new Grid(pComplex.get(), true));
-    pGrid->setSpacing(jobInput.spacing);
-    pGrid->setCutoffCoef(jobInput.cutoffCoef);
-    pGrid->run(jobInput.radius, jobInput.gridSphNum, jobInput.minVol);
-    
-    
-    // Calculate the average coordinates for identify active site cavity
-    // Priority 1. Crystal substrate 2. Key residues 3. Top volume
-    Coor3d aveKeyResCoor;
-    
-    bool hasSubResCoor=false;
-    if(fileExist(jobOut.subRes)){
-        std::cout << "jobOut.subRes=" << jobOut.subRes << std::endl;
-        std::string subResFileName=jobOut.subRes;
-        std::string fileExtension=subResFileName.substr(subResFileName.find_last_of(".") + 1);
-        std::cout << "fileExtension=" << fileExtension << std::endl;
-        if( fileExtension == "mol2") {
-            boost::scoped_ptr<Mol2> pMol2(new Mol2());
-            hasSubResCoor=pMol2->calcAverageCoor(subResFileName, aveKeyResCoor);
-            std::cout << "Average coordinates of sbustrate: " << aveKeyResCoor << std::endl;
-        }else if(fileExtension == "pdb"){
-            hasSubResCoor=pPdb->calcAverageCoor(subResFileName, aveKeyResCoor);
-            std::cout << "Average coordinates of sbustrate: " << aveKeyResCoor << std::endl;
+        // Skip the site calculation
+        if(!jobInput.siteFlg){
+            checkPoint(checkfile, jobOut);         
+            return true;
         }
-    }
-    
-    bool hasKeyResCoor=false;
-    if(!hasSubResCoor){
-        hasKeyResCoor=pPdb->aveKeyResCoor(pdbFile, jobInput.keyRes, aveKeyResCoor);
-        if(hasKeyResCoor){
-            std::cout << "Average coordinates of key residues: " << aveKeyResCoor << std::endl;
+
+        // Get geometry
+        std::string stdPDBfile="rec_std.pdb";    
+        boost::scoped_ptr<Complex> pComplex(new Complex());
+        boost::scoped_ptr<Pdb> pPdb(new Pdb());
+        pPdb->parse(stdPDBfile, pComplex.get());
+
+        boost::scoped_ptr<ParmContainer> pParmContainer(new ParmContainer());
+        ElementContainer* pElementContainer = pParmContainer->addElementContainer();
+        pComplex->assignElement(pElementContainer);
+
+        boost::scoped_ptr<Surface> pSurface(new Surface(pComplex.get()));
+        std::cout << "Start Calculation " << std::endl;
+        pSurface->run(jobInput.radius, jobInput.surfSphNum);
+        std::cout << " Total SASA is: " << pSurface->getTotalSASA() << std::endl << std::endl;
+
+        boost::scoped_ptr<Grid> pGrid(new Grid(pComplex.get(), true));
+        pGrid->setSpacing(jobInput.spacing);
+        pGrid->setCutoffCoef(jobInput.cutoffCoef);
+        pGrid->run(jobInput.radius, jobInput.gridSphNum, jobInput.minVol);
+
+
+        // Calculate the average coordinates for identify active site cavity
+        // Priority 1. Crystal substrate 2. Key residues 3. Top volume
+        Coor3d aveKeyResCoor;
+
+        bool hasSubResCoor=false;
+        if(fileExist(jobOut.subRes)){
+            std::cout << "jobOut.subRes=" << jobOut.subRes << std::endl;
+            std::string subResFileName=jobOut.subRes;
+            std::string fileExtension=subResFileName.substr(subResFileName.find_last_of(".") + 1);
+            std::cout << "fileExtension=" << fileExtension << std::endl;
+            if( fileExtension == "mol2") {
+                boost::scoped_ptr<Mol2> pMol2(new Mol2());
+                hasSubResCoor=pMol2->calcAverageCoor(subResFileName, aveKeyResCoor);
+                std::cout << "Average coordinates of sbustrate: " << aveKeyResCoor << std::endl;
+            }else if(fileExtension == "pdb"){
+                hasSubResCoor=pPdb->calcAverageCoor(subResFileName, aveKeyResCoor);
+                std::cout << "Average coordinates of sbustrate: " << aveKeyResCoor << std::endl;
+            }
         }
+
+        bool hasKeyResCoor=false;
+        if(!hasSubResCoor){
+            hasKeyResCoor=pPdb->aveKeyResCoor(pdbFile, jobInput.keyRes, aveKeyResCoor);
+            if(hasKeyResCoor){
+                std::cout << "Average coordinates of key residues: " << aveKeyResCoor << std::endl;
+            }
+        }
+
+        Coor3d dockDim;
+        Coor3d centroid; 
+
+        bool hasKeyDockGeo=false;
+        if(hasKeyResCoor || hasSubResCoor){
+            hasKeyDockGeo=pGrid->getKeySiteGeo(aveKeyResCoor, dockDim, centroid, jobOut.volume);
+        }
+
+        if(!hasKeyDockGeo){
+            pGrid->getTopSiteGeo(dockDim, centroid, jobOut.volume);
+        }
+
+        jobOut.centroid=centroid;
+        jobOut.dimension=dockDim;
+
+        std::ofstream outFile;
+        outFile.open("rec_geo.txt");
+        outFile << centroid.getX() << " " << centroid.getY() << " " << centroid.getZ() << " " 
+                 << dockDim.getX() << " " << dockDim.getY() << " "  << dockDim.getZ() << "\n";
+        outFile.close();
+        //delete pElementContainer;
+    
+    } catch (LBindException& e){
+        jobOut.message=e.what();
+        checkPoint(checkfile, jobOut);  
+        return false;
     }
-        
-    Coor3d dockDim;
-    Coor3d centroid; 
-    
-    bool hasKeyDockGeo=false;
-    if(hasKeyResCoor || hasSubResCoor){
-        hasKeyDockGeo=pGrid->getKeySiteGeo(aveKeyResCoor, dockDim, centroid, jobOut.volume);
-    }
-    
-    if(!hasKeyDockGeo){
-        pGrid->getTopSiteGeo(dockDim, centroid, jobOut.volume);
-    }
-    
-    jobOut.centroid=centroid;
-    jobOut.dimension=dockDim;
-    
-    std::ofstream outFile;
-    outFile.open("rec_geo.txt");
-    outFile << centroid.getX() << " " << centroid.getY() << " " << centroid.getZ() << " " 
-             << dockDim.getX() << " " << dockDim.getY() << " "  << dockDim.getZ() << "\n";
-    outFile.close();
-    //delete pElementContainer;
 
     checkPoint(checkfile, jobOut);     
     
     //END    
-    jobStatus=true;
-    return jobStatus;
+    return true;
 }
 
 struct RecData{
@@ -914,14 +914,9 @@ int main(int argc, char** argv) {
                                     
             jobOut.message="Finished!";
 //            strcpy(jobOut.message, "Finished!");
-            try{
-                jobOut.error=preReceptor(jobInput, jobOut, workDir, inputDir, dataPath);            
-            } catch (LBindException& e){
-//                std::string message= e.what();  
-//                strcpy(jobOut.message, message.c_str());
-                jobOut.message=e.what();
-            }            
-            
+
+            jobOut.error=preReceptor(jobInput, jobOut, workDir, inputDir, dataPath);            
+                        
 //            MPI_Send(&jobOut, sizeof(JobOutData), MPI_CHAR, 0, outTag, MPI_COMM_WORLD);    
             world.send(0, outTag, jobOut);
            

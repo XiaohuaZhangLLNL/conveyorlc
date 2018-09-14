@@ -55,11 +55,11 @@
 #include "mainProcedure.h"
 
 
-void getScores(std::string& log, std::vector<double>& scores){
+bool getScores(std::string& log, std::vector<double>& scores){
 
     std::vector<std::string> lines;
     tokenize(log, lines, "\n");  
-    if(lines.size()<5) return;
+    if(lines.size()<5)  return false;
 
     for (unsigned i = 4; i < lines.size(); ++i) {
         std::vector<std::string> values;
@@ -69,7 +69,10 @@ void getScores(std::string& log, std::vector<double>& scores){
             scores.push_back(score);
         }
     }
-    return;
+    
+    if(scores.size()==0) return false;
+    
+    return true;
 }
 
 int dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
@@ -194,8 +197,12 @@ int dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
         outFile.close();
         
         jobOut.scores.clear();
-        getScores(logStr, jobOut.scores);
-        jobOut.mesg="Finished!";
+        bool success=getScores(logStr, jobOut.scores);
+        if(success){
+            jobOut.mesg="Finished!";
+        }else{
+            jobOut.mesg="No scores!";
+        }
         jobOut.nonRes=jobInput.nonRes;
 
         

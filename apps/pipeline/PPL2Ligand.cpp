@@ -224,195 +224,198 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
     std::string checkfile=workDir+"/scratch/lig/"+jobOut.ligID+"/checkpoint.txt";    
     if(isRun(checkfile, jobOut)) return true;
     
-    jobOut.gbEn=0.0;        
-    std::string sdfPath=subDir+"/ligand.sdf";
-  
-    std::string cmd="mkdir -p "+subDir;
-    system(cmd.c_str());  
-    
-    std::ofstream outFile;
-    try {
-        outFile.open(sdfPath.c_str());
-    }
-    catch(...){
-        std::cout << "preLigands >> Cannot open file" << sdfPath << std::endl;
-    }
+    try{
+        jobOut.gbEn=0.0;        
+        std::string sdfPath=subDir+"/ligand.sdf";
 
-    outFile <<jobInput.sdfBuffer;
-    outFile.close();     
-    
-    if(!fileExist(sdfPath)){
-        std::string message=sdfPath+" does not exist.";
-        throw LBindException(message);  
-        return jobStatus;          
-    }
-    
-    chdir(subDir.c_str());
+        std::string cmd="mkdir -p "+subDir;
+        system(cmd.c_str());  
 
-    std::string sdfFile="ligand.sdf";
-    std::string pdb1File="ligand.pdb";
-    
-    cmd="obabel -isdf " + sdfFile + " -opdb -O " +pdb1File +" >> log";
-    std::cout << cmd << std::endl;
-    std::string echo="echo ";
-    echo=echo+cmd+" > log";
-    system(echo.c_str());
-    system(cmd.c_str());
-    
-    std::string pdbFile="ligrn.pdb";
-    std::string tmpFile="ligstrp.pdb";
-    
-    boost::scoped_ptr<Pdb> pPdb(new Pdb());   
-    
-    //! Rename the atom name.
-    pPdb->renameAtom(pdb1File, pdbFile);
-    
-    pPdb->strip(pdbFile, tmpFile);
-    
-    //! Get ligand charge from SDF file.
-    std::string keyword="TOTAL_CHARGE";
-    
-    boost::scoped_ptr<Sdf> pSdf(new Sdf());
-    std::string info=pSdf->getInfo(sdfFile, keyword);
-    if(jobInput.cmpName=="NoName"){
-        jobOut.ligName=pSdf->getTitle(sdfFile);
-    }else{
-        jobOut.ligName=pSdf->getInfo(sdfFile, jobInput.cmpName);
-    }
-    
-    std::cout << "Charge:" << info << std::endl;
-    int charge=Sstrm<int, std::string>(info);
-    std::string chargeStr=Sstrm<std::string,int>(charge);
-    
-    //! Start antechamber calculation
-    std::string output="ligand.mol2";
-    std::string options=" -c bcc -nc "+ chargeStr;
-        
-    boost::scoped_ptr<Amber> pAmber(new Amber(jobInput.ambVersion));
-    pAmber->antechamber(tmpFile, output, options);
-    
-    pAmber->parmchk(output);
-    
-    //! leap to obtain forcefield for ligand
-    std::string ligName="LIG";
-    std::string tleapFile="leap.in";
-    
-    pAmber->tleapInput(output,ligName,tleapFile);
-    pAmber->tleap(tleapFile); 
-    
-    std::string checkFName="LIG.prmtop";
-    if(!fileExist(checkFName)){
-        std::string message="LIG.prmtop does not exist.";
-        throw LBindException(message); 
-        return jobStatus;        
-    }
-   
-    //! GB energy minimization
-    std::string minFName="LIG_minGB.in";
-    {
-        std::ofstream minFile;
+        std::ofstream outFile;
         try {
-            minFile.open(minFName.c_str());
+            outFile.open(sdfPath.c_str());
         }
         catch(...){
-            std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
-            throw LBindException(mesg);
-        }   
+            std::cout << "preLigands >> Cannot open file" << sdfPath << std::endl;
+        }
 
-        minFile << "title..\n" 
-                << "&cntrl\n" 
-                << "  imin   = 1,\n" 
-                << "  ntmin   = 3,\n" 
-                << "  maxcyc = 2000,\n" 
-                << "  ncyc   = 1000,\n" 
-                << "  ntpr   = 200,\n" 
-                << "  ntb    = 0,\n" 
-                << "  igb    = 5,\n" 
-                << "  gbsa   = 1,\n" 
-                << "  cut    = 15,\n"       
-                << " /\n" << std::endl;
+        outFile <<jobInput.sdfBuffer;
+        outFile.close();     
 
-        minFile.close();    
-    }          
-    
-    if(jobInput.ambVersion==13){
-        cmd="sander13  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
-    }else{
-        cmd="sander  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
+        if(!fileExist(sdfPath)){
+            std::string message=sdfPath+" does not exist.";
+            throw LBindException(message);  
+            return jobStatus;          
+        }
+
+        chdir(subDir.c_str());
+
+        std::string sdfFile="ligand.sdf";
+        std::string pdb1File="ligand.pdb";
+
+        cmd="obabel -isdf " + sdfFile + " -opdb -O " +pdb1File +" >> log";
+        std::cout << cmd << std::endl;
+        std::string echo="echo ";
+        echo=echo+cmd+" > log";
+        system(echo.c_str());
+        system(cmd.c_str());
+
+        std::string pdbFile="ligrn.pdb";
+        std::string tmpFile="ligstrp.pdb";
+
+        boost::scoped_ptr<Pdb> pPdb(new Pdb());   
+
+        //! Rename the atom name.
+        pPdb->renameAtom(pdb1File, pdbFile);
+
+        pPdb->strip(pdbFile, tmpFile);
+
+        //! Get ligand charge from SDF file.
+        std::string keyword="TOTAL_CHARGE";
+
+        boost::scoped_ptr<Sdf> pSdf(new Sdf());
+        std::string info=pSdf->getInfo(sdfFile, keyword);
+        if(jobInput.cmpName=="NoName"){
+            jobOut.ligName=pSdf->getTitle(sdfFile);
+        }else{
+            jobOut.ligName=pSdf->getInfo(sdfFile, jobInput.cmpName);
+        }
+
+        std::cout << "Charge:" << info << std::endl;
+        int charge=Sstrm<int, std::string>(info);
+        std::string chargeStr=Sstrm<std::string,int>(charge);
+
+        //! Start antechamber calculation
+        std::string output="ligand.mol2";
+        std::string options=" -c bcc -nc "+ chargeStr;
+
+        boost::scoped_ptr<Amber> pAmber(new Amber(jobInput.ambVersion));
+        pAmber->antechamber(tmpFile, output, options);
+
+        pAmber->parmchk(output);
+
+        //! leap to obtain forcefield for ligand
+        std::string ligName="LIG";
+        std::string tleapFile="leap.in";
+
+        pAmber->tleapInput(output,ligName,tleapFile);
+        pAmber->tleap(tleapFile); 
+
+        std::string checkFName="LIG.prmtop";
+        if(!fileExist(checkFName)){
+            std::string message="LIG.prmtop does not exist.";
+            throw LBindException(message);        
+        }
+
+        //! GB energy minimization
+        std::string minFName="LIG_minGB.in";
+        {
+            std::ofstream minFile;
+            try {
+                minFile.open(minFName.c_str());
+            }
+            catch(...){
+                std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
+                throw LBindException(mesg);
+            }   
+
+            minFile << "title..\n" 
+                    << "&cntrl\n" 
+                    << "  imin   = 1,\n" 
+                    << "  ntmin   = 3,\n" 
+                    << "  maxcyc = 2000,\n" 
+                    << "  ncyc   = 1000,\n" 
+                    << "  ntpr   = 200,\n" 
+                    << "  ntb    = 0,\n" 
+                    << "  igb    = 5,\n" 
+                    << "  gbsa   = 1,\n" 
+                    << "  cut    = 15,\n"       
+                    << " /\n" << std::endl;
+
+            minFile.close();    
+        }          
+
+        if(jobInput.ambVersion==13){
+            cmd="sander13  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
+        }else{
+            cmd="sander  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
+        }
+        std::cout <<cmd <<std::endl;
+        echo="echo ";
+        echo=echo+cmd+" >> log";
+        system(echo.c_str());
+        system(cmd.c_str()); 
+        boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
+        std::string sanderOut="LIG_minGB.out";
+        double ligGBen=0;
+        bool success=pSanderOutput->getEnergy(sanderOut,ligGBen);
+        jobOut.gbEn=ligGBen;
+
+        if(!success){
+            std::string message="Ligand GB minimization fails.";
+            throw LBindException(message);          
+        }
+
+        //! Use ambpdb generated PDB file for PDBQT.
+        if(jobInput.ambVersion==16){
+            cmd="ambpdb -p LIG.prmtop -c LIG_min.rst > LIG_minTmp.pdb "; 
+        }else{
+            cmd="ambpdb -p LIG.prmtop < LIG_min.rst > LIG_minTmp.pdb ";
+        } 
+
+        std::cout <<cmd <<std::endl;
+        echo="echo ";
+        echo=echo+"\'"+cmd+"\'  >> log";
+        system(echo.c_str());    
+        system(cmd.c_str());    
+
+        checkFName="LIG_minTmp.pdb";
+        if(!fileExist(checkFName)){
+            std::string message="LIG_min.pdb minimization PDB file does not exist.";
+            throw LBindException(message);         
+        }
+
+        pPdb->fixElement("LIG_minTmp.pdb", "LIG_min.pdb"); 
+
+
+
+        //! Get DPBQT file for ligand from minimized structure.
+        cmd="prepare_ligand4.py -l LIG_min.pdb  >> log";
+        std::cout << cmd << std::endl;
+        echo="echo ";
+        echo=echo+cmd+" >> log";
+        system(echo.c_str());    
+        system(cmd.c_str());
+
+        checkFName="LIG_min.pdbqt";
+        if(!fileExist(checkFName)){
+            std::string message="LIG_min.pdbqt PDBQT file does not exist.";
+            throw LBindException(message);         
+        } 
+
+        //! fix the Br element type
+        cmd="sed -i '/Br.* LIG/{s! B ! Br!}' LIG_min.pdbqt";
+        std::cout << cmd << std::endl;
+        echo="echo ";
+        echo=echo+cmd+" >> log";
+        system(echo.c_str());
+        system(cmd.c_str());
+
+
+        //cmd="rm -f *.in divcon.pdb fort.7 leap.log mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
+        cmd="rm -f divcon.pdb fort.7 leap.log mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
+        std::cout <<cmd <<std::endl;    
+        system(cmd.c_str());
+
+    } catch (LBindException& e){
+        jobOut.message= e.what();  
+        checkPoint(checkfile, jobOut);
+        return false;
     }
-    std::cout <<cmd <<std::endl;
-    echo="echo ";
-    echo=echo+cmd+" >> log";
-    system(echo.c_str());
-    system(cmd.c_str()); 
-    boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
-    std::string sanderOut="LIG_minGB.out";
-    double ligGBen=0;
-    bool success=pSanderOutput->getEnergy(sanderOut,ligGBen);
-    jobOut.gbEn=ligGBen;
     
-    if(!success){
-        std::string message="Ligand GB minimization fails.";
-        throw LBindException(message); 
-        return jobStatus;          
-    }
-    
-    //! Use ambpdb generated PDB file for PDBQT.
-    if(jobInput.ambVersion==16){
-        cmd="ambpdb -p LIG.prmtop -c LIG_min.rst > LIG_minTmp.pdb "; 
-    }else{
-        cmd="ambpdb -p LIG.prmtop < LIG_min.rst > LIG_minTmp.pdb ";
-    } 
-       
-    std::cout <<cmd <<std::endl;
-    echo="echo ";
-    echo=echo+"\'"+cmd+"\'  >> log";
-    system(echo.c_str());    
-    system(cmd.c_str());    
-
-    checkFName="LIG_minTmp.pdb";
-    if(!fileExist(checkFName)){
-        std::string message="LIG_min.pdb minimization PDB file does not exist.";
-        throw LBindException(message);  
-        return jobStatus;        
-    }
-    
-    pPdb->fixElement("LIG_minTmp.pdb", "LIG_min.pdb"); 
-    
-    
-        
-    //! Get DPBQT file for ligand from minimized structure.
-    cmd="prepare_ligand4.py -l LIG_min.pdb  >> log";
-    std::cout << cmd << std::endl;
-    echo="echo ";
-    echo=echo+cmd+" >> log";
-    system(echo.c_str());    
-    system(cmd.c_str());
-
-    checkFName="LIG_min.pdbqt";
-    if(!fileExist(checkFName)){
-        std::string message="LIG_min.pdbqt PDBQT file does not exist.";
-        throw LBindException(message); 
-        return jobStatus;        
-    } 
-    
-    //! fix the Br element type
-    cmd="sed -i '/Br.* LIG/{s! B ! Br!}' LIG_min.pdbqt";
-    std::cout << cmd << std::endl;
-    echo="echo ";
-    echo=echo+cmd+" >> log";
-    system(echo.c_str());
-    system(cmd.c_str());
-
     checkPoint(checkfile, jobOut);
     
-    //cmd="rm -f *.in divcon.pdb fort.7 leap.log mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
-    cmd="rm -f divcon.pdb fort.7 leap.log mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
-    std::cout <<cmd <<std::endl;    
-    system(cmd.c_str());
-    
-    jobStatus=true;
-    return jobStatus;
+    return true;
 }
 
 
@@ -688,13 +691,9 @@ int main(int argc, char** argv) {
                         
             jobOut.ligID=jobInput.dirBuffer;
             jobOut.message="Finished!";
-            try{
-                bool jobStatus=preLigands(jobInput, jobOut, workDir);            
-                jobOut.error=jobStatus;
-            } catch (LBindException& e){
-                jobOut.message= e.what();  
-            }
-            
+
+            jobOut.error==preLigands(jobInput, jobOut, workDir);            
+          
 //            MPI_Send(&jobOut, sizeof(JobOutData), MPI_CHAR, 0, outTag, MPI_COMM_WORLD);
             world.send(0, outTag, jobOut);
         }

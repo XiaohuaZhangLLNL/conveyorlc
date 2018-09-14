@@ -127,3 +127,10 @@
 /tests/Sql/runSqlMedCM.sh
 /tests/Sql/pdbid.idx
 /tests/Sql/MedCM.db
+/apps/pipeline/PPL2VolumeFilter
+/apps/pipeline/cmake_install.cmake
+/apps/cmake_install.cmake
+/cmake_install.cmake
+/install_manifest.txt
+/compile_commands.json
+/CMakeCache.txt

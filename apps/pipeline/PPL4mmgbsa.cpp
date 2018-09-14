@@ -208,12 +208,19 @@ bool mmgbsa(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, st
     
     if(isRun(checkfile, jobOut)) return true;
     
-    boost::scoped_ptr<MMGBSA> pMMGBSA(new MMGBSA(jobInput.dirBuffer, jobInput.ligBuffer, jobInput.nonRes, workDir, inputDir, jobInput.ambVersion));
-    pMMGBSA->run(jobInput.poseBuffer, jobInput.restart); 
-  
-    jobOut.gbbind=pMMGBSA->getbindGB(); 
-    jobOut.score=pMMGBSA->getScore();
+    try{
+        boost::scoped_ptr<MMGBSA> pMMGBSA(new MMGBSA(jobInput.dirBuffer, jobInput.ligBuffer, jobInput.nonRes, workDir, inputDir, jobInput.ambVersion));
+        pMMGBSA->run(jobInput.poseBuffer, jobInput.restart); 
 
+        jobOut.gbbind=pMMGBSA->getbindGB(); 
+        jobOut.score=pMMGBSA->getScore();
+
+    } catch (LBindException& e){
+        jobOut.message= e.what(); 
+        checkPoint(checkfile, jobOut);  
+        return false;
+    } 
+        
     checkPoint(checkfile, jobOut);      
     return true;
 }
@@ -461,12 +468,9 @@ int main(int argc, char** argv) {
             world.recv(0, inpTag, jobInput);
             
             jobOut.message="Finished!";
-            try{
-                jobOut.error=mmgbsa(jobInput, jobOut, workDir, inputDir);            
-            } catch (LBindException& e){
-                jobOut.message= e.what();  
-            }            
 
+            jobOut.error=mmgbsa(jobInput, jobOut, workDir, inputDir);            
+           
 //            MPI_Send(&jobOut, sizeof(JobOutData), MPI_CHAR, 0, outTag, MPI_COMM_WORLD);
             world.send(0, outTag, jobOut);
             

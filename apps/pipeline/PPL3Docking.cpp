@@ -141,8 +141,12 @@ bool isRun(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
     }
      
     jobOut.scores.clear();
-    getScores(logStr, jobOut.scores);
-    jobOut.mesg="Finished!";
+    bool success=getScores(logStr, jobOut.scores);
+    if(success){
+        jobOut.mesg="Finished!";
+    }else{
+        jobOut.mesg="No scores!";
+    }
     jobOut.nonRes=jobInput.nonRes;
 
     jobOut.pdbID=jobInput.recBuffer;
