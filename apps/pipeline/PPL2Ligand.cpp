@@ -335,7 +335,11 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         minFile.close();    
     }          
     
-    cmd="sander  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
+    if(jobInput.ambVersion==13){
+        cmd="sander13  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
+    }else{
+        cmd="sander  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
+    }
     std::cout <<cmd <<std::endl;
     echo="echo ";
     echo=echo+cmd+" >> log";

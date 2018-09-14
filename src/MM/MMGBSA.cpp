@@ -92,7 +92,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
             std::string mesg="mmgbsa::receptor()\n\t Cannot open tleap file: "+tleapFName;
             throw LBindException(mesg);
         }   
-        if(version==16){
+        if(version==16 || version==13){
             tleapFile << "source leaprc.ff14SB" << std::endl;
         }else{
             tleapFile << "source leaprc.ff99SB" << std::endl;
@@ -136,7 +136,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
             throw LBindException(mesg);
         }   
 
-        if(version==16){
+        if(version==16 || version==13){
             tleapFile << "source leaprc.ff14SB" << std::endl;
         }else{
             tleapFile << "source leaprc.ff99SB" << std::endl;
@@ -201,8 +201,13 @@ void MMGBSA::run(std::string& poseID, bool restart){
     }          
     
     sanderOut="Com_min_GB_"+poseID+".out";
-    cmd="sander  -O -i Com_min.in -o "+sanderOut+" -p Com.prmtop -c Com.inpcrd -ref Com.inpcrd  -x Com_" 
+    if(version==13){
+        cmd="sander13  -O -i Com_min.in -o "+sanderOut+" -p Com.prmtop -c Com.inpcrd -ref Com.inpcrd  -x Com_" 
             +poseID+".mdcrd"+" -r Com_min"+poseID+".rst";
+    }else{
+        cmd="sander  -O -i Com_min.in -o "+sanderOut+" -p Com.prmtop -c Com.inpcrd -ref Com.inpcrd  -x Com_" 
+            +poseID+".mdcrd"+" -r Com_min"+poseID+".rst";
+    }
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
     
@@ -239,7 +244,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
             throw LBindException(mesg);
         }
         
-        if (version == 16) {
+        if (version == 16 || version==13) {
             tleapFile << "source leaprc.ff14SB\n";
         } else {
             tleapFile << "source leaprc.ff99SB\n";
@@ -305,7 +310,11 @@ void MMGBSA::run(std::string& poseID, bool restart){
         minFile.close();    
     }
     
-    cmd="sander -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
+    if(version==13){
+        cmd="sander13 -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
+    }else{
+        cmd="sander -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
+    }
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());  
     

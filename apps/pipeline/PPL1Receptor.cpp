@@ -387,7 +387,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             return jobStatus;        
         }     
 
-        if(jobInput.ambVersion==16){
+        if(jobInput.ambVersion==16 || jobInput.ambVersion==13){
             cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/amber16_reduce_wwPDB_het_dict.txt\" >& rec_rd.pdb";
         }else{
             cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/amber10_reduce_wwPDB_het_dict.txt\" >& rec_rd.pdb";
@@ -435,7 +435,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
                 throw LBindException(mesg);
             }
 
-            if(jobInput.ambVersion==16){
+            if(jobInput.ambVersion==16 || jobInput.ambVersion==13){
                 tleapFile << "source leaprc.ff14SB\n";    
             }else{
                 tleapFile << "source leaprc.ff99SB\n";
@@ -498,8 +498,11 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
                     << " /\n" << std::endl;
             minFile.close();    
         }
-
-        cmd="sander -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
+	if(jobInput.ambVersion==13){
+            cmd="sander13 -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
+	}else{
+            cmd="sander -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
+        }
         std::cout <<cmd <<std::endl;
         system(cmd.c_str());  
 

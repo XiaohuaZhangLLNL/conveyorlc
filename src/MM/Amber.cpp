@@ -94,7 +94,7 @@ void Amber::ligLeapInput(std::string pdbid, std::string ligName, std::string tle
         throw LBindException(mesg);
     }   
 
-    if(version==16){
+    if(version==16 || version==13){
         tleapFile << "source leaprc.ff14SB" << std::endl;
     }else{
         tleapFile << "source leaprc.ff99SB" << std::endl;
@@ -126,7 +126,7 @@ void Amber::comLeapInput(std::string pdbid, std::string ligName, std::string tle
         throw LBindException(mesg);
     }   
     
-    if(version==16){
+    if(version==16 || version==13){
         tleapFile << "source leaprc.ff14SB" << std::endl;
     }else{
         tleapFile << "source leaprc.ff99SB" << std::endl;
@@ -157,7 +157,7 @@ void Amber::tleapInput(std::string& mol2FName, std::string& ligName, std::string
     
     std::string mol2FBase=mol2FName.substr(0,mol2FName.size()-5);
        
-    if(version==16){
+    if(version==16  || version==13){
         tleapFile << "source leaprc.ff14SB" << std::endl;
     }else{
         tleapFile << "source leaprc.ff99SB" << std::endl;
@@ -205,8 +205,14 @@ void Amber::minimization(std::string pdbid){
     minFile.close();    
 
     //! sander -O -i min.in -o 1FKO_sus_min.out -p 1FKO_sus.prmtop -c 1FKO_sus.inpcrd  -r 1FKO_sus_min.crd  & 
-    std::string cmd=AMBERPATH +"/bin/sander -O -i "+pdbid+"-min.in -o "+pdbid+"-min.out -p "
+    std::string cmd;
+    if(version==13){
+    	cmd=AMBERPATH +"/bin/sander13 -O -i "+pdbid+"-min.in -o "+pdbid+"-min.out -p "
             +pdbid +".prmtop -c " + pdbid +".inpcrd -r "+pdbid+"-min.crd";
+    }else{
+    	cmd=AMBERPATH +"/bin/sander -O -i "+pdbid+"-min.in -o "+pdbid+"-min.out -p "
+            +pdbid +".prmtop -c " + pdbid +".inpcrd -r "+pdbid+"-min.crd";
+    }
     std::cout << cmd << std::endl;
     system(cmd.c_str());       
     
