@@ -512,13 +512,13 @@ void Grid::siteCentroid(std::vector<Coor3d*>& clust) {
     double yDim=yMax-yMin;
     double zDim=zMax-zMin;
     
-    double xDock=xDim+10;
-    double yDock=yDim+10;
-    double zDock=zDim+10;
+    double xDock=xDim+4;
+    double yDock=yDim+4;
+    double zDock=zDim+4;
     
-    if(xDock<22) xDock=22;
-    if(yDock<22) yDock=22;
-    if(zDock<22) zDock=22;
+    //if(xDock<22) xDock=22;
+    //if(yDock<22) yDock=22;
+    //if(zDock<22) zDock=22;
     
     
     ss << "      Box dimension:" << std::endl;
@@ -631,13 +631,13 @@ void Grid::siteCentroid(std::vector<Coor3d*>& clust, Coor3d& dockDim, Coor3d& ce
     double yDim=yMax-yMin;
     double zDim=zMax-zMin;
     
-    double xDock=xDim+10;
-    double yDock=yDim+10;
-    double zDock=zDim+10;
+    double xDock=xDim+4;
+    double yDock=yDim+4;
+    double zDock=zDim+4;
     
-    if(xDock<22) xDock=22;
-    if(yDock<22) yDock=22;
-    if(zDock<22) zDock=22;    
+    //if(xDock<22) xDock=22;
+    //if(yDock<22) yDock=22;
+    //if(zDock<22) zDock=22;    
     
     dockDim.set(xDock, yDock, zDock);
 }
