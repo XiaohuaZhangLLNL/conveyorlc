@@ -1,0 +1,11 @@
+<Ligands>
+    
+    <Ligand>
+        <LigID>1</LigID>
+        <LigName>28_S_27_35_30_29</LigName>
+        <PDBPath>scratch/lig/1/LIG_min.pdb</PDBPath>
+        <PDBQTPath>scratch/lig/1/LIG_min.pdbqt</PDBQTPath>
+        <GBEN>0</GBEN>
+        <Mesg>LIG.prmtop does not exist.</Mesg>
+    </Ligand>
+    </Ligands>

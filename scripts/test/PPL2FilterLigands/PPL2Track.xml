@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<Ligands>
+    <!-- Tracking calculation error using XML file -->
+    <Ligand>
+        <LigID>1</LigID>
+        <LigName>28_S_27_35_30_29</LigName>
+        <PDBPath>scratch/lig/1/LIG_min.pdb</PDBPath>
+        <PDBQTPath>scratch/lig/1/LIG_min.pdbqt</PDBQTPath>
+        <GBEN>0</GBEN>
+        <Mesg>LIG.prmtop does not exist.</Mesg>
+    </Ligand>
+    <Ligand>
+        <LigID>2</LigID>
+        <LigName>9_S_8_16_11_10</LigName>
+        <PDBPath>scratch/lig/2/LIG_min.pdb</PDBPath>
+        <PDBQTPath>scratch/lig/2/LIG_min.pdbqt</PDBQTPath>
+        <GBEN>-495.06</GBEN>
+        <Mesg>Finished!</Mesg>
+    </Ligand>
+    <Ligand>
+        <LigID>3</LigID>
+        <LigName>9_S_8_16_11_10</LigName>
+        <PDBPath>scratch/lig/3/LIG_min.pdb</PDBPath>
+        <PDBQTPath>scratch/lig/3/LIG_min.pdbqt</PDBQTPath>
+        <GBEN>-517.13</GBEN>
+        <Mesg>Finished!</Mesg>
+    </Ligand>
+</Ligands>
