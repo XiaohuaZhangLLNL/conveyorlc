@@ -24,6 +24,11 @@ target_link_libraries(PPL4mmgbsa LBind ${Boost_LIBRARIES} ${MPI_CXX_LIBRARIES})
 set_target_properties(PPL4mmgbsa PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(TARGETS PPL4mmgbsa DESTINATION bin)
 
+add_executable(PPL4PostProcess PPL4PostProcess.cpp PPL4mmgbsaPO.cpp)
+target_link_libraries(PPL4PostProcess LBind ${Boost_LIBRARIES} ${MPI_CXX_LIBRARIES})
+set_target_properties(PPL4PostProcess PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+install(TARGETS PPL4PostProcess DESTINATION bin)
+
 add_executable(PPL4parseXML PPL4parseXML.cpp)
 target_link_libraries(PPL4parseXML LBind ${Boost_LIBRARIES})
 set_target_properties(PPL4parseXML PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)

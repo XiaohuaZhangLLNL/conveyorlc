@@ -45,6 +45,11 @@ bool fileExist(std::string& pathFile){
     return my_file.good();    
 }
 
+bool fileEmpty(std::string& pathFile){    
+    std::ifstream pFile(pathFile.c_str());
+    return pFile.peek() == std::ifstream::traits_type::eof();
+}
+
 // !low overhead
 int getFileSizebyCommand(std::string& pathFile){
     int size=0;

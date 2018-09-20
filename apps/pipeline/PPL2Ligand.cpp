@@ -292,6 +292,18 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         boost::scoped_ptr<Amber> pAmber(new Amber(jobInput.ambVersion));
         pAmber->antechamber(tmpFile, output, options);
 
+        {
+            if(!fileExist(output)){
+                std::string message="ligand.mol2 does not exist.";
+                throw LBindException(message);        
+            }
+
+            if(fileEmpty(output)){
+                std::string message="ligand.mol2 is empty.";
+                throw LBindException(message);              
+            }
+        }        
+        
         pAmber->parmchk(output);
 
         //! leap to obtain forcefield for ligand
@@ -302,9 +314,16 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         pAmber->tleap(tleapFile); 
 
         std::string checkFName="LIG.prmtop";
-        if(!fileExist(checkFName)){
-            std::string message="LIG.prmtop does not exist.";
-            throw LBindException(message);        
+        {
+            if(!fileExist(checkFName)){
+                std::string message="LIG.prmtop does not exist.";
+                throw LBindException(message);        
+            }
+
+            if(fileEmpty(checkFName)){
+                std::string message="LIG.prmtop is empty.";
+                throw LBindException(message);              
+            }
         }
 
         //! GB energy minimization
@@ -388,11 +407,18 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         system(cmd.c_str());
 
         checkFName="LIG_min.pdbqt";
-        if(!fileExist(checkFName)){
-            std::string message="LIG_min.pdbqt PDBQT file does not exist.";
-            throw LBindException(message);         
-        } 
+        {
+            if(!fileExist(checkFName)){
+                std::string message="LIG_min.pdbqt PDBQT file does not exist.";
+                throw LBindException(message);        
+            }
 
+            if(fileEmpty(checkFName)){
+                std::string message="LIG_min.pdbqt is empty.";
+                throw LBindException(message);              
+            }
+        }
+        
         //! fix the Br element type
         cmd="sed -i '/Br.* LIG/{s! B ! Br!}' LIG_min.pdbqt";
         std::cout << cmd << std::endl;
