@@ -154,7 +154,7 @@ void checkPoint(std::string& checkfile, std::vector<PoseData>& poseDataVec) {
 
     std::ofstream outFile(checkfile.c_str());
     for (int i = 0; i < poseDataVec.size(); ++i) {
-        PoseData poseData = poseDataVec[0];
+        PoseData poseData = poseDataVec[i];
         outFile << "recID:" << poseData.recID << "|"
                 << "ligID:" << poseData.ligID << "|"
                 << "poseID:" << poseData.poseID << "|"
@@ -211,6 +211,7 @@ bool postprocess(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         for (int i = 0; i < jobInput.poseIDs.size(); ++i) {
             std::string poseID = jobInput.poseIDs[i];
             std::string poseCheckfile = workDir + "/scratch/com/" + jobOut.recID + "/gbsa/lig_" + jobOut.ligID + "/pose_" + poseID + "/checkpoint.txt";
+            //std::cout << poseCheckfile << std::endl;
             if (isRun(poseCheckfile)) {
                 PoseData poseData;
                 poseData.recID = jobOut.recID;
@@ -226,7 +227,7 @@ bool postprocess(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
 
         std::string ligDir = workDir + "/scratch/com/" + jobOut.recID + "/gbsa";
         chdir(ligDir.c_str());
-        std::string cmd = "tar -zcvf lig_" + jobOut.ligID + ".tar.gz";
+        std::string cmd = "tar -zcf lig_" + jobOut.ligID + ".tar.gz lig_" + jobOut.ligID;
         int status = system(cmd.c_str());
         if (status < 0) {
             std::string message = strerror(errno);
@@ -238,6 +239,11 @@ bool postprocess(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
                 throw LBindException("tar exited abnormaly");
             }
         }
+        std::string ligTarfile="lig_" + jobOut.ligID + ".tar.gz";
+        if(!fileExist(ligTarfile)) throw LBindException(ligTarfile+" not exist");
+        if(fileEmpty(ligTarfile)) throw LBindException(ligTarfile+" is empty");
+        cmd="rm -rf lig_" + jobOut.ligID;
+        system(cmd.c_str());
     } catch (LBindException& e) {
         jobOut.message = e.what();
         return false;
@@ -371,24 +377,26 @@ int main(int argc, char** argv) {
 
                 XMLNode* scoresnode = comNode->FirstChild("Scores");
                 assert(scoresnode);                
+ 
+		jobInput.poseIDs.clear();
+                for (XMLNode* poseNode = scoresnode->FirstChild(); poseNode != 0; poseNode = poseNode->NextSibling()) {
+                    std::string poseID = poseNode->ToElement()->Attribute("id");
+                    jobInput.poseIDs.push_back(poseID);
+                    //std::cout << " " << poseID << "," ;
+                }
+                //std::cout << std::endl;
                 
                 int freeProc;
                 world.recv(mpi::any_source, rankTag, freeProc);
                 std::cout << "At Process: " << freeProc
                         << " Working on receptor: " << jobInput.dirBuffer
                         << " Ligand: " << jobInput.ligBuffer
+                        << " Number of poses:" << jobInput.poseIDs.size()
                         << std::endl;
                 //                MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD);
                 world.send(freeProc, jobTag, jobFlag);
 
-                for (XMLNode* poseNode = scoresnode->FirstChild(); poseNode != 0; poseNode = poseNode->NextSibling()) {
-                    std::string poseID = poseNode->ToElement()->Attribute("id");
-                    jobInput.poseIDs.push_back(poseID);
-                }
-
-
                 world.send(freeProc, inpTag, jobInput);
-
             }
         }
 
