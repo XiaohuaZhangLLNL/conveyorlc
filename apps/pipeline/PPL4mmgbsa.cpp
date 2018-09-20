@@ -159,6 +159,47 @@ void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile) {
         
 }
 
+bool ligIsRun(std::string& checkfile, JobOutData& jobOut) {
+
+    std::ifstream inFile(checkfile.c_str());
+
+    if (!inFile) {
+        return false;
+    }
+
+    std::string fileLine = "";
+    std::string delimiter = "|";
+    std::string subdelim=":";
+    while (inFile) {
+        std::getline(inFile, fileLine);
+        std::vector<std::string> tokens;
+        tokenize(fileLine, tokens, delimiter);
+
+        if (tokens.size() != 6) continue;
+        std::vector<std::string> subTokens;
+        tokenize(tokens[2], subTokens, subdelim);
+
+        if (subTokens[1] == jobOut.poseID) {            
+            for (int i = 0; i < tokens.size(); ++i) {
+                subTokens.clear();
+                tokenize(tokens[i], subTokens, subdelim);
+                if (subTokens[0] == "score") {
+                    jobOut.score = Sstrm<double, std::string>(subTokens[1]);
+                }
+                if (subTokens[0] == "gbind") {
+                    jobOut.gbbind = Sstrm<double, std::string>(subTokens[1]);
+                }
+                if (subTokens[0] == "mesg") {
+                    jobOut.message = subTokens[1];
+                }
+
+            }
+            return true;
+        }
+    }
+    return true;
+}
+
 bool isRun(std::string& checkfile, JobOutData& jobOut){
     
      std::ifstream inFile(checkfile.c_str());
@@ -203,6 +244,10 @@ bool mmgbsa(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, st
     jobOut.recID=jobInput.dirBuffer;
     jobOut.ligID=jobInput.ligBuffer;
     jobOut.poseID=jobInput.poseBuffer;   
+
+    std::string ligCheckfile = workDir + "/scratch/com/" + jobOut.recID + "/gbsa/lig_" + jobOut.ligID + "_checkpoint.txt";
+
+    if (ligIsRun(ligCheckfile, jobOut)) return true;    
     
     std::string checkfile=workDir+"/scratch/com/"+jobOut.recID+"/gbsa/lig_"+jobOut.ligID+"/pose_"+jobOut.poseID+"/checkpoint.txt";
     
