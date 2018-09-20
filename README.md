@@ -3,10 +3,10 @@
 
 ## 1. Compile the program.
 
-This source code is configured to run on LLNL LC machines. 
+This source code is configured to run on LLNL LC machines.
 
 ### 1.1 Boost library (www.boost.org) is require for ConveyorLC.
-to install Boost library please follow the step in the Boost document. 
+to install Boost library please follow the step in the Boost document.
 
 ```
 ./bootstrap.sh --prefix=path/to/installation/prefix
@@ -14,7 +14,7 @@ to install Boost library please follow the step in the Boost document.
 ```
 
 Beside the standard installation, Boost MPI binding also need to be turn on.
-copy tools/build/v2/user-config.jam to your home directory. In the file 
+copy tools/build/v2/user-config.jam to your home directory. In the file
 specify the mpi compiler you want to use:
 
 ```
@@ -25,15 +25,15 @@ On quartz, you can use LC-precompiled boost library by:
 ```
 module load boost/1.62.0
 ```
-### 1.2 Obtain the code 
+### 1.2 Obtain the code
 
 The code can be download from:
 
-https://lc.llnl.gov/bitbucket/projects/XZR/repos/conveyorlc/browse
+https://github.com/XiaohuaZhangLLNL/conveyorlc
 
 by git:
 ```
-git clone ssh://git@cz-bitbucket.llnl.gov:7999/xzr/conveyorlc.git
+git clone git@github.com:XiaohuaZhangLLNL/conveyorlc.git
 ```
 
 
@@ -56,7 +56,7 @@ Use git clone to download spack4atom
 git clone ssh://git@cz-bitbucket.llnl.gov:7999/xzr/spack4atom.git
 ```
 Add the spack4atom repo to spack
- 
+
 ```
 spack repo add <path to spack4atom repo root>
 ```
@@ -87,10 +87,10 @@ spack install conveyorlc
 There will be executables in the ${conveyorlc_install_dir}/bin
 
 ```
-PPL1Receptor  PPL2Ligand  PPL3Docking  PPL4mmgbsa  PPL4parseXML
+PPL1Receptor  PPL2Ligand  PPL3Docking  PPL4mmgbsa  PPL4PostProcess  PPL4parseXML
 ```
 
-For the help information of executables 
+For the help information of executables
 
 ```
 PPL1Receptor -h
@@ -142,9 +142,9 @@ pdb/2y2vA_A.pdb KeyRes:SGB.203|GLU.202.A
 pdb/2y2vA_A.pdb KeyRes:SGB.203|GLU.202.A NonRes:SGB
 pdb/2y2vA_A.pdb NonRes:SGB
 #
-# 5. To specify substrate ligand for site identification start with "SubRes:" and follow by the relative 
+# 5. To specify substrate ligand for site identification start with "SubRes:" and follow by the relative
 #    path to ligand file
-# 
+#
 pdb/sarinXtalnAChE.pdb SubRes:pdb/ligand.pdb  NonRes:SGB
 pdb/1a50_protein.pdb SubRes:pdb/1a50_ligand.mol2
 #
@@ -216,7 +216,7 @@ srun -N 64 -n 64 -c 16 PPL3Docking --recXML PPL1Track.xml --ligXML PPL2Track.xml
 
 ```
 
-#### 2.2.4 runing the single-point MM/GBSA calculation
+#### 2.2.4 running the single-point MM/GBSA calculation
 ```
 #!/bin/bash 
 #msub -A bmc
@@ -237,6 +237,28 @@ test -f /usr/gapps/kras/quartz/amber16/amber.sh && source /usr/gapps/kras/quartz
 srun -N 32 -n 512  PPL4mmgbsa --comXML PPL3Track.xml
 
 ```
+
+#### 2.2.5 zip up the MM/GBSA results by ligand to save space and reduce number of files
+The pipeline will generate a lot of files and can cause problem for the file system. PPL4PostProcess tar-zip all mmgbsa poses for the same ligand into one file.
+```
+#!/bin/bash 
+#msub -A bmc
+#msub -l nodes=32:ppn=16
+#msub -l walltime=16:00:00
+#msub -l partition=cab
+#msub -m be
+
+export conveyorlc=/usr/gapps/kras/quartz/pipeline/conveyorlc
+export LBindData=$conveyorlc/data
+export PATH=$conveyorlc/bin:/usr/gapps/kras/quartz/pipeline/bin:$PATH
+export AMBERHOME=/usr/gapps/kras/quartz/amber16
+export PATH=$AMBERHOME/bin/:$PATH
+
+srun -N 4 -n 64  PPL4PostProcess --comXML PPL3Track.xml
+
+```
+
+
 
 ### 2.3 Output
 
@@ -358,7 +380,6 @@ The "pretty" version the MM/GBSA output
 ```
 
 The calculated data are stored under the scratch directory. The directory structure is:
-
 ```
 scratch/     
 
@@ -394,6 +415,43 @@ For the rescoring comlex : scratch/com/receptor/gbsa/lig_1/pose_1/mmgbsa_results
 
 ```
 
+PostProcess MM/GBSA results
+```
+<?xml version="1.0" ?>
+<Complexes>
+    <!-- Tracking calculation error using XML file -->
+    <Complex>
+        <RecID>1a6q_A_784_minimized_w_metal5</RecID>
+        <LigID>2</LigID>
+        <Mesg>Pose 2 has not been completed</Mesg>
+    </Complex>
+    <Complex>
+        <RecID>1a6q_A_784_minimized_w_metal5</RecID>
+        <LigID>1</LigID>
+        <Mesg>Finished!</Mesg>
+    </Complex>
+    <Complex>
+        <RecID>1a6q_A_784_minimized_w_metal5</RecID>
+        <LigID>3</LigID>
+        <Mesg>Finished!</Mesg>
+    </Complex>
+</Complexes>
+```
+
+Under the scratch/com/<receptor_name>/gbsa, you will find:
+```
+lig_1.tar.gz  lig_1_checkpoint.txt  lig_2  lig_3.tar.gz  lig_3_checkpoint.txt
+```
+lig_1 and lig_3 are completed so they are tar-zip. The lig_1 and lig_3 are deleted. Lig_2 has not finished so the folder is unchanged.
+
+```
+Note:
+  1. try to use small number of nodes so that the system is not overwhelming by I/O.
+  2. Original files under the lig_1, etc will be deleted.
+  3. PPL4PostProcess can be run while PPL4mmgbsa is running. PPL4PostProcess has restart capability.
+```
+
+
 ## 3 Work with Maestro workflow
 
 The following set up works on Cab/Syrah. For other machines, change the commands accordingly.
@@ -410,7 +468,7 @@ The following set up works on Cab/Syrah. For other machines, change the commands
   export WORKON_HOME=~/.venvs
   pip list
   pip show virtualenvwrapper
-  source /g/g92/zhang30/.local/bin/virtualenvwrapper.sh 
+  source /g/g92/zhang30/.local/bin/virtualenvwrapper.sh
   echo $WORKON_HOME
 ```
 
@@ -437,7 +495,7 @@ put the following two command into your .bashrc or .cshrc
   pip install -e .
 ```
 
-### 3.4 Run the workflow to launch the conveyorlc pipeline 
+### 3.4 Run the workflow to launch the conveyorlc pipeline
 
 ```
   workon conveyorlc
@@ -569,4 +627,3 @@ study:
           depends: [PPL4mmgbsa]
 
 ```
-
