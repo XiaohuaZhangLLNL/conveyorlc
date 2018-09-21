@@ -3,9 +3,15 @@
 
 ## 1. Compile the program.
 
-This source code is configured to run on LLNL LC machines.
+### 1.1 MPI and Boost libraries are required for ConveyorLC.
 
-### 1.1 Boost library (www.boost.org) is require for ConveyorLC.
+ConveyorLC depends on two external libraries to complete the compilation: MPI (https://www.open-mpi.org or https://www.mpich.org) and boost (https://www.boost.org).
+
+Please install the MPI first. Users can use open-mpi or mpich. Either one is OK. Then install the boost. You need to enable the boost-mpi build. In the project-config.jam add one line to the end of the file:
+```
+using mpi : <path_to_your_MPI_installation_directory>/bin/mpicxx ;
+```
+
 to install Boost library please follow the step in the Boost document.
 
 ```
@@ -13,18 +19,13 @@ to install Boost library please follow the step in the Boost document.
 ./b2 install
 ```
 
-Beside the standard installation, Boost MPI binding also need to be turn on.
-copy tools/build/v2/user-config.jam to your home directory. In the file
-specify the mpi compiler you want to use:
+On the LC machines, the MPI and Boost are installed. Users can source the environment and then compile the code.
 
-```
-using mpi : /usr/local/tools/mvapich-gnu/bin/mpicxx ;
-```
-
-On quartz, you can use LC-precompiled boost library by:
+On quartz:
 ```
 module load boost/1.62.0
 ```
+
 ### 1.2 Obtain the code
 
 The code can be download from:
