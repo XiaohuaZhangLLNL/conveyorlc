@@ -290,6 +290,10 @@ void MMGBSA::run(std::string& poseID, bool restart){
         tleapFile.close();
     }
 
+    cmd="tleap -f rec_leap.in >& rec_leap.log";
+    std::cout <<cmd <<std::endl;
+    system(cmd.c_str());
+
     checkFName="REC.prmtop";
     {
         if(!fileExist(checkFName)){
@@ -302,12 +306,8 @@ void MMGBSA::run(std::string& poseID, bool restart){
             throw LBindException(message);              
         }
     }    
-    // end receptor energy re-calculation    
-
-    cmd="tleap -f rec_leap.in >& rec_leap.log";
-    std::cout <<cmd <<std::endl;
-    system(cmd.c_str());
-
+    // end receptor energy re-calculation  
+    
     minFName="Rec_minGB.in";
     {
         std::ofstream minFile;
