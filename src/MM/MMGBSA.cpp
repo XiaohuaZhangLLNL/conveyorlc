@@ -17,6 +17,7 @@
 #include "Structure/Sstrm.hpp"
 #include "Common/Tokenize.hpp"
 #include "Common/LBindException.h"
+#include "Common/File.hpp"
 #include "Parser/SanderOutput.h"
 
 #include <boost/scoped_ptr.hpp>
@@ -62,6 +63,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
     std::string sanderOut=ligDir+"LIG_minGB.out";
     boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
     bool success=pSanderOutput->getEnergy(sanderOut,ligGBen);
+    if(!success) throw LBindException("Cannot get ligand GB energy");
        
     cmd="ln -s "+recDir+"Rec_min.pdb";
     system(cmd.c_str());
@@ -171,6 +173,19 @@ void MMGBSA::run(std::string& poseID, bool restart){
     std::cout <<cmd <<std::endl;
     system(cmd.c_str()); 
     
+    std::string checkFName="Com.prmtop";
+    {
+        if(!fileExist(checkFName)){
+            std::string message="Com.prmtop file does not exist.";
+            throw LBindException(message);        
+        }
+
+        if(fileEmpty(checkFName)){
+            std::string message="Com.prmtop is empty.";
+            throw LBindException(message);              
+        }
+    }
+    
     std::string minFName="Com_min.in";
     {
         std::ofstream minFile;
@@ -214,6 +229,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
 //    boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
     double comEnergy=0;
     success=pSanderOutput->getEAmber(sanderOut,comEnergy);
+    if(!success) throw LBindException("Cannot get complex GB energy");
 
     std::cout << "Complex GB Minimization Energy: " << comEnergy <<" kcal/mol."<< std::endl;   
     
@@ -273,7 +289,19 @@ void MMGBSA::run(std::string& poseID, bool restart){
         
         tleapFile.close();
     }
-    
+
+    checkFName="REC.prmtop";
+    {
+        if(!fileExist(checkFName)){
+            std::string message="REC.prmtop file does not exist.";
+            throw LBindException(message);        
+        }
+
+        if(fileEmpty(checkFName)){
+            std::string message="REC.prmtop is empty.";
+            throw LBindException(message);              
+        }
+    }    
     // end receptor energy re-calculation    
 
     cmd="tleap -f rec_leap.in >& rec_leap.log";
@@ -321,6 +349,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
     sanderOut="Rec_minGB.out";
     double recEnergy=0;
     success=pSanderOutput->getEnergy(sanderOut, recEnergy); 
+    if(!success) throw LBindException("Cannot get receptor GB energy");
     
     bindGBen=comEnergy-recEnergy-ligGBen;
 
