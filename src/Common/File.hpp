@@ -16,7 +16,7 @@
 namespace LBIND {
 
 
-void getPathName (const std::string& pathStr, std::string& pathName)
+inline void getPathName (const std::string& pathStr, std::string& pathName)
 {
   size_t found;
   found=pathStr.find_last_of("/\\");
@@ -24,14 +24,14 @@ void getPathName (const std::string& pathStr, std::string& pathName)
 
 }
     
-void getPathFileName (const std::string& pathStr, std::string& pathFileName)
+inline void getPathFileName (const std::string& pathStr, std::string& pathFileName)
 {
   size_t found;
   found=pathStr.find_last_of("/\\");
   pathFileName= pathStr.substr(found+1);
 } 
 
-void getFileBasename(const std::string& pathStr, std::string& pathFileName){
+inline void getFileBasename(const std::string& pathStr, std::string& pathFileName){
   size_t found;
   found=pathStr.find_last_of("/\\");
   pathFileName= pathStr.substr(found+1);
@@ -40,18 +40,18 @@ void getFileBasename(const std::string& pathStr, std::string& pathFileName){
 }
 
 
-bool fileExist(std::string& pathFile){
+inline bool fileExist(std::string& pathFile){
     std::ifstream my_file(pathFile.c_str());
     return my_file.good();    
 }
 
-bool fileEmpty(std::string& pathFile){    
+inline bool fileEmpty(std::string& pathFile){    
     std::ifstream pFile(pathFile.c_str());
     return pFile.peek() == std::ifstream::traits_type::eof();
 }
 
 // !low overhead
-int getFileSizebyCommand(std::string& pathFile){
+inline int getFileSizebyCommand(std::string& pathFile){
     int size=0;
     std::string cmd="ls -l "+pathFile+" |awk '{print $5}' > tmp";
     system(cmd.c_str());
@@ -64,7 +64,7 @@ int getFileSizebyCommand(std::string& pathFile){
     return size;
 }
 
-int getFileSize( std::string& pathFile )
+inline int getFileSize( std::string& pathFile )
 {
 
     FILE *pFile = fopen(pathFile.c_str(), "rb" );
@@ -84,7 +84,7 @@ int getFileSize( std::string& pathFile )
     return size;
 }
 
-bool checkFile(std::string& pathFile){
+inline bool checkFile(std::string& pathFile){
     if(getFileSize(pathFile) < 10){
         std::string message=pathFile+" is empty.";
 //        throw LBindException(message); 
