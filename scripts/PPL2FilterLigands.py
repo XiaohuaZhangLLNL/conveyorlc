@@ -9,6 +9,14 @@ from xml.dom import minidom
 
 import argparse
 
+"""
+python PPL2FilterLigands.py -x PPL2Track.xml -s pur2.sdf -o PPL2BadLigand.xml -m PPL2MisLigand.xml
+
+Two XML files are generated:
+PPL2BadLigand.xml - ligands being calculated and failed
+PPL2MisLigand.xml - ligands not being calculated
+"""
+
 def getArgs():
 
     parser = argparse.ArgumentParser()
@@ -26,6 +34,7 @@ def getArgs():
     return args
 
 def main():
+
     args=getArgs()
     print ("Default inputs: ", args.xmlfile, args.sdffile)
 
