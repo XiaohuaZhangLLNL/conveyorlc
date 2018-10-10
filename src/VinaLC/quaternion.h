@@ -74,23 +74,23 @@ inline fl quaternion_norm_sqr(const qt& q) { // equivalent to sqr(boost::math::a
 
 inline void quaternion_normalize(qt& q) {
 	const fl s = quaternion_norm_sqr(q);
-	assert(eq(s, sqr(boost::math::abs(q))));
+	VINA_CHECK(eq(s, sqr(boost::math::abs(q))));
     const fl a = std::sqrt(s);
-	assert(a > epsilon_fl);
+	VINA_CHECK(a > epsilon_fl);
 	q *= 1/a;
-	assert(quaternion_is_normalized(q));
+	VINA_CHECK(quaternion_is_normalized(q));
 }
 
 inline void quaternion_normalize_approx(qt& q, const fl tolerance = 1e-6) {
 	const fl s = quaternion_norm_sqr(q);
-	assert(eq(s, sqr(boost::math::abs(q))));
+	VINA_CHECK(eq(s, sqr(boost::math::abs(q))));
     if(std::abs(s - 1) < tolerance)
         ; // most likely scenario
     else {
         const fl a = std::sqrt(s);
-        assert(a > epsilon_fl);
+        VINA_CHECK(a > epsilon_fl);
         q *= 1/a;
-        assert(quaternion_is_normalized(q));
+        VINA_CHECK(quaternion_is_normalized(q));
     }
 }
 

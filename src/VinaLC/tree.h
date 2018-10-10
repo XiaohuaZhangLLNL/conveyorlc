@@ -192,21 +192,21 @@ struct heterotree {
 		node.set_conf(atoms, coords, c.rigid);
 		flv::const_iterator p = c.torsions.begin();
 		branches_set_conf(children, node, atoms, coords, p);
-		assert(p == c.torsions.end());
+		VINA_CHECK(p == c.torsions.end());
 	}
 	void set_conf(const atomv& atoms, vecv& coords, const residue_conf& c) {
 		flv::const_iterator p = c.torsions.begin();
 		node.set_conf(atoms, coords, *p);
 		++p;
 		branches_set_conf(children, node, atoms, coords, p);
-		assert(p == c.torsions.end());
+		VINA_CHECK(p == c.torsions.end());
 	}
 	void derivative(const vecv& coords, const vecv& forces, ligand_change& c) const {
 		vecp force_torque = node.sum_force_and_torque(coords, forces);
 		flv::iterator p = c.torsions.begin();
 		branches_derivative(children, node.get_origin(), coords, forces, force_torque, p);
 		node.set_derivative(force_torque, c.rigid);
-		assert(p == c.torsions.end());
+		VINA_CHECK(p == c.torsions.end());
 	}
 	void derivative(const vecv& coords, const vecv& forces, residue_change& c) const {
 		vecp force_torque = node.sum_force_and_torque(coords, forces);
@@ -215,7 +215,7 @@ struct heterotree {
 		++p;
 		branches_derivative(children, node.get_origin(), coords, forces, force_torque, p);
 		node.set_derivative(force_torque, d);
-		assert(p == c.torsions.end());
+		VINA_CHECK(p == c.torsions.end());
 	}
 };
 

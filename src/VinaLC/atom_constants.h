@@ -228,8 +228,8 @@ const fl xs_vdw_radii[] = {
 
 inline fl xs_radius(sz t) {
 	const sz n = sizeof(xs_vdw_radii) / sizeof(const fl);
-	assert(n == XS_TYPE_SIZE);
-	assert(t < n);
+	VINA_CHECK(n == XS_TYPE_SIZE);
+	VINA_CHECK(t < n);
 	return xs_vdw_radii[t];
 }
 
@@ -277,8 +277,8 @@ inline bool xs_h_bond_possible(sz t1, sz t2) {
 }
 
 inline const atom_kind& ad_type_property(sz i) {
-	assert(AD_TYPE_SIZE == atom_kinds_size);
-    assert(i < atom_kinds_size);
+	VINA_CHECK(AD_TYPE_SIZE == atom_kinds_size);
+    VINA_CHECK(i < atom_kinds_size);
     return atom_kind_data[i];
 }
 

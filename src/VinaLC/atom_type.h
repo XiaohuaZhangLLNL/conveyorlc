@@ -36,7 +36,7 @@ struct atom_type {
 			case AD: return ad;
 			case XS: return xs;
 			case SY: return sy;
-			default: assert(false); return max_sz;
+			default: VINA_CHECK(false); return max_sz;
 		}
 	}
 	bool is_hydrogen() const {
@@ -81,7 +81,7 @@ inline sz num_atom_types(atom_type::t atom_typing_used) {
 		case atom_type::AD: return AD_TYPE_SIZE;
 		case atom_type::XS: return XS_TYPE_SIZE;
 		case atom_type::SY: return SY_TYPE_SIZE;
-		default: assert(false); return max_sz;
+		default: VINA_CHECK(false); return max_sz;
 	}
 }
 

@@ -61,7 +61,7 @@ public:
 			case 0: return m_i;
 			case 1: return m_j;
 			case 2: return m_k;
-			default: assert(false); return 0; // to get rid of the warning
+			default: VINA_CHECK(false); return 0; // to get rid of the warning
 		}
 	}
 	void resize(sz i, sz j, sz k) { // data is essentially garbled

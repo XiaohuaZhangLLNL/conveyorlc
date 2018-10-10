@@ -48,6 +48,6 @@ fl weighted_terms::conf_independent(const model& m, fl e) const {
 	flv::const_iterator it = weights.begin() + enabled_usable_terms.size();
 	conf_independent_inputs in(m); // FIXME quite inefficient, but I think speed is irrelevant here, right?
 	fl tmp = t->eval_conf_independent(in, e, it);
-	assert(it == weights.end());
+	VINA_CHECK(it == weights.end());
 	return tmp;
 }

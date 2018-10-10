@@ -34,8 +34,8 @@ bool eq(const qt& a, const qt& b) { // elementwise approximate equality - may re
 }
 
 qt angle_to_quaternion(const vec& axis, fl angle) { // axis is assumed to be a unit vector
-	//assert(eq(tvmet::norm2(axis), 1));
-	assert(eq(axis.norm(), 1));
+	//VINA_CHECK(eq(tvmet::norm2(axis), 1));
+	VINA_CHECK(eq(axis.norm(), 1));
 	normalize_angle(angle); // this is probably only necessary if angles can be very big
 	fl c = std::cos(angle/2);
 	fl s = std::sin(angle/2);
@@ -55,7 +55,7 @@ qt angle_to_quaternion(const vec& rotation) {
 }
 
 vec quaternion_to_angle(const qt& q) {
-	assert(quaternion_is_normalized(q));
+	VINA_CHECK(quaternion_is_normalized(q));
 	const fl c = q.R_component_1();
 	if(c > -1 && c < 1) { // c may in theory be outside [-1, 1] even with approximately normalized q, due to rounding errors
 		fl angle = 2*std::acos(c); // acos is in [0, pi]
@@ -73,7 +73,7 @@ vec quaternion_to_angle(const qt& q) {
 }
 
 mat quaternion_to_r3(const qt& q) {
-	assert(quaternion_is_normalized(q));
+	VINA_CHECK(quaternion_is_normalized(q));
 
 	const fl a = q.R_component_1();
 	const fl b = q.R_component_2();
@@ -91,7 +91,7 @@ mat quaternion_to_r3(const qt& q) {
 	const fl cd = c*d;
 	const fl dd = d*d;
 
-	assert(eq(aa+bb+cc+dd, 1));
+	VINA_CHECK(eq(aa+bb+cc+dd, 1));
 
 	mat tmp;
 
@@ -119,7 +119,7 @@ qt random_orientation(rng& generator) {
 	fl nrm = boost::math::abs(q);
 	if(nrm > epsilon_fl) {
 		q /= nrm;
-		assert(quaternion_is_normalized(q));
+		VINA_CHECK(quaternion_is_normalized(q));
 		return q;
 	}
 	else 
@@ -127,7 +127,7 @@ qt random_orientation(rng& generator) {
 }
 
 void quaternion_increment(qt& q, const vec& rotation) {
-	assert(quaternion_is_normalized(q));
+	VINA_CHECK(quaternion_is_normalized(q));
 	q = angle_to_quaternion(rotation) * q;
 	quaternion_normalize_approx(q); // normalization added in 1.1.2
 	//quaternion_normalize(q); // normalization added in 1.1.2

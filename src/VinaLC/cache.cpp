@@ -54,7 +54,7 @@ fl cache::eval      (const model& m, fl v) const { // needs m.coords
 		sz t = a.get(atu);
 		if(t >= nat) continue;
 		const grid& g = grids[t];
-		assert(g.initialized());
+		VINA_CHECK(g.initialized());
 		e += g.evaluate(m.coords[i], slope, v);
 	}
 	return e;
@@ -69,7 +69,7 @@ fl cache::eval_deriv(      model& m, fl v) const { // needs m.coords, sets m.min
 		sz t = a.get(atu);
 		if(t >= nat) { m.minus_forces[i].assign(0); continue; }
 		const grid& g = grids[t];
-		assert(g.initialized());
+		VINA_CHECK(g.initialized());
 		vec deriv;
 		e += g.evaluate(m.coords[i], slope, v, deriv);
 		m.minus_forces[i] = deriv;
@@ -145,7 +145,7 @@ void cache::populate(const model& m, const precalculate& p, const szv& atom_type
 					if(r2 <= cutoff_sqr) {
 						VINA_FOR_IN(j, needed) {
 							const sz t2 = needed[j];
-							assert(t2 < nat);
+							VINA_CHECK(t2 < nat);
 							const sz type_pair_index = triangular_matrix_index_permissive(num_atom_types(atu), t1, t2);
 							affinities[j] += p.eval_fast(type_pair_index, r2);
 						}
@@ -153,7 +153,7 @@ void cache::populate(const model& m, const precalculate& p, const szv& atom_type
 				}
 				VINA_FOR_IN(j, needed) {
 					sz t = needed[j];
-					assert(t < nat);
+					VINA_CHECK(t < nat);
 					grids[t].m_data(x, y, z) = affinities[j];
 				}
 			}

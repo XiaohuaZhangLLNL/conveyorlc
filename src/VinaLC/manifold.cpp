@@ -54,7 +54,7 @@ bool determine_iu(const conf& c, const output_container& mf, std::vector<bool>& 
 }
 
 bool conf_is_legal(const conf& c, const output_container& mf, const std::vector<bool>& internal_too_close, const scale& exclusion) {
-	assert(mf.size() == internal_too_close.size());
+	VINA_CHECK(mf.size() == internal_too_close.size());
 	VINA_FOR_IN(i, mf)
 		if(internal_too_close[i] && c.external_too_close(mf[i].c, exclusion))
 			return false;

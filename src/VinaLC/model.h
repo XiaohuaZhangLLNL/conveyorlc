@@ -127,8 +127,8 @@ struct model {
 
 	fl gyration_radius(sz ligand_number) const; // uses coords
 
-	const atom_base& movable_atom  (sz i) const { assert(i < m_num_movable_atoms); return  atoms[i]; }
-	const vec&       movable_coords(sz i) const { assert(i < m_num_movable_atoms); return coords[i]; }
+	const atom_base& movable_atom  (sz i) const { VINA_CHECK(i < m_num_movable_atoms); return  atoms[i]; }
+	const vec&       movable_coords(sz i) const { VINA_CHECK(i < m_num_movable_atoms); return coords[i]; }
 
 	const vec& atom_coords(const atom_index& i) const;
 	fl distance_sqr_between(const atom_index& a, const atom_index& b) const;

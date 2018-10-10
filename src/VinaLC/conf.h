@@ -61,7 +61,7 @@ inline void torsions_randomize(flv& torsions, rng& generator) {
 }
 
 inline bool torsions_too_close(const flv& torsions1, const flv& torsions2, fl cutoff) {
-	assert(torsions1.size() == torsions2.size());
+	VINA_CHECK(torsions1.size() == torsions2.size());
 	VINA_FOR_IN(i, torsions1)
 		if(std::abs(normalized_angle(torsions1[i] - torsions2[i])) > cutoff) 
 			return false;
@@ -69,7 +69,7 @@ inline bool torsions_too_close(const flv& torsions1, const flv& torsions2, fl cu
 }
 
 inline void torsions_generate(flv& torsions, fl spread, fl rp, const flv* rs, rng& generator) {
-	assert(!rs || rs->size() == torsions.size()); // if present, rs should be the same size as torsions
+	VINA_CHECK(!rs || rs->size() == torsions.size()); // if present, rs should be the same size as torsions
 	VINA_FOR_IN(i, torsions)
 		if(rs && random_fl(0, 1, generator) < rp)
 			torsions[i] = (*rs)[i];
@@ -127,7 +127,7 @@ struct rigid_conf {
 			mutate_orientation(orientation_spread, generator);
 	}
 	void apply(const vecv& in, vecv& out, sz begin, sz end) const {
-		assert(in.size() == out.size());
+		VINA_CHECK(in.size() == out.size());
 		const mat m = quaternion_to_r3(orientation);
 		VINA_RANGE(i, begin, end)
 			out[i] = m * in[i] + position;
@@ -295,18 +295,18 @@ struct conf {
 			flex[i]   .increment(c.flex[i],    factor);
 	}
 	bool internal_too_close(const conf& c, fl torsions_cutoff) const {
-		assert(ligands.size() == c.ligands.size());
+		VINA_CHECK(ligands.size() == c.ligands.size());
 		VINA_FOR_IN(i, ligands)
 			if(!torsions_too_close(ligands[i].torsions, c.ligands[i].torsions, torsions_cutoff))
 				return false;
 		return true;
 	}
 	bool external_too_close(const conf& c, const scale& cutoff) const {
-		assert(ligands.size() == c.ligands.size());
+		VINA_CHECK(ligands.size() == c.ligands.size());
 		VINA_FOR_IN(i, ligands)
 			if(!ligands[i].rigid.too_close(c.ligands[i].rigid, cutoff.position, cutoff.orientation))
 				return false;
-		assert(flex.size() == c.flex.size());
+		VINA_CHECK(flex.size() == c.flex.size());
 		VINA_FOR_IN(i, flex)
 			if(!torsions_too_close(flex[i].torsions, c.flex[i].torsions, cutoff.torsion))
 				return false;

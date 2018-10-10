@@ -29,21 +29,21 @@
 struct precalculate_element {
 	precalculate_element(sz n, fl factor_) : fast(n, 0), smooth(n, pr(0, 0)), factor(factor_) {}
 	fl eval_fast(fl r2) const {
-		assert(r2 * factor < fast.size());
+		VINA_CHECK(r2 * factor < fast.size());
 		sz i = sz(factor * r2);  // r2 is expected < cutoff_sqr, and cutoff_sqr * factor + 1 < n, so no overflow
-		assert(i < fast.size()); 
+		VINA_CHECK(i < fast.size()); 
 		return fast[i];
 	}
 	pr eval_deriv(fl r2) const {
 		fl r2_factored = factor * r2;
-		assert(r2_factored + 1 < smooth.size());
+		VINA_CHECK(r2_factored + 1 < smooth.size());
 		sz i1 = sz(r2_factored); 
 		sz i2 = i1 + 1; // r2 is expected < cutoff_sqr, and cutoff_sqr * factor + 1 < n, so no overflow
-		assert(i1 < smooth.size());
-		assert(i2 < smooth.size());
+		VINA_CHECK(i1 < smooth.size());
+		VINA_CHECK(i2 < smooth.size());
 		fl rem = r2_factored - i1;
-		assert(rem >= -epsilon_fl);
-		assert(rem < 1 + epsilon_fl);
+		VINA_CHECK(rem >= -epsilon_fl);
+		VINA_CHECK(rem < 1 + epsilon_fl);
 		const pr& p1 = smooth[i1];
 		const pr& p2 = smooth[i2];
 		fl e   = p1.first  + rem * (p2.first  - p1.first);
@@ -111,7 +111,7 @@ struct precalculate_element {
 struct precalculate {
 	precalculate(const scoring_function& sf, fl v = max_fl, fl factor_ = 32) : // sf should not be discontinuous, even near cutoff, for the sake of the derivatives
 		m_cutoff_sqr(sqr(sf.cutoff())),
-		n(sz(factor_ * m_cutoff_sqr) + 3),  // sz(factor * r^2) + 1 <= sz(factor * cutoff_sqr) + 2 <= n-1 < n  // see assert below
+		n(sz(factor_ * m_cutoff_sqr) + 3),  // sz(factor * r^2) + 1 <= sz(factor * cutoff_sqr) + 2 <= n-1 < n  // see VINA_CHECK below
 		factor(factor_),
 
 		data(num_atom_types(sf.atom_typing_used()), precalculate_element(n, factor_)),
@@ -135,11 +135,11 @@ struct precalculate {
 			}
 	}
 	fl eval_fast(sz type_pair_index, fl r2) const {
-		assert(r2 <= m_cutoff_sqr);
+		VINA_CHECK(r2 <= m_cutoff_sqr);
 		return data(type_pair_index).eval_fast(r2);
 	}
 	pr eval_deriv(sz type_pair_index, fl r2) const {
-		assert(r2 <= m_cutoff_sqr);
+		VINA_CHECK(r2 <= m_cutoff_sqr);
 		return data(type_pair_index).eval_deriv(r2);
 	}
 	sz index_permissive(sz t1, sz t2) const { return data.index_permissive(t1, t2); }

@@ -26,7 +26,7 @@
 #include "common.h"
 
 inline fl closest_between(fl begin, fl end, fl x) {
-	assert(begin <= end);
+	VINA_CHECK(begin <= end);
 	if(x <= begin) return begin;
 	else if(x >= end) return end;
 	return x;

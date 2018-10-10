@@ -83,7 +83,7 @@ void ligand::set_range() {
 
 /////////////////// begin MODEL::APPEND /////////////////////////
 
-// FIXME hairy code - needs to be extensively commented, asserted, reviewed and tested
+// FIXME hairy code - needs to be extensively commented, VINA_CHECKed, reviewed and tested
 
 struct appender_info {
 	sz grid_atoms_size;
@@ -248,10 +248,10 @@ distance_type model::distance_type_between(const distance_type_matrix& mobility,
 	if(i.in_grid && j.in_grid) return DISTANCE_FIXED;
 	if(i.in_grid) return (j.i < m_num_movable_atoms) ? DISTANCE_VARIABLE : DISTANCE_FIXED;
 	if(j.in_grid) return (i.i < m_num_movable_atoms) ? DISTANCE_VARIABLE : DISTANCE_FIXED;
-	assert(!i.in_grid);
-	assert(!j.in_grid);
-	assert(i.i < atoms.size());
-	assert(j.i < atoms.size());
+	VINA_CHECK(!i.in_grid);
+	VINA_CHECK(!j.in_grid);
+	VINA_CHECK(i.i < atoms.size());
+	VINA_CHECK(j.i < atoms.size());
 	sz a = i.i;
 	sz b = j.i;
 	if(a == b) return DISTANCE_FIXED;
@@ -747,7 +747,7 @@ fl model::rmsd_lower_bound_asymmetric(const model& x, const model& y) const { //
 						r2 = this_r2;
 				}
 			}
-			assert(not_max(r2));
+			VINA_CHECK(not_max(r2));
 			sum += r2;
 			++counter;
 		}
@@ -767,8 +767,8 @@ fl model::rmsd_upper_bound(const model& m) const {
 	VINA_FOR(i, m_num_movable_atoms) {
 		const atom& a =   atoms[i];
 		const atom& b = m.atoms[i];
-		assert(a.ad == b.ad);
-		assert(a.xs == b.xs);
+		VINA_CHECK(a.ad == b.ad);
+		VINA_CHECK(a.xs == b.xs);
 		if(a.el != EL_TYPE_H) {
 			sum += vec_distance_sqr(coords[i], m.coords[i]);
 			++counter;
@@ -789,8 +789,8 @@ fl model::rmsd_ligands_upper_bound(const model& m) const {
 		VINA_RANGE(i, lig.begin, lig.end) {
 			const atom& a =   atoms[i];
 			const atom& b = m.atoms[i];
-			assert(a.ad == b.ad);
-			assert(a.xs == b.xs);
+			VINA_CHECK(a.ad == b.ad);
+			VINA_CHECK(a.xs == b.xs);
 			if(a.el != EL_TYPE_H) {
 				sum += vec_distance_sqr(coords[i], m.coords[i]);
 				++counter;
@@ -871,8 +871,8 @@ fl pairwise_clash_penalty(fl r, fl covalent_r) {
 	// r = 0          -> max_penalty 
 	// r = covalent_r -> 1
 	// elsewhere      -> hyperbolic function
-	assert(r >= 0);
-	assert(covalent_r > epsilon_fl);
+	VINA_CHECK(r >= 0);
+	VINA_CHECK(covalent_r > epsilon_fl);
 	const fl x = r / covalent_r;
 	if(x > 2) return 0;
 	return 1-x*x/4;

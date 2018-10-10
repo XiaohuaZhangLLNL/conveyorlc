@@ -26,8 +26,8 @@
 #include "common.h"
 
 inline sz triangular_matrix_index(sz n, sz i, sz j) {
-	assert(j < n);
-	assert(i <= j); 
+	VINA_CHECK(j < n);
+	VINA_CHECK(i <= j); 
 
 	return i + j*(j+1)/2; 
 }

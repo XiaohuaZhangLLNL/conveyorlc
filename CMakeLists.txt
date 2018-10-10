@@ -53,7 +53,7 @@ if (NOT DEFINED     BOOST_ROOT        AND
     NOT DEFINED ENV{BOOST_LIBRARYDIR})
     if (APPLE)
         #set(BOOST_ROOT "../../../boost/boost_1_54_0/mac")
-        set(BOOST_ROOT "/Users/zhang30/inst/boost_1_61_0")
+        set(BOOST_ROOT "/Users/zhang30/inst/brew")
     elseif (WIN32)
         set(BOOST_INCLUDEDIR "C:/local/boost_1_55_0")
         set(BOOST_LIBRARYDIR "C:/local/boost_1_55_0/lib32-msvc-10.0")

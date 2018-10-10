@@ -26,9 +26,9 @@ void grid::init(const grid_dims& gd) {
 	m_data.resize(gd[0].n+1, gd[1].n+1, gd[2].n+1);
 	m_init = vec(gd[0].begin, gd[1].begin, gd[2].begin);
 	m_range = vec(gd[0].span(), gd[1].span(), gd[2].span());
-	assert(m_range[0] > 0);
-	assert(m_range[1] > 0);
-	assert(m_range[2] > 0);
+	VINA_CHECK(m_range[0] > 0);
+	VINA_CHECK(m_range[1] > 0);
+	VINA_CHECK(m_range[2] > 0);
 	m_dim_fl_minus_1 = vec(m_data.dim0() - 1.0, 
 	                       m_data.dim1() - 1.0,
 			               m_data.dim2() - 1.0);
@@ -55,7 +55,7 @@ fl grid::evaluate_aux(const vec& location, fl slope, fl v, vec* deriv) const { /
 		else if(s[i] >= m_dim_fl_minus_1[i]) {
 			miss[i] = s[i] - m_dim_fl_minus_1[i];
 			region[i] = 1;
-			assert(m_data.dim(i) >= 2);
+			VINA_CHECK(m_data.dim(i) >= 2);
 			a[i] = m_data.dim(i) -  2; 
 			s[i] = 1;
 		}
@@ -64,13 +64,13 @@ fl grid::evaluate_aux(const vec& location, fl slope, fl v, vec* deriv) const { /
 			a[i] = sz(s[i]);
 			s[i] -= a[i];
 		}
-		assert(s[i] >= 0);
-		assert(s[i] <= 1);
-		assert(a[i] >= 0);
-		assert(a[i]+1 < m_data.dim(i));
+		VINA_CHECK(s[i] >= 0);
+		VINA_CHECK(s[i] <= 1);
+		VINA_CHECK(a[i] >= 0);
+		VINA_CHECK(a[i]+1 < m_data.dim(i));
 	}
 	const fl penalty = slope * (miss * m_factor_inv); // FIXME check that inv_factor is correctly initialized and serialized
-	assert(penalty > -epsilon_fl);
+	VINA_CHECK(penalty > -epsilon_fl);
 
 	const sz x0 = a[0];
 	const sz y0 = a[1];

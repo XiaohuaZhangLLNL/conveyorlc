@@ -42,6 +42,19 @@
 
 #include "macros.h"
 
+struct internal_error {
+	std::string file;
+	unsigned line;
+	internal_error(const std::string& file_, unsigned line_) : file(file_), line(line_) {}
+};
+
+//#ifdef NDEBUG
+	#define VINA_CHECK(P) do { if(!(P)) throw internal_error(__FILE__, __LINE__); } while(false)
+//#else
+//	#define VINA_CHECK(P) assert(P)
+//#endif
+
+
 typedef double fl;
 
 template<typename T>
@@ -66,8 +79,8 @@ struct vec {
 		data[1] = y;
 		data[2] = z;
 	}
-	const fl& operator[](sz i) const { assert(i < 3); return data[i]; }
-	      fl& operator[](sz i)       { assert(i < 3); return data[i]; }
+	const fl& operator[](sz i) const { VINA_CHECK(i < 3); return data[i]; }
+	      fl& operator[](sz i)       { VINA_CHECK(i < 3); return data[i]; }
     fl norm_sqr() const {
 		return sqr(data[0]) + sqr(data[1]) + sqr(data[2]);
 	}
@@ -155,8 +168,8 @@ struct mat {
 #endif
 	}
 	// column-major
-	const fl& operator()(sz i, sz j) const { assert(i < 3); assert(j < 3); return data[i + 3*j]; }
-	      fl& operator()(sz i, sz j)       { assert(i < 3); assert(j < 3); return data[i + 3*j]; }
+	const fl& operator()(sz i, sz j) const { VINA_CHECK(i < 3); VINA_CHECK(j < 3); return data[i + 3*j]; }
+	      fl& operator()(sz i, sz j)       { VINA_CHECK(i < 3); VINA_CHECK(j < 3); return data[i + 3*j]; }
 
 	mat(fl xx, fl xy, fl xz,
 		fl yx, fl yy, fl yz,
@@ -186,17 +199,6 @@ typedef std::vector<pr> prv;
 typedef std::vector<sz> szv;
 typedef boost::filesystem::path path;
 
-struct internal_error {
-	std::string file;
-	unsigned line;
-	internal_error(const std::string& file_, unsigned line_) : file(file_), line(line_) {}
-};
-
-//#ifdef NDEBUG
-	#define VINA_CHECK(P) do { if(!(P)) throw internal_error(__FILE__, __LINE__); } while(false)
-//#else
-//	#define VINA_CHECK(P) assert(P)
-//#endif
 
 const fl pi = fl(3.1415926535897931);
 
@@ -287,7 +289,7 @@ inline void normalize_angle(fl& x) { // subtract or add enough 2*pi's to make x 
 	else if(x <   -pi) { // in [-3*pi,  -pi)
 		x += 2*pi;
 	}
-	assert(x >= -pi && x <= pi);
+	VINA_CHECK(x >= -pi && x <= pi);
 	// in [-pi, pi]
 }
 

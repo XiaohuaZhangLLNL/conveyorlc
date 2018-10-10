@@ -26,40 +26,40 @@
 #include "my_pid.h"
 
 fl random_fl(fl a, fl b, rng& generator) { // expects a < b, returns rand in [a, b]
-	assert(a < b); // BOOST also asserts a < b
+	VINA_CHECK(a < b); // BOOST also VINA_CHECKs a < b
 	typedef boost::uniform_real<fl> distr;
 	boost::variate_generator<rng&, distr> r(generator, distr(a, b));
 	fl tmp = r();
-	assert(tmp >= a);
-	assert(tmp <= b);
+	VINA_CHECK(tmp >= a);
+	VINA_CHECK(tmp <= b);
 	return tmp;
 }
 
 fl random_normal(fl mean, fl sigma, rng& generator) { // expects sigma >= 0
-	assert(sigma >= 0); // BOOST asserts this as well
+	VINA_CHECK(sigma >= 0); // BOOST VINA_CHECKs this as well
 	typedef boost::normal_distribution<fl> distr;
 	boost::variate_generator<rng&, distr> r(generator, distr(mean, sigma));
 	return r();
 }
 
 int random_int(int a, int b, rng& generator) { // expects a <= b, returns rand in [a, b]
-	assert(a <= b); // BOOST asserts this as well
+	VINA_CHECK(a <= b); // BOOST VINA_CHECKs this as well
 	typedef boost::uniform_int<int> distr;
 	boost::variate_generator<rng&, distr> r(generator, distr(a, b));
 	int tmp = r();
-	assert(tmp >= a);
-	assert(tmp <= b);
+	VINA_CHECK(tmp >= a);
+	VINA_CHECK(tmp <= b);
 	return tmp;
 }
 
 sz random_sz(sz a, sz b, rng& generator) { // expects a <= b, returns rand in [a, b]
-	assert(a <= b);
-	assert(int(a) >= 0);
-	assert(int(b) >= 0);
+	VINA_CHECK(a <= b);
+	VINA_CHECK(int(a) >= 0);
+	VINA_CHECK(int(b) >= 0);
 	int i = random_int(int(a), int(b), generator);
-	assert(i >= 0);
-	assert(i >= int(a));
-	assert(i <= int(b));
+	VINA_CHECK(i >= 0);
+	VINA_CHECK(i >= int(a));
+	VINA_CHECK(i <= int(b));
 	return static_cast<sz>(i);
 }
 

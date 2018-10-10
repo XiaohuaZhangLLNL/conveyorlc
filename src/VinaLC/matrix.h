@@ -39,8 +39,8 @@ class matrix {
 	sz m_i, m_j;
 public:
 	sz index(sz i, sz j) const {
-		assert(j < m_j);
-		assert(i < m_i); 
+		VINA_CHECK(j < m_j);
+		VINA_CHECK(i < m_i); 
 		return i + m_i*j; // column-major
 	}
 	matrix() : m_i(0), m_j(0) {}
@@ -89,9 +89,9 @@ class strictly_triangular_matrix {
 	sz m_dim;
 public:
 	sz index(sz i, sz j) const {
-		assert(j < m_dim);
-		assert(i < j); 
-		assert(j >= 1); // by implication, really
+		VINA_CHECK(j < m_dim);
+		VINA_CHECK(i < j); 
+		VINA_CHECK(j >= 1); // by implication, really
 		return i + j*(j-1)/2;
 	}
 	sz index_permissive(sz i, sz j) const { return (i < j) ? index(i, j) : index(j, i); }
