@@ -18,6 +18,7 @@
 #include "Common/Tokenize.hpp"
 #include "Structure/Constants.h"
 #include "Common/File.hpp"
+#include "Common/Command.hpp"
 #include "Common/LBindException.h"
 #include "XML/XMLHeader.hpp"
 
@@ -195,19 +196,34 @@ bool getPoseCheckData(std::string& checkfile, PoseData& poseData) {
     return true;
 }
 
+void removeDir(JobOutData& jobOut){
+    std::string cmd="rm -rf lig_" + jobOut.ligID;
+    std::string errMesg="rm exited abnormaly";
+    
+    command(cmd, errMesg);
+    
+    return;
+}
+
 bool postprocess(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, std::string& inputDir) {
 
     jobOut.recID = jobInput.dirBuffer;
     jobOut.ligID = jobInput.ligBuffer;
 
     std::string ligCheckfile = workDir + "/scratch/com/" + jobOut.recID + "/gbsa/lig_" + jobOut.ligID + "_checkpoint.txt";
-
-    if (isRun(ligCheckfile)) return true;
+    std::string ligTarfile   = workDir + "/scratch/com/" + jobOut.recID + "/gbsa/lig_" + jobOut.ligID + ".tar.gz";
     
     std::vector<PoseData> poseDataVec;
     
     try {
-        
+        if (isRun(ligCheckfile) && isRun(ligTarfile)){
+            std::string ligDir=workDir + "/scratch/com/" + jobOut.recID + "/gbsa/lig_" + jobOut.ligID;
+            if(fileExist(ligDir)){
+                removeDir(jobOut);
+            }
+            return true;
+        }
+    
         for (int i = 0; i < jobInput.poseIDs.size(); ++i) {
             std::string poseID = jobInput.poseIDs[i];
             std::string poseCheckfile = workDir + "/scratch/com/" + jobOut.recID + "/gbsa/lig_" + jobOut.ligID + "/pose_" + poseID + "/checkpoint.txt";
@@ -228,22 +244,15 @@ bool postprocess(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         std::string ligDir = workDir + "/scratch/com/" + jobOut.recID + "/gbsa";
         chdir(ligDir.c_str());
         std::string cmd = "tar -zcf lig_" + jobOut.ligID + ".tar.gz lig_" + jobOut.ligID;
-        int status = system(cmd.c_str());
-        if (status < 0) {
-            std::string message = strerror(errno);
-            throw LBindException(message);
-        } else {
-            if (WIFEXITED(status)) {
-                std::cout << "tar return normally, exit code " << WEXITSTATUS(status) << '\n';
-            } else {
-                throw LBindException("tar exited abnormaly");
-            }
-        }
+        std::string errMesg="tar exited abnormaly";
+        command(cmd, errMesg);   
+        
         std::string ligTarfile="lig_" + jobOut.ligID + ".tar.gz";
         if(!fileExist(ligTarfile)) throw LBindException(ligTarfile+" not exist");
         if(fileEmpty(ligTarfile)) throw LBindException(ligTarfile+" is empty");
-        cmd="rm -rf lig_" + jobOut.ligID;
-        system(cmd.c_str());
+       
+        removeDir(jobOut);
+        
     } catch (LBindException& e) {
         jobOut.message = e.what();
         return false;
