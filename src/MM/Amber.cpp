@@ -17,6 +17,7 @@
 #include "BackBone/Ligand.h"
 #include "Common/Tokenize.hpp"
 #include "Common/LBindException.h"
+#include "Common/Command.hpp"
 
 namespace LBIND {
 
@@ -50,12 +51,13 @@ void Amber::run() {
     this->prepLigands();
 }
 
-void Amber::reduce(std::string& input, std::string& output, std::string& options){
+void Amber::reduce(std::string& input, std::string& output, std::string& options) {
     //! Assue PDB file name suffix is .pdb
-//    std::string pdbFNbase=pdbFName.substr(0,pdbFName.size()-4);
+    //    std::string pdbFNbase=pdbFName.substr(0,pdbFName.size()-4);
     //! reduce sustiva.pdb > sustiva_h.pdb
-    std::string cmd=AMBERPATH +"/bin/reduce "+options+" "+input+" > " +output;
-    system(cmd.c_str());    
+    std::string cmd = AMBERPATH + "/bin/reduce " + options + " " + input + " > " + output;
+    std::string errMesg = "Amber::reduce fails";
+    command(cmd, errMesg);   
 }
 
 void Amber::antechamber(std::string& input, std::string& output, std::string& options){
@@ -70,7 +72,8 @@ void Amber::antechamber(std::string& input, std::string& output, std::string& op
     std::string cmd=AMBERPATH +"/bin/antechamber -i " +input + " -fi pdb -o "
             + output + " -fo mol2 -s 0 -pf yes "+options+" >& antechamber.out"; 
     std::cout << cmd << std::endl;
-    system(cmd.c_str());       
+    std::string errMesg = "Amber::antechamber fails options "+options;
+    command(cmd, errMesg);      
 }
 
 void Amber::parmchk(std::string mol2FName){
@@ -81,7 +84,8 @@ void Amber::parmchk(std::string mol2FName){
             +mol2FBase+".frcmod";
 
     std::cout << cmd << std::endl;
-    system(cmd.c_str());     
+    std::string errMesg = "Amber::parmchk fails";
+    command(cmd, errMesg);       
 }
 
 void Amber::ligLeapInput(std::string pdbid, std::string ligName, std::string tleapFName){
@@ -181,7 +185,8 @@ void Amber::tleapInput(std::string& mol2FName, std::string& ligName, std::string
 void Amber::tleap(std::string input){
     std::string cmd=AMBERPATH +"/bin/tleap -f " + input + " > leap.out";
     std::cout << cmd << std::endl;
-    system(cmd.c_str());        
+    std::string errMesg = "Amber::tleap fails";
+    command(cmd, errMesg);      
 }
 
 
@@ -214,12 +219,14 @@ void Amber::minimization(std::string pdbid){
             +pdbid +".prmtop -c " + pdbid +".inpcrd -r "+pdbid+"-min.crd";
     }
     std::cout << cmd << std::endl;
-    system(cmd.c_str());       
+    std::string errMesg = "Amber::minimization sander fails";
+    command(cmd, errMesg);      
     
     //!ambpdb -p 1FKO_sus.prmtop <1FKO_sus_min.crd > 1FKO_sus_min.pdb
     cmd=AMBERPATH +"/bin/ambpdb -p " + pdbid +".prmtop < "+pdbid+"-min.crd > "+pdbid+"-min.pdb";
     std::cout << cmd << std::endl;
-    system(cmd.c_str()); 
+    errMesg = "Amber::minimization ambpdb fails";
+    command(cmd, errMesg); 
        
     //! Analysis the output
     std::string minlogFName=pdbid+"-min.out";
@@ -276,7 +283,8 @@ void Amber::prepLigands(){
         std::string ligname=ligList[i]->getName();
         std::string ligFBase=pdbid+"-lig-"+ligname;
         std::string cmd="mkdir -p "+ligFBase;
-        system(cmd.c_str());        
+        std::string errMesg = "Amber::prepLigands mkdir fails";
+        command(cmd, errMesg);       
         chdir(ligFBase.c_str());        
         std::string input=ligname+".pdb";
         std::string output=ligname+"-rd.pdb";

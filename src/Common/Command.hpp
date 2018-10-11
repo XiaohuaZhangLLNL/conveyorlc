@@ -15,6 +15,7 @@
 #define COMMAND_HPP
 
 #include <cstdlib>
+#include <cstring>
 #include "Common/LBindException.h"
 
 namespace LBIND {

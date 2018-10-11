@@ -16,7 +16,6 @@
 #include "Parser/Pdb.h"
 #include "Parser/Mol2.h"
 #include "Parser/SanderOutput.h"
-#include "MM/VinaLC.h"
 #include "Structure/Sstrm.hpp"
 #include "Structure/Coor3d.h"
 #include "Structure/Constants.h"
@@ -24,6 +23,7 @@
 #include "Structure/Atom.h"
 #include "Common/LBindException.h"
 #include "Common/Tokenize.hpp"
+#include "Common/Command.hpp"
 #include "BackBone/Surface.h"
 #include "BackBone/Grid.h"
 #include "Structure/ParmContainer.h"
@@ -367,10 +367,12 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     
         std::string libDir=inputDir+"/lib/";
         std::string cmd="mkdir -p "+recDir;
-        system(cmd.c_str());  
+        std::string errMesg="mkdir recDir fails";
+        command(cmd, errMesg);
 
         cmd="cp "+jobOut.pdbFilePath+" "+recDir;
-        system(cmd.c_str());  
+        errMesg="cp receptor pdb file fails";
+        command(cmd,errMesg); 
 
         // cd to the rec directory to perform calculation
         chdir(recDir.c_str());
@@ -385,7 +387,8 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
              //! begin energy minimization of receptor 
             cmd="reduce -Quiet -Trim  rec_AForm.pdb >& rec_noh.pdb ";
             std::cout <<cmd <<std::endl;
-            system(cmd.c_str());
+            errMesg="reduce converting rec_AForm.pdb fails";
+            command(cmd,errMesg); 
 
             checkFName="rec_noh.pdb";
             if(!fileExist(checkFName)){
@@ -400,7 +403,8 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             }
 
             std::cout <<cmd <<std::endl;
-            system(cmd.c_str()); 
+            errMesg="reduce converting rec_noh.pdb fails";
+            command(cmd,errMesg); 
 
 
             checkFName="rec_rd.pdb";
@@ -473,7 +477,8 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
 
             cmd="tleap -f rec_leap.in >& rec_leap.log";
             std::cout <<cmd <<std::endl;
-            system(cmd.c_str());
+            errMesg="tleap creating receptor prmtop fails";
+            command(cmd,errMesg); 
 
             std::string minFName="Rec_minGB.in";
             {
@@ -509,7 +514,8 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
                 cmd="sander -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
             }
             std::cout <<cmd <<std::endl;
-            system(cmd.c_str());  
+            errMesg="sander receptor minimization fails";
+            command(cmd,errMesg);   
 
             boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
             std::string sanderOut="Rec_minGB.out";
@@ -529,7 +535,8 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             }   
 
             std::cout <<cmd <<std::endl;
-            system(cmd.c_str());  
+            errMesg="ambpdb converting rst to Rec_min_0.pdb file fails";
+            command(cmd,errMesg);            
 
             checkFName="Rec_min_0.pdb";
             if(!fileExist(checkFName)){
@@ -539,7 +546,8 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
 
             cmd="grep -v END Rec_min_0.pdb > Rec_min.pdb ";
             std::cout <<cmd <<std::endl;
-            system(cmd.c_str());  
+            errMesg="grep Rec_min_0.pdb fails";
+            command(cmd,errMesg);              
 
             if(jobInput.ambVersion==16){
                 cmd="ambpdb -p REC.prmtop -c Rec_min.rst > Rec_min_1.pdb";  
@@ -548,7 +556,8 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             } 
 
             std::cout <<cmd <<std::endl;
-            system(cmd.c_str());   
+            errMesg="ambpdb converting rst to Rec_min_1.pdb file fails";
+            command(cmd,errMesg);  
 
             b4pdbqt="Rec_min_0.pdb";
         }
@@ -558,9 +567,11 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             pPdb->standardlize(b4pdbqt, "std4pdbqt.pdb");
             //cmd="prepare_receptor4.py -r "+b4pdbqt+" -o "+jobOut.pdbid+".pdbqt";
             cmd="obabel -ipdb std4pdbqt.pdb -opdbqt -xr -O temp.pdbqt >& pdbqt.log";
-            system(cmd.c_str());
+            errMesg="obabel converting std4pdbqt.pdb  temp.pdbqt to fails";
+            command(cmd,errMesg);  
             cmd="grep -v REMARK temp.pdbqt > " + jobOut.pdbid+".pdbqt";
-            system(cmd.c_str());
+            errMesg="grep to remove REMARK fails";
+            command(cmd,errMesg);  
 
         }
 

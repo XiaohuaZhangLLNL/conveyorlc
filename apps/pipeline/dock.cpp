@@ -45,6 +45,7 @@
 #include "VinaLC/weighted_terms.h"
 #include "VinaLC/current_weights.h"
 #include "VinaLC/quasi_newton.h"
+#include "Common/Command.hpp"
 //#include "gzstream.h"
 //#include "tee.h"
 #include "VinaLC/coords.h" // add_to_output_container
@@ -100,7 +101,8 @@ int dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
 
         std::string dockDir = workDir + "/scratch/com/" + jobInput.recBuffer + "/dock/" + jobInput.ligBuffer;
         std::string cmd = "mkdir -p " + dockDir;
-        system(cmd.c_str());
+        std::string errMesg="mkdir dockDir fails";
+        LBIND::command(cmd, errMesg);
         // cd to the rec directory to performance calculation
         chdir(dockDir.c_str());
         

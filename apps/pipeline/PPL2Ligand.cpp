@@ -23,6 +23,7 @@
 #include "Common/File.hpp"
 #include "Common/Tokenize.hpp"
 #include "Common/LBindException.h"
+#include "Common/Command.hpp"
 #include "XML/XMLHeader.hpp"
 
 #include "PPL2LigandPO.h"
@@ -229,8 +230,9 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         std::string sdfPath=subDir+"/ligand.sdf";
 
         std::string cmd="mkdir -p "+subDir;
-        system(cmd.c_str());  
-
+        std::string errMesg="mkdir ligDir fails";
+        command(cmd, errMesg);
+        
         std::ofstream outFile;
         try {
             outFile.open(sdfPath.c_str());
@@ -255,10 +257,8 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
 
         cmd="obabel -isdf " + sdfFile + " -opdb -O " +pdb1File +" >> log";
         std::cout << cmd << std::endl;
-        std::string echo="echo ";
-        echo=echo+cmd+" > log";
-        system(echo.c_str());
-        system(cmd.c_str());
+        errMesg="obabel converting SDF to PDB fails";
+        command(cmd, errMesg);
 
         std::string pdbFile="ligrn.pdb";
         std::string tmpFile="ligstrp.pdb";
@@ -360,10 +360,8 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
             cmd="sander  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
         }
         std::cout <<cmd <<std::endl;
-        echo="echo ";
-        echo=echo+cmd+" >> log";
-        system(echo.c_str());
-        system(cmd.c_str()); 
+        errMesg="sander ligand minimization fails";
+        command(cmd, errMesg);
         boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
         std::string sanderOut="LIG_minGB.out";
         double ligGBen=0;
@@ -383,10 +381,8 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         } 
 
         std::cout <<cmd <<std::endl;
-        echo="echo ";
-        echo=echo+"\'"+cmd+"\'  >> log";
-        system(echo.c_str());    
-        system(cmd.c_str());    
+        errMesg="ambpdb converting rst to pdb fails";
+        command(cmd, errMesg);   
 
         checkFName="LIG_minTmp.pdb";
         if(!fileExist(checkFName)){
@@ -400,11 +396,9 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
 
         //! Get DPBQT file for ligand from minimized structure.
         cmd="prepare_ligand4.py -l LIG_min.pdb  >> log";
-        std::cout << cmd << std::endl;
-        echo="echo ";
-        echo=echo+cmd+" >> log";
-        system(echo.c_str());    
-        system(cmd.c_str());
+        std::cout << cmd << std::endl;   
+        errMesg="prepare_ligand4.py fails";
+        command(cmd, errMesg);
 
         checkFName="LIG_min.pdbqt";
         {
@@ -422,16 +416,14 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         //! fix the Br element type
         cmd="sed -i '/Br.* LIG/{s! B ! Br!}' LIG_min.pdbqt";
         std::cout << cmd << std::endl;
-        echo="echo ";
-        echo=echo+cmd+" >> log";
-        system(echo.c_str());
-        system(cmd.c_str());
-
+        errMesg="sed to fix Br fails";
+        command(cmd, errMesg);
 
         //cmd="rm -f *.in divcon.pdb fort.7 leap.log mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
         cmd="rm -f divcon.pdb fort.7 leap.log mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
-        std::cout <<cmd <<std::endl;    
-        system(cmd.c_str());
+        std::cout <<cmd <<std::endl; 
+        errMesg="rm remove intermediate files fails";
+        command(cmd, errMesg);
 
     } catch (LBindException& e){
         jobOut.message= e.what();  
