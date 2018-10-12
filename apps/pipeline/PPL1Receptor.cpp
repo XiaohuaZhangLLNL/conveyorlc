@@ -849,7 +849,7 @@ int main(int argc, char** argv) {
         
         std::vector<RecData*> dirList;        
         
-        std::string pdbList=inputDir+podata.inputFile;
+        std::string pdbList=inputDir+"/"+podata.inputFile;
         saveStrList(pdbList, dirList);
         int count=0;
            
