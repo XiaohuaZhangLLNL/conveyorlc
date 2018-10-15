@@ -16,6 +16,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <errno.h>
 #include "Common/LBindException.h"
 
 namespace LBIND {
@@ -29,7 +30,7 @@ inline void command(std::string& cmd, std::string& errMesg){
         throw LBindException(message);
     } else {
         if (WIFEXITED(status)) {
-            std::cout << "rm remove file return normally, exit code " << WEXITSTATUS(status) << '\n';
+            std::cout << cmd << " return normally exit code " << WEXITSTATUS(status) << '\n';
         } else {
             throw LBindException(errMesg);
         }
