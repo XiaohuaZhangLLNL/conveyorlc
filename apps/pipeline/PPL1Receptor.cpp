@@ -95,6 +95,7 @@ public:
         ar & siteFlg;
         ar & forceRedoFlg;
         ar & getPDBflg;
+        ar & cutProt;
         ar & ambVersion;
         ar & surfSphNum;
         ar & gridSphNum;
@@ -102,6 +103,7 @@ public:
         ar & spacing;
         ar & cutoffCoef;
         ar & minVol;
+        ar & cutRadius;
         ar & dirBuffer; 
         ar & subRes;
         ar & keyRes;
@@ -113,6 +115,7 @@ public:
     bool siteFlg;
     bool forceRedoFlg;
     bool getPDBflg;
+    bool cutProt;
     int ambVersion;
     int surfSphNum;
     int gridSphNum;
@@ -120,6 +123,7 @@ public:
     double spacing;
     double cutoffCoef;
     double minVol;
+    double cutRadius;
     std::string dirBuffer;
     std::string subRes;
     std::vector<std::string> keyRes;
@@ -657,6 +661,11 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         outFile << centroid.getX() << " " << centroid.getY() << " " << centroid.getZ() << " " 
                  << dockDim.getX() << " " << dockDim.getY() << " "  << dockDim.getZ() << "\n";
         outFile.close();
+        
+        if(jobInput.cutProt){
+            std::string fileName="rec_cut.pdb";
+            pGrid->writeCutRecPDB(fileName, pComplex.get(), jobInput.cutRadius);
+        }        
         //delete pElementContainer;
     
     } catch (LBindException& e){
@@ -846,6 +855,12 @@ int main(int argc, char** argv) {
         }else{
            jobInput.forceRedoFlg=false;
         }                
+
+        if(podata.cutProt=="on"){
+           jobInput.cutProt=true;
+        }else{
+           jobInput.cutProt=false;
+        } 
         
         std::vector<RecData*> dirList;        
         
@@ -881,6 +896,7 @@ int main(int argc, char** argv) {
             jobInput.spacing=podata.spacing;
             jobInput.cutoffCoef=podata.cutoffCoef;
             jobInput.minVol=podata.minVol;
+            jobInput.cutRadius=podata.cutRadius;
 
 //            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);
             world.send(freeProc, inpTag, jobInput);            

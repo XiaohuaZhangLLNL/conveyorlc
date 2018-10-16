@@ -17,12 +17,14 @@ struct POdata{
     std::string minimizeFlg;
     std::string siteFlg;
     std::string forceRedoFlg;
+    std::string cutProt;
     double radius;
     int surfSphNum;
     int gridSphNum;
     double spacing;
     double cutoffCoef;
     double minVol;
+    double cutRadius;
     int version;
 };
 

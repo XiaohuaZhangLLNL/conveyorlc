@@ -35,11 +35,13 @@ public:
     //void setNumSphere(int numSphere);
     void setSpacing(double spacing);
     void setCutoffCoef(double cutoffCoeff);
+    void writeCutRecPDB(std::string& fileName, Complex* pComplex, double cutRadius);
         
 private:
     void generateSpPoints();
     void getGridBox();
     void getSiteGrids();
+    int  getSiteIndex();    
     void writeGridPDB(std::string& fileName, std::vector<Coor3d*>& outGrids, const std::string& resName="UNK");
     void clustGrids();
     // Merge two groups of grids and store in clustI if nearest points <=1 angstom.
@@ -60,6 +62,8 @@ private:
     double spacing;
     double cutoffCoef;
     bool outputPDB;
+    
+    int siteIndex;
     
     std::vector<Coor3d*> spPoints;
     std::vector<Coor3d*> grids;

@@ -2019,7 +2019,19 @@ bool Pdb::isAA(Fragment* pFrag){
     Coor3d coorN;
     Coor3d coorCA;
     Coor3d coorC;
-    Coor3d coorO;  
+    Coor3d coorO;
+    return this->isAA(pFrag, coorN, coorCA, coorC, coorO);
+}
+
+bool Pdb::isAA(Fragment* pFrag, Coor3d& coorCA){
+    Coor3d coorN;
+    Coor3d coorC;
+    Coor3d coorO;
+    return this->isAA(pFrag, coorN, coorCA, coorC, coorO);
+}
+
+bool Pdb::isAA(Fragment* pFrag, Coor3d& coorN, Coor3d& coorCA, Coor3d& coorC, Coor3d& coorO){
+  
     bool findN;
     bool findCA;
     bool findC;

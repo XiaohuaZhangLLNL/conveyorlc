@@ -59,10 +59,14 @@ public:
     void fixElement(const std::string& inFileName, const std::string& outFileName);
 //    void write(const std::string& fileName, boost::shared_ptr<Conformer> pConformer);
 //    void write(const std::string& fileName, Conformer* pConformer);
+    
+    bool isAA(Fragment* pFrag, Coor3d& coorN, Coor3d& coorCA, Coor3d& coorC, Coor3d& coorO);
+    bool isAA(Fragment* pFrag);
+    bool isAA(Fragment* pFrag, Coor3d& coorCA);
 private:
     void guessElement(std::string& atomType, const std::string& resName, const std::string& atomName);
     std::string newAtomName(const std::string& atomType, int seq);
-    bool isAA(Fragment* pFrag);
+    
     void toALA(Fragment* pFrag); //! Convert non-standard Amino Acid to ALA
     // a multi-definition issue.
 

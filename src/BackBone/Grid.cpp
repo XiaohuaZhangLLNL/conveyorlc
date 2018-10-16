@@ -12,10 +12,15 @@
 #include "Structure/Complex.h"
 #include "Structure/Constants.h"
 #include "Structure/Atom.h"
+#include "Structure/Molecule.h"
+#include "Structure/Fragment.h"
 #include "Structure/Coor3d.h"
 #include "Parser/Pdb.h"
 #include "Structure/Sstrm.hpp"
 #include "Common/LBindException.h"
+
+#include <boost/scoped_ptr.hpp>
+#include <boost/smart_ptr/scoped_ptr.hpp>
 
 namespace LBIND{
 
@@ -247,6 +252,95 @@ void Grid::getSiteGrids() {
     
     grids=tmpGrids;
     ss <<"Number of point in cavity sites: " << grids.size() <<std::endl;
+}
+
+int Grid::getSiteIndex(){
+    return this->siteIndex;
+}
+
+void Grid::writeCutRecPDB(std::string& fileName, Complex* pComplex, double cutRadius){
+    std::ofstream outFile;
+    try {
+        outFile.open(fileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::read >> Cannot open file" << fileName << std::endl;
+    }
+
+    outFile << "REMARK PDB FILE FOR CUT PROTEIN" << std::endl;
+    
+    double cutRadius2=cutRadius*cutRadius;
+    
+    std::vector<Coor3d*> siteGridsCoors=this->clusters[this->siteIndex]; 
+    
+    boost::scoped_ptr<Pdb> pPdb(new Pdb());
+
+    std::vector<Molecule*> molList=pComplex->getChildren();
+    
+    bool outputResidue=false;
+    
+    for(unsigned i=0;i<molList.size();i++){
+        
+        std::vector<Fragment*> resList=molList[i]->getChildren();
+
+        for(unsigned j=0;j<resList.size();j++){
+            Fragment* pResidue=resList[j];
+            Coor3d coorCA;
+            if(pPdb->isAA(pResidue, coorCA)){
+                for(unsigned s=0; s<siteGridsCoors.size(); s++){
+                    Coor3d* pCoor=siteGridsCoors[s];
+                    if(pCoor->dist2(coorCA)<cutRadius2){
+                        outputResidue=true;
+                        break;
+                    }
+                }
+            }else{
+                std::vector<Atom*> resAtomList=pResidue->getChildren();
+                for(unsigned k=0;k<resAtomList.size();k++){
+                    Atom* pAtom=resAtomList[k];
+                    Coor3d* pCoorAt=pAtom->getCoords();
+                    for(unsigned s=0; s<siteGridsCoors.size(); s++){
+                        Coor3d* pCoor=siteGridsCoors[s];
+                        if(pCoor->dist2(pCoorAt)<cutRadius2){
+                            outputResidue=true;
+                            break;
+                        }
+                    } 
+                    if(outputResidue){
+                        break;
+                    }
+                }
+            }
+            
+            if(outputResidue){
+                std::vector<Atom*> resAtomList=resList[j]->getChildren();
+                
+                for(unsigned k=0;k<resAtomList.size();k++){
+                    Atom* pAtom=resAtomList[k];
+                    outFile << "ATOM  "<< std::setw(5)<< pAtom->getFileID()
+                            << " " << std::setw(4) << pAtom->getName() 
+                            << " " << std::left << std::setw(3) << pResidue->getName()
+                            << " " << std::setw(1) << molList[i]->getName()
+                            << std::right << std::setw(4) << pResidue->getID()
+                            << "    "                        
+                            << std::fixed <<std::setprecision(3)
+                            << std::setw(8) << pAtom->getX()
+                            << std::setw(8) << pAtom->getY()
+                            << std::setw(8) << pAtom->getZ() 
+                            <<"                      "
+                            << std::setw(2) << pAtom->getSymbol()
+                            << std::endl;
+                }                
+            }
+            outputResidue=false;
+        }
+        outFile << "TER" <<std::endl;
+//        std::cout << "i= " << i << std::endl;
+    }
+    outFile << "END" <<std::endl;
+
+    outFile.close();     
+    
 }
 
 void Grid::writeGridPDB(std::string& fileName, std::vector<Coor3d*>& outGrids, const std::string& resName){
@@ -560,6 +654,7 @@ void Grid::getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid){
 }
 
 void Grid::getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid, double& volume){
+    this->siteIndex=0;
     volume=this->clusters[0].size()*spacing*spacing*spacing;
     siteCentroid(this->clusters[0], dockDim, centroid);
 }
@@ -583,6 +678,7 @@ bool Grid::getKeySiteGeo(Coor3d& aveKeyResCoor, Coor3d& dockDim, Coor3d& centroi
     }
     if(index==-1) index=0;
     
+    this->siteIndex=index;
     volume=this->clusters[index].size()*spacing3;
     siteCentroid(this->clusters[index], dockDim, centroid); 
     return true;
