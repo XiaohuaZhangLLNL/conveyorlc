@@ -390,7 +390,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             pPdb->selectAForm(pdbFile, "rec_AForm.pdb");
              //! begin energy minimization of receptor 
             cmd="reduce -Quiet -Trim  rec_AForm.pdb >& rec_noh.pdb ";
-            std::cout <<cmd <<std::endl;
+            //std::cout <<cmd <<std::endl;
             errMesg="reduce converting rec_AForm.pdb fails";
             command(cmd,errMesg); 
 
@@ -406,7 +406,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
                 cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/amber10_reduce_wwPDB_het_dict.txt\" >& rec_rd.pdb";
             }
 
-            std::cout <<cmd <<std::endl;
+            //std::cout <<cmd <<std::endl;
             errMesg="reduce converting rec_noh.pdb fails";
             command(cmd,errMesg); 
 
@@ -480,7 +480,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             }
 
             cmd="tleap -f rec_leap.in >& rec_leap.log";
-            std::cout <<cmd <<std::endl;
+            //std::cout <<cmd <<std::endl;
             errMesg="tleap creating receptor prmtop fails";
             command(cmd,errMesg); 
 
@@ -517,7 +517,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             }else{
                 cmd="sander -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
             }
-            std::cout <<cmd <<std::endl;
+            //std::cout <<cmd <<std::endl;
             errMesg="sander receptor minimization fails";
             command(cmd,errMesg);   
 
@@ -538,7 +538,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
                 cmd="ambpdb -p REC.prmtop -aatm < Rec_min.rst > Rec_min_0.pdb";
             }   
 
-            std::cout <<cmd <<std::endl;
+            //std::cout <<cmd <<std::endl;
             errMesg="ambpdb converting rst to Rec_min_0.pdb file fails";
             command(cmd,errMesg);            
 
@@ -549,7 +549,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             }  
 
             cmd="grep -v END Rec_min_0.pdb > Rec_min.pdb ";
-            std::cout <<cmd <<std::endl;
+            //std::cout <<cmd <<std::endl;
             errMesg="grep Rec_min_0.pdb fails";
             command(cmd,errMesg);              
 
@@ -559,7 +559,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
                 cmd="ambpdb -p REC.prmtop < Rec_min.rst > Rec_min_1.pdb";
             } 
 
-            std::cout <<cmd <<std::endl;
+            //std::cout <<cmd <<std::endl;
             errMesg="ambpdb converting rst to Rec_min_1.pdb file fails";
             command(cmd,errMesg);  
 
