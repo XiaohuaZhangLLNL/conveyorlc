@@ -246,7 +246,8 @@ int main(int argc, char* argv[]) {
 	comment->SetValue(" Tracking calculation error using XML file " );  
 	root->LinkEndChild( comment );  
          
-        FILE* xmlFile=fopen("PPL3TrackTemp.xml", "w"); 
+        std::string trackTmpFileName=workDir+"PPL3TrackTemp.xml";
+        FILE* xmlFile=fopen(trackTmpFileName.c_str(), "w"); 
         fprintf(xmlFile, "<?xml version=\"1.0\" ?>\n");
         fprintf(xmlFile, "<Complexes>\n");
         fprintf(xmlFile, "    <!-- Tracking calculation error using XML file -->\n");
@@ -310,7 +311,8 @@ int main(int argc, char* argv[]) {
         }
 
         fprintf(xmlFile, "</Complexes>\n");
-        doc.SaveFile("PPL3Track.xml");       
+        std::string trackFileName=workDir+"PPL3Track.xml";
+        doc.SaveFile(trackFileName);       
         
         for(unsigned i=1; i < world.size(); ++i){
             int freeProc;

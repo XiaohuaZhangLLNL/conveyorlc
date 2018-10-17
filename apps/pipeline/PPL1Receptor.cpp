@@ -821,8 +821,8 @@ int main(int argc, char** argv) {
 	comment->SetValue(" Tracking calculation error using XML file " );  
 	root->LinkEndChild( comment );     
         
-        
-        FILE* xmlTmpFile=fopen("PPL1TrackTemp.xml", "w");
+        std::string trackTmpFileName=workDir+"PPL1TrackTemp.xml";
+        FILE* xmlTmpFile=fopen(trackTmpFileName.c_str(), "w");
         fprintf(xmlTmpFile, "<?xml version=\"1.0\" ?>\n");
         fprintf(xmlTmpFile, "<Receptors>\n");
         fprintf(xmlTmpFile, "    <!-- Tracking calculation error using XML file -->\n");
@@ -914,8 +914,9 @@ int main(int argc, char** argv) {
             toXML(jobOut, root, xmlTmpFile);  
         } 
 
-        fprintf(xmlTmpFile, "</Receptors>\n");        
-        doc.SaveFile( "PPL1Track.xml" );        
+        fprintf(xmlTmpFile, "</Receptors>\n"); 
+        std::string trackFileName=workDir+"PPL1Track.xml";
+        doc.SaveFile( trackFileName );        
         
         for(int i=1; i < world.size(); ++i){
             int freeProc;
