@@ -414,7 +414,7 @@ int main(int argc, char** argv) {
 	comment->SetValue(" Tracking calculation error using XML file " );  
 	root->LinkEndChild( comment );  
         
-        std::string trackTmpFileName=workDir+"PPL4TrackTemp.xml";
+        std::string trackTmpFileName=workDir+"/PPL4TrackTemp.xml";
         FILE* xmlTmpFile=fopen(trackTmpFileName.c_str(), "w");
         fprintf(xmlTmpFile, "<?xml version=\"1.0\" ?>\n");
         fprintf(xmlTmpFile, "<Complexes>\n");
@@ -432,7 +432,8 @@ int main(int argc, char** argv) {
         std::vector<XmlData*> xmlList;
         
         try{
-            saveStrList(podata.recFile, xmlList);
+            std::string recFileName=workDir+"/"+podata.recFile;
+            saveStrList(recFileName, xmlList);
         }catch(LBindException& e){
             std::cerr << "LBindException: " << e.what() << std::endl;
             return 1;
@@ -488,7 +489,7 @@ int main(int argc, char** argv) {
         } 
         
         fprintf(xmlTmpFile, "</Complexes>\n");   
-        std::string trackFileName=workDir+"PPL4Track.xml";
+        std::string trackFileName=workDir+"/PPL4Track.xml";
         doc.SaveFile( trackFileName );          
         
         for(unsigned i=1; i < world.size(); ++i){

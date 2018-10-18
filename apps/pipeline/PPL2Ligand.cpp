@@ -559,7 +559,15 @@ int main(int argc, char** argv) {
         workDir=WORKDIR;
     }
     
-    // ! MPI Parallel
+    char* INPUTDIR=getenv("INPUTDIR");
+    std::string inputDir;
+    if(INPUTDIR==0) {
+        char BUFFER[200];
+        getcwd(BUFFER, sizeof (BUFFER));
+        inputDir = BUFFER;
+    }else{
+        inputDir = INPUTDIR;
+    }
 
     int jobFlag=1; // 1: doing job,  0: done job
     
@@ -608,7 +616,7 @@ int main(int argc, char** argv) {
 	comment->SetValue(" Tracking calculation error using XML file " );  
 	root->LinkEndChild( comment );  
 
-        std::string trackTmpFileName=workDir+"PPL2TrackTemp.xml";
+        std::string trackTmpFileName=workDir+"/PPL2TrackTemp.xml";
         FILE* xmlFile=fopen(trackTmpFileName.c_str(), "w"); 
         fprintf(xmlFile, "<?xml version=\"1.0\" ?>\n");
         fprintf(xmlFile, "<Ligands>\n");
@@ -624,9 +632,10 @@ int main(int argc, char** argv) {
         outFile.open(podata.outputFile.c_str());
 
         // Start to read in the SDF file
+        std::string sdfFileName=inputDir+"/"+podata.sdfFile;
         std::ifstream inFile;
         try {
-            inFile.open(podata.sdfFile.c_str());
+            inFile.open(sdfFileName.c_str());
         } catch (...) {
             std::cout << "preLigands >> Cannot open file" << podata.sdfFile << std::endl;
         }
@@ -641,7 +650,7 @@ int main(int argc, char** argv) {
             std::getline(inFile, fileLine);
             contents = contents + fileLine + "\n";
             if (fileLine.size() >= 4 && fileLine.compare(0, 4, delimter) == 0) {
-                            
+                            std::cout << "count=" << count << std::cout;
                 if(count >= world.size()-1){
     //                MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
                     world.recv(mpi::any_source, outTag, jobOut);
@@ -683,7 +692,7 @@ int main(int argc, char** argv) {
         } 
         
         fprintf(xmlFile, "</Ligands>\n");
-        std::string trackFileName=workDir+podata.xmlOut;
+        std::string trackFileName=workDir+"/"+podata.xmlOut;
         doc.SaveFile(trackFileName);
         
         for(int i=1; i < world.size(); ++i){

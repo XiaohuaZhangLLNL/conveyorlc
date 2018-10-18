@@ -271,6 +271,17 @@ Thank you!\n";
 #                                                               #\n\
 # Please see http://vina.scripps.edu for more information.      #\n\
 #################################################################\n";    
+
+    char* WORKDIR=getenv("WORKDIR");
+    std::string workDir;
+    if(WORKDIR==0) {
+        char BUFFER[200];
+        getcwd(BUFFER, sizeof (BUFFER));
+        workDir = BUFFER;
+    }else{
+        workDir=WORKDIR;
+    }
+
     try {
 //        std::string recFile;
 //        std::string ligFile;
@@ -326,7 +337,8 @@ Thank you!\n";
             std::cerr << "Missing receptor List file.\n" << "\nCorrect usage:\n" << desc << '\n';
             return 1;
         }else{
-            saveRec(recFile, recList, geoList, nonAAList);
+            std::string recFileName=workDir+"/"+recFile;
+            saveRec(recFileName, recList, geoList, nonAAList);
         }
         
 //        if (vm.count("fleList") > 0) {
@@ -337,7 +349,8 @@ Thank you!\n";
             std::cerr << "Missing ligand List file.\n" << "\nCorrect usage:\n" << desc << '\n';
             return 1;
         }else{
-            saveLig(ligFile, ligList);
+            std::string ligFileName=workDir+"/"+ligFile;
+            saveLig(ligFileName, ligList);
         }  
 
 //        if (vm.count("geoList") <= 0) {
