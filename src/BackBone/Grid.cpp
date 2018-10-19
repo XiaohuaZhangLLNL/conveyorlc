@@ -267,7 +267,7 @@ void Grid::writeCutRecPDB(std::string& fileName, Complex* pComplex, double cutRa
         std::cout << "PDB::read >> Cannot open file" << fileName << std::endl;
     }
 
-    outFile << "REMARK PDB FILE FOR CUT PROTEIN" << std::endl;
+    outFile << "REMARK CUT PROTEIN FROM CLUSTER " << this->siteIndex << std::endl;
     
     double cutRadius2=cutRadius*cutRadius;
     

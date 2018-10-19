@@ -71,7 +71,7 @@ void Amber::antechamber(std::string& input, std::string& output, std::string& op
 //    std::string strTotalCharge=buffer;
     std::string cmd=AMBERPATH +"/bin/antechamber -i " +input + " -fi pdb -o "
             + output + " -fo mol2 -s 0 -pf yes "+options+" >& antechamber.out"; 
-    std::cout << cmd << std::endl;
+    //std::cout << cmd << std::endl;
     std::string errMesg = "Amber::antechamber fails options "+options;
     command(cmd, errMesg);      
 }
@@ -83,7 +83,7 @@ void Amber::parmchk(std::string mol2FName){
     std::string cmd=AMBERPATH +"/bin/parmchk -i " + mol2FName + " -f mol2 -o "
             +mol2FBase+".frcmod";
 
-    std::cout << cmd << std::endl;
+    //std::cout << cmd << std::endl;
     std::string errMesg = "Amber::parmchk fails";
     command(cmd, errMesg);       
 }
@@ -184,7 +184,7 @@ void Amber::tleapInput(std::string& mol2FName, std::string& ligName, std::string
 
 void Amber::tleap(std::string input){
     std::string cmd=AMBERPATH +"/bin/tleap -f " + input + " > leap.out";
-    std::cout << cmd << std::endl;
+    //std::cout << cmd << std::endl;
     std::string errMesg = "Amber::tleap fails";
     command(cmd, errMesg);      
 }
@@ -218,13 +218,13 @@ void Amber::minimization(std::string pdbid){
     	cmd=AMBERPATH +"/bin/sander -O -i "+pdbid+"-min.in -o "+pdbid+"-min.out -p "
             +pdbid +".prmtop -c " + pdbid +".inpcrd -r "+pdbid+"-min.crd";
     }
-    std::cout << cmd << std::endl;
+    //std::cout << cmd << std::endl;
     std::string errMesg = "Amber::minimization sander fails";
     command(cmd, errMesg);      
     
     //!ambpdb -p 1FKO_sus.prmtop <1FKO_sus_min.crd > 1FKO_sus_min.pdb
     cmd=AMBERPATH +"/bin/ambpdb -p " + pdbid +".prmtop < "+pdbid+"-min.crd > "+pdbid+"-min.pdb";
-    std::cout << cmd << std::endl;
+    //std::cout << cmd << std::endl;
     errMesg = "Amber::minimization ambpdb fails";
     command(cmd, errMesg); 
        

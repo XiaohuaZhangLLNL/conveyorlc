@@ -256,7 +256,7 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         std::string pdb1File="ligand.pdb";
 
         cmd="obabel -isdf " + sdfFile + " -opdb -O " +pdb1File +" >> log";
-        std::cout << cmd << std::endl;
+        //std::cout << cmd << std::endl;
         errMesg="obabel converting SDF to PDB fails";
         command(cmd, errMesg);
 
@@ -359,7 +359,7 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         }else{
             cmd="sander  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
         }
-        std::cout <<cmd <<std::endl;
+        //std::cout <<cmd <<std::endl;
         errMesg="sander ligand minimization fails";
         command(cmd, errMesg);
         boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
@@ -380,7 +380,7 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
             cmd="ambpdb -p LIG.prmtop < LIG_min.rst > LIG_minTmp.pdb ";
         } 
 
-        std::cout <<cmd <<std::endl;
+        //std::cout <<cmd <<std::endl;
         errMesg="ambpdb converting rst to pdb fails";
         command(cmd, errMesg);   
 
@@ -396,7 +396,7 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
 
         //! Get DPBQT file for ligand from minimized structure.
         cmd="prepare_ligand4.py -l LIG_min.pdb  >> log";
-        std::cout << cmd << std::endl;   
+        //std::cout << cmd << std::endl;   
         errMesg="prepare_ligand4.py fails";
         command(cmd, errMesg);
 
@@ -415,13 +415,13 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         
         //! fix the Br element type
         cmd="sed -i '/Br.* LIG/{s! B ! Br!}' LIG_min.pdbqt";
-        std::cout << cmd << std::endl;
+        //std::cout << cmd << std::endl;
         errMesg="sed to fix Br fails";
         command(cmd, errMesg);
 
         //cmd="rm -f *.in divcon.pdb fort.7 leap.log mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
         cmd="rm -f divcon.pdb fort.7 leap.log mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
-        std::cout <<cmd <<std::endl; 
+        //std::cout <<cmd <<std::endl; 
         errMesg="rm remove intermediate files fails";
         command(cmd, errMesg);
 
@@ -650,7 +650,6 @@ int main(int argc, char** argv) {
             std::getline(inFile, fileLine);
             contents = contents + fileLine + "\n";
             if (fileLine.size() >= 4 && fileLine.compare(0, 4, delimter) == 0) {
-                            std::cout << "count=" << count << std::cout;
                 if(count >= world.size()-1){
     //                MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
                     world.recv(mpi::any_source, outTag, jobOut);

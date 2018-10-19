@@ -118,7 +118,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
     }
     
     cmd="tleap -f "+tleapFName+" >& Lig_leap.log";
-    std::cout <<cmd <<std::endl;
+    //std::cout <<cmd <<std::endl;
     errMesg="MMGBSA::run tleap ligand fails";
     command(cmd, errMesg);
       
@@ -176,7 +176,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
         tleapFile.close();    
     }
     cmd="tleap -f "+tleapFName+" >& Com_leap.log";
-    std::cout <<cmd <<std::endl;
+    //std::cout <<cmd <<std::endl;
     errMesg="MMGBSA::run tleap complex fails";
     command(cmd, errMesg);
     
@@ -230,7 +230,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
         cmd="sander  -O -i Com_min.in -o "+sanderOut+" -p Com.prmtop -c Com.inpcrd -ref Com.inpcrd  -x Com_" 
             +poseID+".mdcrd"+" -r Com_min"+poseID+".rst";
     }
-    std::cout <<cmd <<std::endl;
+    //std::cout <<cmd <<std::endl;
     errMesg="MMGBSA::run complex minimization fails";
     command(cmd, errMesg);
     
@@ -248,12 +248,12 @@ void MMGBSA::run(std::string& poseID, bool restart){
         cmd="ambpdb -p Com.prmtop -aatm < Com_min"+poseID+".rst > Com_min.pdb";
     }
     
-    std::cout <<cmd <<std::endl;
+    //std::cout <<cmd <<std::endl;
     errMesg="MMGBSA::run ambpdb complex fails";
     command(cmd, errMesg); 
     
     cmd="grep -v LIG Com_min.pdb > rec_tmp.pdb ";
-    std::cout <<cmd <<std::endl;
+    //std::cout <<cmd <<std::endl;
     errMesg="MMGBSA::run grep LIG Com_min.pdb fails";
     command(cmd, errMesg);
     
@@ -301,7 +301,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
     }
 
     cmd="tleap -f rec_leap.in >& rec_leap.log";
-    std::cout <<cmd <<std::endl;
+    //std::cout <<cmd <<std::endl;
     errMesg="MMGBSA::run tleap receptor fails";
     command(cmd, errMesg);
 
@@ -354,7 +354,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
     }else{
         cmd="sander -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
     }
-    std::cout <<cmd <<std::endl;
+    //std::cout <<cmd <<std::endl;
     errMesg="MMGBSA::run receptor minimization fails";
     command(cmd, errMesg); 
     
@@ -366,19 +366,19 @@ void MMGBSA::run(std::string& poseID, bool restart){
     bindGBen=comEnergy-recEnergy-ligGBen;
 
     cmd="rm -f Rec_min.pdb "+poseID+".pdbqt *.in Lig*.pdb leap.log fort.7 REC.* Rec_min.rst rec_tmp.pdb mmgbsa_results.tar.gz";
-    std::cout <<cmd <<std::endl;
+    //std::cout <<cmd <<std::endl;
     errMesg="MMGBSA::run rm remove intermediate files fails";
     command(cmd, errMesg);   
     
     std::string fileList="Com.inpcrd  Com.prmtop  Com_"+poseID+".pdb  Com_leap.log  Com_min.pdb  Com_min"+poseID+".rst  "
             "Com_min_GB_"+poseID+".out  Lig_leap.log  Rec_minGB.out  rec_leap.log";
     cmd="tar -zcf mmgbsa_results.tar.gz "+fileList;
-    std::cout <<cmd <<std::endl;
+    //std::cout <<cmd <<std::endl;
     errMesg="MMGBSA::run tar gzip files fails";
     command(cmd, errMesg); 
     
     cmd="rm -f "+fileList;
-    std::cout <<cmd <<std::endl;
+    //std::cout <<cmd <<std::endl;
     errMesg="MMGBSA::run remove all files fails";
     command(cmd, errMesg); 
     
