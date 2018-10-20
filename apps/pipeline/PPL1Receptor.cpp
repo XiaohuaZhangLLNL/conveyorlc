@@ -338,6 +338,148 @@ void checkPoint(std::string& checkfile, JobOutData& jobOut){
     outFile.close();
 }
 
+void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& checkFName, std::string& recType, std::string& libDir) {
+    std::string tleapFName = recType + "_leap.in";
+    std::string cmd = "";
+    std::string errMesg = "";
+
+    std::vector<std::vector<int> > ssList;
+    {
+        boost::scoped_ptr<Pdb> pPdb(new Pdb());
+        pPdb->getDisulfide(checkFName, ssList);
+
+        std::string stdPdbFile = recType + "_std.pdb";
+
+        pPdb->standardlizeSS(checkFName, stdPdbFile, ssList);
+
+
+    }
+
+    {
+        std::ofstream tleapFile;
+        try {
+            tleapFile.open(tleapFName.c_str());
+        } catch (...) {
+            std::string mesg = "mmpbsa::receptor()\n\t Cannot open tleap file: " + tleapFName;
+            throw LBindException(mesg);
+        }
+
+        if (jobInput.ambVersion == 16 || jobInput.ambVersion == 13) {
+            tleapFile << "source leaprc.ff14SB\n";
+        } else {
+            tleapFile << "source leaprc.ff99SB\n";
+        }
+
+        tleapFile << "source leaprc.gaff\n";
+
+        tleapFile << "source leaprc.water.tip3p\n";
+
+        for (unsigned int i = 0; i < jobInput.nonRes.size(); ++i) {
+            tleapFile << "loadoff " << libDir << jobInput.nonRes[i] << ".off \n";
+            tleapFile << "loadamberparams " << libDir << jobInput.nonRes[i] << ".frcmod \n";
+        }
+
+        tleapFile << "REC = loadpdb " + recType + "_std.pdb\n";
+
+        for (unsigned int i = 0; i < ssList.size(); ++i) {
+            std::vector<int> pair = ssList[i];
+            if (pair.size() == 2) {
+                tleapFile << "bond REC." << pair[0] << ".SG REC." << pair[1] << ".SG \n";
+            }
+        }
+
+        tleapFile << "set default PBRadii mbondi2\n"
+                << "saveamberparm REC " + recType + ".prmtop " + recType + ".inpcrd\n"
+                << "quit\n";
+
+        tleapFile.close();
+    }
+
+    cmd = "tleap -f " + tleapFName + " >& " + recType + "_leap.log";
+    //std::cout <<cmd <<std::endl;
+    errMesg = "tleap creating receptor prmtop fails";
+    command(cmd, errMesg);
+
+    std::string minFName = recType + "_minGB.in";
+    {
+        std::ofstream minFile;
+        try {
+            minFile.open(minFName.c_str());
+        } catch (...) {
+            std::string mesg = "mmpbsa::receptor()\n\t Cannot open min file: " + minFName;
+            throw LBindException(mesg);
+        }
+
+        minFile << "title..\n"
+                << "&cntrl\n"
+                << "  imin   = 1,\n"
+                << "  ntmin   = 3,\n"
+                << "  maxcyc = 2000,\n"
+                << "  ncyc   = 1000,\n"
+                << "  ntpr   = 200,\n"
+                << "  ntb    = 0,\n"
+                << "  igb    = 5,\n"
+                << "  gbsa   = 1,\n"
+                << "  cut    = 15,\n"
+                << "  ntr=1,\n"
+                << "  restraint_wt=5.0,\n"
+                << "  restraintmask='!@H=',\n"
+                << " /\n" << std::endl;
+        minFile.close();
+    }
+    if (jobInput.ambVersion == 13) {
+        cmd = "sander13 -O -i " + recType + "_minGB.in -o " + recType + "_minGB.out  -p " + recType + ".prmtop -c " + recType + ".inpcrd -ref " + recType + ".inpcrd -x " + recType + ".mdcrd -r " + recType + "_min.rst";
+    } else {
+        cmd = "sander -O -i " + recType + "_minGB.in -o " + recType + "_minGB.out  -p " + recType + ".prmtop -c " + recType + ".inpcrd -ref " + recType + ".inpcrd -x " + recType + ".mdcrd -r " + recType + "_min.rst";
+    }
+    //std::cout <<cmd <<std::endl;
+    errMesg = "sander receptor minimization fails";
+    command(cmd, errMesg);
+
+    boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
+    std::string sanderOut = recType + "_minGB.out";
+    double recGBen = 0;
+    bool success = pSanderOutput->getEnergy(sanderOut, recGBen);
+    jobOut.gbEn = recGBen;
+
+    if (!success) {
+        std::string message = "Receptor GB minimization fails.";
+        throw LBindException(message);
+    }
+
+    if (jobInput.ambVersion == 16) {
+        cmd = "ambpdb -p " + recType + ".prmtop -aatm -c " + recType + "_min.rst > " + recType + "_min_0.pdb";
+    } else {
+        cmd = "ambpdb -p " + recType + ".prmtop -aatm < " + recType + "_min.rst > " + recType + "_min_0.pdb";
+    }
+
+    //std::cout <<cmd <<std::endl;
+    errMesg = "ambpdb converting rst to " + recType + "_min_0.pdb file fails";
+    command(cmd, errMesg);
+
+    checkFName = recType + "_min_0.pdb";
+    if (!fileExist(checkFName)) {
+        std::string message = checkFName + " does not exist.";
+        throw LBindException(message);
+    }
+
+    cmd = "grep -v END " + recType + "_min_0.pdb > " + recType + "_min.pdb ";
+    //std::cout <<cmd <<std::endl;
+    errMesg = "grep " + recType + "_min_0.pdb fails";
+    command(cmd, errMesg);
+
+    if (jobInput.ambVersion == 16) {
+        cmd = "ambpdb -p " + recType + ".prmtop -c " + recType + "_min.rst > " + recType + "_min_1.pdb";
+    } else {
+        cmd = "ambpdb -p " + recType + ".prmtop < " + recType + "_min.rst > " + recType + "_min_1.pdb";
+    }
+
+    //std::cout <<cmd <<std::endl;
+    errMesg = "ambpdb converting rst to " + recType + "_min_1.pdb file fails";
+    command(cmd, errMesg);
+
+}
+
 bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, std::string& inputDir, std::string& dataPath){
     
     bool jobStatus=false;
@@ -420,149 +562,11 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
            checkFName=pdbFile;
         }
 
-        std::vector<std::vector<int> > ssList;
-        {
-            boost::scoped_ptr<Pdb> pPdb(new Pdb() );
-            pPdb->getDisulfide(checkFName, ssList);
-
-            std::string stdPdbFile="rec_std.pdb";
-
-            pPdb->standardlizeSS(checkFName, stdPdbFile, ssList);
-
-
-        }
-
         std::string b4pdbqt="rec_std.pdb";
 
         if(jobInput.minimizeFlg){
-
-            std::string tleapFName="rec_leap.in";
-
-            {
-                std::ofstream tleapFile;
-                try {
-                    tleapFile.open(tleapFName.c_str());
-                }
-                catch(...){
-                    std::string mesg="mmpbsa::receptor()\n\t Cannot open tleap file: "+tleapFName;
-                    throw LBindException(mesg);
-                }
-
-                if(jobInput.ambVersion==16 || jobInput.ambVersion==13){
-                    tleapFile << "source leaprc.ff14SB\n";    
-                }else{
-                    tleapFile << "source leaprc.ff99SB\n";
-                }
-
-                tleapFile << "source leaprc.gaff\n";
-
-                tleapFile << "source leaprc.water.tip3p\n";
-
-                for(unsigned int i=0; i<jobInput.nonRes.size(); ++i){
-                    tleapFile << "loadoff "<< libDir << jobInput.nonRes[i] <<".off \n";
-                    tleapFile << "loadamberparams "<< libDir << jobInput.nonRes[i] <<".frcmod \n";
-                }
-
-                tleapFile << "REC = loadpdb rec_std.pdb\n";
-
-                for(unsigned int i=0; i<ssList.size(); ++i){
-                    std::vector<int> pair=ssList[i];
-                    if(pair.size()==2){
-                        tleapFile << "bond REC."<< pair[0] <<".SG REC." << pair[1] <<".SG \n";
-                    }
-                }        
-
-                tleapFile << "set default PBRadii mbondi2\n"
-                          << "saveamberparm REC REC.prmtop REC.inpcrd\n"
-                          << "quit\n";
-
-                tleapFile.close();
-            }
-
-            cmd="tleap -f rec_leap.in >& rec_leap.log";
-            //std::cout <<cmd <<std::endl;
-            errMesg="tleap creating receptor prmtop fails";
-            command(cmd,errMesg); 
-
-            std::string minFName="Rec_minGB.in";
-            {
-                std::ofstream minFile;
-                try {
-                    minFile.open(minFName.c_str());
-                }
-                catch(...){
-                    std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
-                    throw LBindException(mesg);
-                }   
-
-                minFile << "title..\n" 
-                        << "&cntrl\n" 
-                        << "  imin   = 1,\n" 
-                        << "  ntmin   = 3,\n"
-                        << "  maxcyc = 2000,\n" 
-                        << "  ncyc   = 1000,\n"
-                        << "  ntpr   = 200,\n" 
-                        << "  ntb    = 0,\n" 
-                        << "  igb    = 5,\n" 
-                        << "  gbsa   = 1,\n"
-                        << "  cut    = 15,\n" 
-                        << "  ntr=1,\n" 
-                        << "  restraint_wt=5.0,\n" 
-                        << "  restraintmask='!@H=',\n"        
-                        << " /\n" << std::endl;
-                minFile.close();    
-            }
-            if(jobInput.ambVersion==13){
-                cmd="sander13 -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
-            }else{
-                cmd="sander -O -i Rec_minGB.in -o Rec_minGB.out  -p REC.prmtop -c REC.inpcrd -ref REC.inpcrd -x REC.mdcrd -r Rec_min.rst";
-            }
-            //std::cout <<cmd <<std::endl;
-            errMesg="sander receptor minimization fails";
-            command(cmd,errMesg);   
-
-            boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
-            std::string sanderOut="Rec_minGB.out";
-            double recGBen=0;
-            bool success=pSanderOutput->getEnergy(sanderOut, recGBen);
-            jobOut.gbEn=recGBen;
-
-            if(!success){
-                std::string message="Receptor GB minimization fails.";
-                throw LBindException(message);           
-            }
-
-            if(jobInput.ambVersion==16){
-                cmd="ambpdb -p REC.prmtop -aatm -c Rec_min.rst > Rec_min_0.pdb";   
-            }else{
-                cmd="ambpdb -p REC.prmtop -aatm < Rec_min.rst > Rec_min_0.pdb";
-            }   
-
-            //std::cout <<cmd <<std::endl;
-            errMesg="ambpdb converting rst to Rec_min_0.pdb file fails";
-            command(cmd,errMesg);            
-
-            checkFName="Rec_min_0.pdb";
-            if(!fileExist(checkFName)){
-                std::string message=checkFName+" does not exist.";
-                throw LBindException(message);         
-            }  
-
-            cmd="grep -v END Rec_min_0.pdb > Rec_min.pdb ";
-            //std::cout <<cmd <<std::endl;
-            errMesg="grep Rec_min_0.pdb fails";
-            command(cmd,errMesg);              
-
-            if(jobInput.ambVersion==16){
-                cmd="ambpdb -p REC.prmtop -c Rec_min.rst > Rec_min_1.pdb";  
-            }else{
-                cmd="ambpdb -p REC.prmtop < Rec_min.rst > Rec_min_1.pdb";
-            } 
-
-            //std::cout <<cmd <<std::endl;
-            errMesg="ambpdb converting rst to Rec_min_1.pdb file fails";
-            command(cmd,errMesg);  
-
+            std::string recType="rec";
+            minimization(jobInput, jobOut, checkFName, recType, libDir);
             b4pdbqt="Rec_min_0.pdb";
         }
 
@@ -663,8 +667,10 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         outFile.close();
         
         if(jobInput.cutProt){
-            std::string fileName="rec_cut.pdb";
+            std::string fileName="recCut_std.pdb";
             pGrid->writeCutRecPDB(fileName, pComplex.get(), jobInput.cutRadius);
+            std::string recType="recCut";
+            minimization(jobInput, jobOut, checkFName, recType, libDir);           
         }        
         //delete pElementContainer;
     
