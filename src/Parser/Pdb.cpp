@@ -15,7 +15,7 @@
 #include "Structure/StdResContainer.h"
 //#include "Conformer.h"
 #include "Structure/Coordinates.h"
-#include "Structure/PMolException.h"
+#include "Common/LBindException.h"
 #include "Common/Tokenize.hpp"
 //#include "Common/Chomp.hpp"
 
@@ -53,7 +53,8 @@ void Pdb::read(const std::string& fileName, Complex* pComplex)
         inFile.open(fileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::read >> Cannot open file" << fileName << std::endl;
+        std::string message= "PDB::read >> Cannot open file" + fileName;
+        throw LBindException(message);
     }
 
     static const boost::regex terRegex("^TER");
@@ -311,7 +312,8 @@ void Pdb::parse(const std::string& fileName, Complex* pComplex){
         inFile.open(fileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::read >> Cannot open file" << fileName << std::endl;
+        std::string message= "PDB::parse >> Cannot open file" + fileName;
+        throw LBindException(message);
     }
 
     std::string fileLine="";
@@ -436,7 +438,8 @@ void Pdb::parseOut(const std::string& fileName, Complex* pComplex){
         outFile.open(fileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::read >> Cannot open file" << fileName << std::endl;
+        std::string message= "PDB::parseOut >> Cannot open file" + fileName;
+        throw LBindException(message);
     }
 
     outFile << "REMARK PDB FILE CONVERTED BY PMOL" << std::endl;
@@ -506,7 +509,9 @@ void Pdb::renameAtom(const std::string& inFileName, const std::string& outFileNa
         inFile.open(inFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::read >> Cannot open file" << inFileName << std::endl;
+        std::string message= "PDB::renameAtom >> Cannot open file" + inFileName;
+        throw LBindException(message);
+
     }
     
     std::ofstream outFile;
@@ -514,7 +519,8 @@ void Pdb::renameAtom(const std::string& inFileName, const std::string& outFileNa
         outFile.open(outFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::read >> Cannot open file" << outFileName << std::endl;
+        std::string message= "PDB::renameAtom >> Cannot open file" + outFileName;
+        throw LBindException(message);
     }    
 
     std::string fileLine="";    
@@ -600,15 +606,18 @@ void Pdb::strip(const std::string& inFileName, const std::string& outFileName){
         inFile.open(inFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::strip >> Cannot open file" << inFileName << std::endl;
+        std::string message= "PDB::strip >> Cannot open file" + inFileName;
+        throw LBindException(message);
     }
+
     
     std::ofstream outFile;
     try {
         outFile.open(outFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::strip >> Cannot open file" << outFileName << std::endl;
+        std::string message= "PDB::strip >> Cannot open file" + outFileName;
+        throw LBindException(message);
     }    
 
     std::string fileLine="";    
@@ -634,7 +643,8 @@ void Pdb::cutByRadius(const std::string& inFileName, const std::string& outFileN
         inFile.open(inFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::cutByRadius >> Cannot open file" << inFileName << std::endl;
+        std::string message= "PDB::cutByRadius >> Cannot open file" + inFileName;
+        throw LBindException(message);
     }
     
     std::ofstream outFile;
@@ -642,7 +652,8 @@ void Pdb::cutByRadius(const std::string& inFileName, const std::string& outFileN
         outFile.open(outFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::cutByRadius >> Cannot open file" << outFileName << std::endl;
+        std::string message= "PDB::cutByRadius >> Cannot open file" + outFileName;
+        throw LBindException(message);
     }    
 
     std::string fileLine="";    
@@ -716,8 +727,8 @@ bool Pdb::aveKeyResCoor(const std::string& inFileName, std::vector<std::string>&
         inFile.open(inFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::aveKeyResCoor >> Cannot open file" << inFileName << std::endl;
-        return false;
+        std::string message= "PDB::aveKeyResCoor >> Cannot open file" + inFileName;
+        throw LBindException(message);
     }
         
     std::string fileLine="";    
@@ -793,8 +804,8 @@ bool Pdb::calcAverageCoor(const std::string& fileName, Coor3d& aveCoor){
         inFile.open(fileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::calcAverageCoor >> Cannot open file" << fileName << std::endl;
-        return false;
+        std::string message= "PDB::calcAverageCoor >> Cannot open file" + fileName;
+        throw LBindException(message);
     }
         
     std::string fileLine="";    
@@ -845,8 +856,8 @@ bool Pdb::readByModel(const std::string& inFileName, const std::string& outFileN
         inFile.open(inFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::readByModel >> Cannot open file" << inFileName << std::endl;
-        return false;
+        std::string message= "PDB::readByModel >> Cannot open file" + inFileName;
+        throw LBindException(message);
     }
     
     std::string fileLine="";    
@@ -862,8 +873,8 @@ bool Pdb::readByModel(const std::string& inFileName, const std::string& outFileN
     try {
         outFile.open(outFileName.c_str());
     } catch (...) {
-        std::cout << "Pdb::readByModel >> Cannot open file" << outFileName << std::endl;
-        return false;
+        std::string message= "PDB::readByModel >> Cannot open file" + outFileName;
+        throw LBindException(message);
     }    
     
     while(std::getline(inFile, fileLine)){
@@ -920,7 +931,8 @@ int Pdb::splitByModel(const std::string& inFileName, const std::string& outFileB
         inFile.open(inFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::splitByModel >> Cannot open file" << inFileName << std::endl;
+        std::string message= "PDB::splitByModel >> Cannot open file" + inFileName;
+        throw LBindException(message);
     }
     
    
@@ -946,7 +958,8 @@ int Pdb::splitByModel(const std::string& inFileName, const std::string& outFileB
                 outFile.open(outFileName.c_str());
             }
             catch(...){
-                std::cout << "Pdb::splitByModel >> Cannot open file" << outFileName << std::endl;
+        	std::string message= "PDB::splitByModel >> Cannot open file" + outFileName;
+        	throw LBindException(message);
             }   
             outFlag=true;
         }
@@ -980,7 +993,8 @@ void Pdb::selectAForm(const std::string& inFileName, const std::string& outFileN
         inFile.open(inFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::calcAverageCoor >> Cannot open file" << inFileName << std::endl;
+        std::string message= "PDB::selectAForm >> Cannot open file" + inFileName;
+        throw LBindException(message);
     }
     
     std::ofstream outFile;
@@ -988,7 +1002,8 @@ void Pdb::selectAForm(const std::string& inFileName, const std::string& outFileN
         outFile.open(outFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::read >> Cannot open file" << outFileName << std::endl;
+        std::string message= "PDB::selectAForm >> Cannot open file" + outFileName;
+        throw LBindException(message);
     }    
         
     std::string fileLine="";    
@@ -1018,7 +1033,8 @@ void Pdb::write(const std::string& fileName, Complex* pComplex)
         outFile.open(fileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::read >> Cannot open file" << fileName << std::endl;
+        std::string message= "PDB::write >> Cannot open file" + fileName;
+        throw LBindException(message);
     }
 
     outFile << "REMARK PDB FILE CONVERTED BY PMOL" << std::endl;
@@ -1068,7 +1084,8 @@ void Pdb::write(const std::string& fileName, boost::shared_ptr<Complex> pComplex
         outFile.open(fileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::read >> Cannot open file" << fileName << std::endl;
+        std::string message= "PDB::write >> Cannot open file" + fileName;
+        throw LBindException(message);
     }
 
     outFile << "REMARK PDB FILE CONVERTED BY PMOL" << std::endl;
@@ -1120,7 +1137,8 @@ void Pdb::write(const std::string& fileName, Molecule* pMol){
         outFile.open(fileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::read >> Cannot open file" << fileName << std::endl;
+        std::string message= "PDB::write >> Cannot open file" + fileName;
+        throw LBindException(message);
     }
 
     outFile << "REMARK PDB FILE CONVERTED BY PMOL" << std::endl;
@@ -1161,7 +1179,8 @@ void Pdb::write(const std::string& fileName, std::vector<Atom*>& atomList, const
         outFile.open(fileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::read >> Cannot open file" << fileName << std::endl;
+        std::string message= "PDB::write >> Cannot open file" + fileName;
+        throw LBindException(message);
     }
 
     outFile << "REMARK PDB FILE CONVERTED BY PMOL" << std::endl;
@@ -1224,7 +1243,7 @@ void Pdb::standardlizeD(const std::string& inFileName, const std::string& outFil
     }
     catch(...){
         std::string mesg="PDB::standardlize >> Cannot open file" + inFileName;
-        throw PMolException(mesg); 
+        throw LBindException(mesg); 
     }
     
     std::ofstream outFile;
@@ -1233,7 +1252,7 @@ void Pdb::standardlizeD(const std::string& inFileName, const std::string& outFil
     }
     catch(...){
         std::string mesg="PDB::standardlize >> Cannot open file" + outFileName;
-        throw PMolException(mesg); 
+        throw LBindException(mesg); 
     }  
     
 //    std::ofstream outFile2;
@@ -1242,7 +1261,7 @@ void Pdb::standardlizeD(const std::string& inFileName, const std::string& outFil
 //    }
 //    catch(...){
 //        std::string mesg="PDB::standardlize >> Cannot open file" + outFileName;
-//        throw PMolException(mesg); 
+//        throw LBindException(mesg); 
 //    }     
        
     const std::string atomStr="ATOM";
@@ -1944,7 +1963,8 @@ void Pdb::getDisulfide(const std::string& inFileName, std::vector<std::vector<in
         inFile.open(inFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::read >> Cannot open file" << inFileName << std::endl;
+        std::string message= "PDB::getDisulfide >> Cannot open file" + inFileName;
+        throw LBindException(message);
     }
 
     std::string fileLine="";
@@ -2139,7 +2159,8 @@ void Pdb::fixElement(const std::string& inFileName, const std::string& outFileNa
         inFile.open(inFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::fixElement >> Cannot open file" << inFileName << std::endl;
+        std::string message= "PDB::fixElement >> Cannot open file" + inFileName;
+        throw LBindException(message);
     }
     
     std::ofstream outFile;
@@ -2147,7 +2168,8 @@ void Pdb::fixElement(const std::string& inFileName, const std::string& outFileNa
         outFile.open(outFileName.c_str());
     }
     catch(...){
-        std::cout << "PDB::fixElement >> Cannot open file" << outFileName << std::endl;
+        std::string message= "PDB::fixElement >> Cannot open file" + outFileName;
+        throw LBindException(message);
     }    
 
     std::string fileLine="";    

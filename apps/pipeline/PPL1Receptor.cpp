@@ -570,7 +570,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         if(jobInput.minimizeFlg){
             std::string recType="rec";
             minimization(jobInput, jobOut, checkFName, recType, libDir);
-            b4pdbqt="Rec_min_0.pdb";
+            b4pdbqt="rec_min_0.pdb";
         }
 
         {
