@@ -1754,6 +1754,26 @@ void Pdb::standardlizeSS(const std::string& inFileName, const std::string& outFi
         pMolecule=pNewCom->addMolecule();
     }
     pMolecule->addFragment(resList[resList.size()-1]);
+
+    moleculeList=pNewCom->getChildren();
+    for(unsigned i=0;i<moleculeList.size();i++){
+        std::vector<Fragment*> resList=moleculeList[i]->getChildren();
+
+            if(resList.size()>1){// modify the HN to HT1 for N-term Chain must contain more than 1 residue
+                std::vector<Atom*> atomList=resList[0]->getChildren();
+
+                for(unsigned k=0;k<atomList.size();k++){
+                    Atom* pAtom=atomList[k];
+                    //std::cout << "atom name |" << pAtom->getName() << "|"<< std::endl;
+                    if(pAtom->getName()==" H  "){
+                        pAtom->setName(" H1 ");
+                    //std::cout << "CHANGE atom name |" << pAtom->getName() << "|"<< std::endl;
+                    }
+                }
+            }
+
+          
+    }
     
     this->parseOut(outFileName, pNewCom.get());
     

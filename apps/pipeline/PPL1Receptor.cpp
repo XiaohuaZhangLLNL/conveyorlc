@@ -463,7 +463,7 @@ void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& check
         throw LBindException(message);
     }
 
-    cmd = "grep -v END " + recType + "_min_0.pdb > " + recType + "_min.pdb ";
+    cmd = "grep -v END " + recType + "_min_0.pdb > " + recType + "_min_orig.pdb ";
     //std::cout <<cmd <<std::endl;
     errMesg = "grep " + recType + "_min_0.pdb fails";
     command(cmd, errMesg);
@@ -478,6 +478,9 @@ void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& check
     errMesg = "ambpdb converting rst to " + recType + "_min_1.pdb file fails";
     command(cmd, errMesg);
 
+    cmd="ln -sf "+recType + "_min_orig.pdb Rec_min.pdb";
+    errMesg="ln Rec_min.pdb fails for"+recType + "_min_orig.pdb";
+    command(cmd, errMesg);  
 }
 
 bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, std::string& inputDir, std::string& dataPath){
@@ -667,10 +670,10 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         outFile.close();
         
         if(jobInput.cutProt){
-            std::string fileName="recCut_std.pdb";
+            std::string fileName="recCut.pdb";
             pGrid->writeCutRecPDB(fileName, pComplex.get(), jobInput.cutRadius);
             std::string recType="recCut";
-            minimization(jobInput, jobOut, checkFName, recType, libDir);           
+            minimization(jobInput, jobOut, fileName, recType, libDir);           
         }        
         //delete pElementContainer;
     

@@ -313,7 +313,7 @@ void Grid::writeCutRecPDB(std::string& fileName, Complex* pComplex, double cutRa
             }
             
             if(outputResidue){
-                std::vector<Atom*> resAtomList=resList[j]->getChildren();
+                std::vector<Atom*> resAtomList=pResidue->getChildren();
                 
                 for(unsigned k=0;k<resAtomList.size();k++){
                     Atom* pAtom=resAtomList[k];
