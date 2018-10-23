@@ -691,6 +691,7 @@ int main(int argc, char** argv) {
         } 
         
         fprintf(xmlFile, "</Ligands>\n");
+        fflush(xmlFile);
         std::string trackFileName=workDir+"/"+podata.xmlOut;
         doc.SaveFile(trackFileName);
         

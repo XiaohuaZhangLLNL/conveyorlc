@@ -311,6 +311,7 @@ int main(int argc, char* argv[]) {
         }
 
         fprintf(xmlFile, "</Complexes>\n");
+        fflush(xmlFile);
         std::string trackFileName=workDir+"/PPL3Track.xml";
         doc.SaveFile(trackFileName);       
         
