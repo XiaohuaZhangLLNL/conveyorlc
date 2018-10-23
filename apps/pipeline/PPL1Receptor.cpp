@@ -565,7 +565,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
            checkFName=pdbFile;
         }
 
-        std::string b4pdbqt="rec_std.pdb";
+        std::string b4pdbqt=checkFName;
 
         if(jobInput.minimizeFlg){
             std::string recType="rec";
