@@ -286,31 +286,31 @@ void Grid::writeCutRecPDB(std::string& fileName, Complex* pComplex, double cutRa
         for(unsigned j=0;j<resList.size();j++){
             Fragment* pResidue=resList[j];
             Coor3d coorCA;
-            if(pPdb->isAA(pResidue, coorCA)){
+//            if(pPdb->isAA(pResidue, coorCA)){
+//                for(unsigned s=0; s<siteGridsCoors.size(); s++){
+//                    Coor3d* pCoor=siteGridsCoors[s];
+//                    if(pCoor->dist2(coorCA)<cutRadius2){
+//                        outputResidue=true;
+//                        break;
+//                    }
+//                }
+//            }else{
+            std::vector<Atom*> resAtomList=pResidue->getChildren();
+            for(unsigned k=0;k<resAtomList.size();k++){
+                Atom* pAtom=resAtomList[k];
+                Coor3d* pCoorAt=pAtom->getCoords();
                 for(unsigned s=0; s<siteGridsCoors.size(); s++){
                     Coor3d* pCoor=siteGridsCoors[s];
-                    if(pCoor->dist2(coorCA)<cutRadius2){
+                    if(pCoor->dist2(pCoorAt)<cutRadius2){
                         outputResidue=true;
                         break;
                     }
-                }
-            }else{
-                std::vector<Atom*> resAtomList=pResidue->getChildren();
-                for(unsigned k=0;k<resAtomList.size();k++){
-                    Atom* pAtom=resAtomList[k];
-                    Coor3d* pCoorAt=pAtom->getCoords();
-                    for(unsigned s=0; s<siteGridsCoors.size(); s++){
-                        Coor3d* pCoor=siteGridsCoors[s];
-                        if(pCoor->dist2(pCoorAt)<cutRadius2){
-                            outputResidue=true;
-                            break;
-                        }
-                    } 
-                    if(outputResidue){
-                        break;
-                    }
+                } 
+                if(outputResidue){
+                    break;
                 }
             }
+//            }
             
             if(outputResidue){
                 std::vector<Atom*> resAtomList=pResidue->getChildren();

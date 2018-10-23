@@ -278,7 +278,7 @@ void SpMMGBSA::comRun(int poseID){
                 << "  cut    = 15,\n" 
                 << "  ntr=1,\n" 
                 << "  restraint_wt=5.0,\n" 
-                << "  restraintmask='!:LIG'\n"        
+                << "  restraintmask='!@H= & !:LIG'\n"        
                 << " /\n" << std::endl;
         
         minFile.close();    
@@ -333,7 +333,7 @@ void SpMMGBSA::comRun(int poseID){
                 << "  cut    = 15,\n" 
                 << "  ntr=1,\n" 
                 << "  restraint_wt=5.0,\n" 
-                << "  restraintmask='!:LIG'\n"        
+                << "  restraintmask='!@H='\n"        
                 << " /\n" << std::endl;
         
         minFile.close();    
