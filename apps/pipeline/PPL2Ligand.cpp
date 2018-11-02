@@ -326,104 +326,17 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
             }
         }
 
-        //! GB energy minimization
-        std::string minFName="LIG_minGB.in";
-        {
-            std::ofstream minFile;
-            try {
-                minFile.open(minFName.c_str());
-            }
-            catch(...){
-                std::string mesg="mmpbsa::receptor()\n\t Cannot open min file: "+minFName;
-                throw LBindException(mesg);
-            }   
-
-            minFile << "title..\n" 
-                    << "&cntrl\n" 
-                    << "  imin   = 1,\n" 
-                    << "  ntmin   = 3,\n" 
-                    << "  maxcyc = 2000,\n" 
-                    << "  ncyc   = 1000,\n" 
-                    << "  ntpr   = 200,\n" 
-                    << "  ntb    = 0,\n" 
-                    << "  igb    = 5,\n" 
-                    << "  gbsa   = 1,\n" 
-                    << "  cut    = 15,\n"       
-                    << " /\n" << std::endl;
-
-            minFile.close();    
-        }          
-
-        if(jobInput.ambVersion==13){
-            cmd="sander13  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
-        }else{
-            cmd="sander  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
-        }
-        //std::cout <<cmd <<std::endl;
-        errMesg="sander ligand minimization fails";
-        command(cmd, errMesg);
-        boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
-        std::string sanderOut="LIG_minGB.out";
-        double ligGBen=0;
-        bool success=pSanderOutput->getEnergy(sanderOut,ligGBen);
-        jobOut.gbEn=ligGBen;
-
-        if(!success){
-            std::string message="Ligand GB minimization fails.";
-            throw LBindException(message);          
-        }
 
         //! Use ambpdb generated PDB file for PDBQT.
         if(jobInput.ambVersion==16){
-            cmd="ambpdb -p LIG.prmtop -c LIG_min.rst > LIG_minTmp.pdb "; 
+            cmd="ambpdb -p LIG.prmtop -c LIG.inpcrd > LIG_minTmp.pdb "; 
         }else{
-            cmd="ambpdb -p LIG.prmtop < LIG_min.rst > LIG_minTmp.pdb ";
+            cmd="ambpdb -p LIG.prmtop < LIG.inpcrd > LIG_minTmp.pdb ";
         } 
 
         //std::cout <<cmd <<std::endl;
-        errMesg="ambpdb converting rst to pdb fails";
+        errMesg="ambpdb converting LIG.inpcrd to pdb fails";
         command(cmd, errMesg);   
-
-        checkFName="LIG_minTmp.pdb";
-        if(!fileExist(checkFName)){
-            std::string message="LIG_min.pdb minimization PDB file does not exist.";
-            throw LBindException(message);         
-        }
-
-        pPdb->fixElement("LIG_minTmp.pdb", "LIG_min.pdb"); 
-
-
-
-        //! Get DPBQT file for ligand from minimized structure.
-        cmd="prepare_ligand4.py -l LIG_min.pdb  >> log";
-        //std::cout << cmd << std::endl;   
-        errMesg="prepare_ligand4.py fails";
-        command(cmd, errMesg);
-
-        checkFName="LIG_min.pdbqt";
-        {
-            if(!fileExist(checkFName)){
-                std::string message="LIG_min.pdbqt PDBQT file does not exist.";
-                throw LBindException(message);        
-            }
-
-            if(fileEmpty(checkFName)){
-                std::string message="LIG_min.pdbqt is empty.";
-                throw LBindException(message);              
-            }
-        }
-        
-        //! fix the Br element type
-        cmd="sed -i '/Br.* LIG/{s! B ! Br!}' LIG_min.pdbqt";
-        //std::cout << cmd << std::endl;
-        errMesg="sed to fix Br fails";
-        command(cmd, errMesg);
-
-        //cmd="rm -f *.in divcon.pdb fort.7 leap.log mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
-        cmd="rm -f divcon.pdb fort.7 leap.log mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
-        //std::cout <<cmd <<std::endl; 
-        errMesg="rm remove intermediate files fails";
-        command(cmd, errMesg);
 
     } catch (LBindException& e){
         jobOut.message= e.what();  
