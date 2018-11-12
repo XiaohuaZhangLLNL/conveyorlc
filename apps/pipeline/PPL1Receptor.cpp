@@ -410,9 +410,13 @@ void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& check
     errMesg = "ambpdb converting inpcrd to " + recType + "_min_1.pdb file fails";
     command(cmd, errMesg);
 
-    cmd="ln -sf "+recType + "_min_orig.pdb Rec_min.pdb";
-    errMesg="ln Rec_min.pdb fails for"+recType + "_min_orig.pdb";
+    cmd="ln -sf "+recType + "_min_1.pdb Rec_min.pdb";
+    errMesg="ln Rec_min.pdb fails for"+recType + "_min_1.pdb";
     command(cmd, errMesg);  
+
+    //cmd ="rm -f leap.log  rec_AForm.pdb  rec_leap.in  rec_noh.pdb  rec_rd.pdb  rec_std.pdb";
+    //errMesg="rm - remove files fails";
+    //command(cmd, errMesg);    
 }
 
 bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, std::string& inputDir, std::string& dataPath){
@@ -504,26 +508,6 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             minimization(jobInput, jobOut, checkFName, recType, libDir);
             b4pdbqt="rec_min_0.pdb";
         }
-
-        {
-            boost::scoped_ptr<Pdb> pPdb(new Pdb() );
-            pPdb->standardlize(b4pdbqt, "std4pdbqt.pdb");
-            //cmd="prepare_receptor4.py -r "+b4pdbqt+" -o "+jobOut.pdbid+".pdbqt";
-            cmd="obabel -ipdb std4pdbqt.pdb -opdbqt -xr -O temp.pdbqt >& pdbqt.log";
-            errMesg="obabel converting std4pdbqt.pdb  temp.pdbqt to fails";
-            command(cmd,errMesg);  
-            cmd="grep -v REMARK temp.pdbqt > " + jobOut.pdbid+".pdbqt";
-            errMesg="grep to remove REMARK fails";
-            command(cmd,errMesg);  
-
-        }
-
-        checkFName=jobOut.pdbid+".pdbqt";
-        if(!fileExist(checkFName)){
-            std::string message=checkFName+" does not exist.";
-            throw LBindException(message);         
-        } 
-        jobOut.recPath="scratch/com/"+jobOut.pdbid+"/rec/"+jobOut.pdbid+".pdbqt";
 
         // Skip the site calculation
         if(!jobInput.siteFlg){
