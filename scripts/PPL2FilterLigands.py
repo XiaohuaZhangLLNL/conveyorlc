@@ -25,9 +25,9 @@ def getArgs():
     parser.add_argument('-s', '--sdf', action='store', dest='sdffile', default=None,
                         help='SDF input file (default=None)')
     parser.add_argument('-o', '--out', action='store', dest='outfile', default='PPL2BadLigand.xml',
-                        help='ddcMD object output file (default=atom#.data).')
+                        help='ddcMD object output file (default=PPL2BadLigand.xml).')
     parser.add_argument('-m', '--miss', action='store', dest='misfile', default='PPL2MisLigand.xml',
-                        help='ddcMD object output file (default=atom#.data).')
+                        help='ddcMD object output file (default=PPL2MisLigand.xml).')
 
     args = parser.parse_args()
 
