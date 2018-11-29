@@ -287,6 +287,7 @@ Thank you!\n";
 //        std::string ligFile;
         std::string geoFile;
         bool help;
+        jobInput.useScoreCF=false;
         
         positional_options_description positional; // remains empty
         
