@@ -11,11 +11,14 @@ from xml.dom import minidom
 import argparse
 
 """
-python rmProteinPPL3.py -x PPL3Track.xml -l list -o PPL3TrackNew.xml
+python3 rmProteinPPL3.py -x PPL3Track.xml -l list -o PPL3TrackNew.xml
 
-Two XML files are generated:
-PPL2BadLigand.xml - ligands being calculated and failed
-PPL2MisLigand.xml - ligands not being calculated
+list contains a list of protein names to remove from PPL3Track.xml
+
+sarinXtalnAChE
+1a6q_A_784_minimized_w_metal
+...
+
 """
 
 def getArgs():
