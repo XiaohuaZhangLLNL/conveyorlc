@@ -272,9 +272,15 @@ int main(int argc, char* argv[]) {
                 ++count;
                 if (count > world.size()-1) {
                     world.recv(mpi::any_source, outTag, jobOut);
-                    toXML(jobOut, root, xmlFile);
-                  
-// add output here
+                    if(jobInput.useScoreCF){
+                        if(jobOut.scores.size()>0){
+                            if(jobOut.scores[0]<jobInput.scoreCF){
+                                toXML(jobOut, root, xmlFile);
+                            }
+                        }
+                    }else{
+                        toXML(jobOut, root, xmlFile);
+                    }               
                 }
                 int freeProc;
                 world.recv(mpi::any_source, rankTag, freeProc);
@@ -306,7 +312,15 @@ int main(int argc, char* argv[]) {
     
         for(unsigned i=0; i < ndata; ++i){
             world.recv(mpi::any_source, outTag, jobOut);
-            toXML(jobOut, root, xmlFile);
+            if(jobInput.useScoreCF){
+                if(jobOut.scores.size()>0){
+                    if(jobOut.scores[0]<jobInput.scoreCF){
+                        toXML(jobOut, root, xmlFile);
+                    }
+                }
+            }else{
+                toXML(jobOut, root, xmlFile);
+            } 
 // add output here
         }
 
