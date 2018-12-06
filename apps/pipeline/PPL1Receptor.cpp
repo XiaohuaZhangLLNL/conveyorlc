@@ -146,6 +146,7 @@ public:
     void serialize(Archive & ar, const unsigned int version)
     {        
         ar & error;
+        ar & clust;
         ar & volume;
         ar & gbEn; 
         ar & centroid;
@@ -160,6 +161,7 @@ public:
     }
     
     bool error;
+    int clust;
     double volume;
     double gbEn;
     Coor3d centroid;
@@ -215,6 +217,11 @@ void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile){
         
         XMLElement * siteEle = new XMLElement("Site");
         element->LinkEndChild(siteEle); 
+
+        XMLElement * clustEle = new XMLElement("Cluster");
+        XMLText * clustTx= new XMLText(Sstrm<std::string, int>(jobOut.clust));
+        clustEle->LinkEndChild(clustTx);         
+        siteEle->LinkEndChild(clustEle);  
         
         XMLElement * volEle = new XMLElement("Volume");
         XMLText * volTx= new XMLText(Sstrm<std::string, double>(jobOut.volume));
@@ -660,6 +667,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             pGrid->getTopSiteGeo(dockDim, centroid, jobOut.volume);
         }
 
+        jobOut.clust=pGrid->getSiteIndex();
         jobOut.centroid=centroid;
         jobOut.dimension=dockDim;
 

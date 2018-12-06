@@ -29,7 +29,7 @@ public:
     void run(double probeRadius, int numberSphere, double minVolume);
     void getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid);
     void getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid, double& volume);
-    
+    int  getSiteIndex();     
     bool getKeySiteGeo(Coor3d& aveKeyResCoor, Coor3d& dockDim, Coor3d& centroid, double& volume);
     
     //void setNumSphere(int numSphere);
@@ -41,7 +41,7 @@ private:
     void generateSpPoints();
     void getGridBox();
     void getSiteGrids();
-    int  getSiteIndex();    
+   
     void writeGridPDB(std::string& fileName, std::vector<Coor3d*>& outGrids, const std::string& resName="UNK");
     void clustGrids();
     // Merge two groups of grids and store in clustI if nearest points <=1 angstom.
