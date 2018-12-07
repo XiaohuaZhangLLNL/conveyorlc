@@ -611,7 +611,10 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         }
 
         // Get geometry
-        std::string stdPDBfile="rec_std.pdb";    
+        std::string stdPDBfile="rec_std.pdb"; 
+        if(!jobInput.minimizeFlg){
+            stdPDBfile=b4pdbqt;
+        }
         boost::scoped_ptr<Complex> pComplex(new Complex());
         boost::scoped_ptr<Pdb> pPdb(new Pdb());
         pPdb->parse(stdPDBfile, pComplex.get());
