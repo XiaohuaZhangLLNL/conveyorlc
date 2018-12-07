@@ -277,6 +277,7 @@ The protein target preparation output.
         <PDBQTPath>scratch/com/1ald/rec/1ald.pdbqt</PDBQTPath>
         <GBEN>-1.0395E+04</GBEN>
         <Site>
+            <Cluster>3</Cluster> 
             <Volume>154</Volume>
             <Centroid>
                 <X>-48.2348</X>
