@@ -300,6 +300,9 @@ bool isRun(std::string& checkfile, JobOutData& jobOut){
             if(tokens[0]=="GBEN"){
                 jobOut.gbEn=Sstrm<double, std::string>(tokens[1]);
             }
+            if(tokens[0]=="Cluster"){
+                jobOut.clust=Sstrm<int, std::string>(tokens[1]);
+            }            
             if(tokens[0]=="Volume"){
                 jobOut.volume=Sstrm<double, std::string>(tokens[1]);
             }
@@ -334,6 +337,7 @@ void checkPoint(std::string& checkfile, JobOutData& jobOut){
     
     outFile << "PDBQTPath:" << jobOut.recPath << "\n"
             << "GBEN:" << jobOut.gbEn << "\n"
+            << "Cluster:" << jobOut.clust << "\n"
             << "Volume:" << jobOut.volume << "\n"
             << "cx:" << jobOut.centroid.getX() << "\n"
             << "cy:" << jobOut.centroid.getY() << "\n"
@@ -667,7 +671,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             pGrid->getTopSiteGeo(dockDim, centroid, jobOut.volume);
         }
 
-        jobOut.clust=pGrid->getSiteIndex();
+        jobOut.clust=pGrid->getSiteIndex()+1; // Cluster print out index start with 1
         jobOut.centroid=centroid;
         jobOut.dimension=dockDim;
 
