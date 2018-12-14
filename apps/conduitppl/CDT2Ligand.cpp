@@ -1,5 +1,5 @@
 /* 
- * File:   PPL2Ligand.cpp
+ * File:   CDT2Ligand.cpp
  * Author: zhang
  *
  * Created on March 24, 2014, 11:16 AM
@@ -26,7 +26,7 @@
 #include "Common/Command.hpp"
 #include "XML/XMLHeader.hpp"
 
-#include "PPL2LigandPO.h"
+#include "CDT2LigandPO.h"
 
 #include <boost/scoped_ptr.hpp>
 
@@ -509,7 +509,7 @@ void xmlEJobs(std::string& xmlFile, std::vector<std::string>& ligList){
 
     if (!loadOkay) {
         std::string mesg = doc.ErrorDesc();
-        mesg = "Could not load PPL2Track.xml file.\nError: " + mesg;
+        mesg = "Could not load CDT2Track.xml file.\nError: " + mesg;
         throw LBindException(mesg);
     }
     
@@ -594,7 +594,7 @@ int main(int argc, char** argv) {
     int error=0;
     
     if (world.rank() == 0) {        
-        bool success=PPL2LigandPO(argc, argv, podata);
+        bool success=CDT2LigandPO(argc, argv, podata);
         if(!success){
             error=1;           
         }        
@@ -615,7 +615,7 @@ int main(int argc, char** argv) {
 	comment->SetValue(" Tracking calculation error using XML file " );  
 	root->LinkEndChild( comment );  
 
-        std::string trackTmpFileName=workDir+"/PPL2TrackTemp.xml";
+        std::string trackTmpFileName=workDir+"/CDT2TrackTemp.xml";
         FILE* xmlFile=fopen(trackTmpFileName.c_str(), "w"); 
         fprintf(xmlFile, "<?xml version=\"1.0\" ?>\n");
         fprintf(xmlFile, "<Ligands>\n");

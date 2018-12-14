@@ -1,7 +1,5 @@
-#set(CMAKE_C_COMPILER "/opt/local/bin/gcc-mp-4.9")
-#set(CMAKE_CXX_COMPILER "/opt/local/bin/g++-mp-4.9")
-# stop if cmake version below 2.8
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+# stop if cmake version below 3.0
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 # project name
 project(ConveyorLC)
@@ -17,6 +15,8 @@ set(VERSION_STRING ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
 
 set(CMAKE_BUILD_TYPE Release)
+
+set (CMAKE_CXX_STANDARD 11)
 
 # location of additional cmake modules
 #list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
@@ -79,6 +79,10 @@ include_directories(${SQLITE3_INCLUDE_DIRS})
 # find zlib
 find_package( ZLIB REQUIRED )
 include_directories( ${ZLIB_INCLUDE_DIRS} )
+
+# find Conduit for handling hierarchical scientific data
+find_package( Conduit REQUIRED )
+include_directories(${CONDUIT_INCLUDE_DIRS})
 
 # example how to set c++ compiler flags for GNU
 message(STATUS "Using C++ compiler: ${CMAKE_CXX_COMPILER_ID}")
