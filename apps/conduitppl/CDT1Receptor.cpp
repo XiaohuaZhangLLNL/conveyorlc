@@ -13,6 +13,23 @@
 #include <vector>
 #include <sstream>
 
+#include <boost/scoped_ptr.hpp>
+#include <boost/smart_ptr/scoped_ptr.hpp>
+
+#include <boost/mpi.hpp>
+#include <boost/mpi/environment.hpp>
+#include <boost/mpi/communicator.hpp>
+
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+
+#include <conduit.hpp>
+#include <conduit_relay.hpp>
+#include <conduit_relay_io_hdf5.hpp>
+#include <conduit_blueprint.hpp>
+
 #include "Parser/Pdb.h"
 #include "Parser/Mol2.h"
 #include "Parser/SanderOutput.h"
@@ -32,22 +49,13 @@
 #include "Common/LBindException.h"
 #include "XML/XMLHeader.hpp"
 
+#include "CDT1Receptor.h"
 #include "CDT1ReceptorPO.h"
-
-#include <boost/scoped_ptr.hpp>
-#include <boost/smart_ptr/scoped_ptr.hpp>
-
-#include <boost/mpi.hpp>
-#include <boost/mpi/environment.hpp>
-#include <boost/mpi/communicator.hpp>
-
-#include <boost/serialization/string.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
+#include "InitEnv.h"
 
 namespace mpi = boost::mpi;
 using namespace LBIND;
+using namespace conduit;
 
 /*!
  * \breif amberTools Calculate receptor GB/PB minimization energy from download PDB files.
@@ -66,7 +74,7 @@ using namespace LBIND;
     export WORKDIR=`pwd`
     export LBindData=/usr/gapps/medchem/medcm/data/
 
-    srun -N4 -n48 -ppdebug /g/g92/zhang30/medchem/NetBeansProjects/MedCM/apps/mmpbsa/CDT1Receptor  --input pdb.list --output out
+    srun -N4 -n48 -ppdebug CDT1Receptor  --input pdb.list --output out
 
     pdb.list: contain a list of path to receptor PDB Files.
  *  pdb/1NJS.pdb
@@ -80,218 +88,82 @@ using namespace LBIND;
    \endverbatim
  */
 
-class JobInputData{
-    
-public:
-    friend class boost::serialization::access;
-    // When the class Archive corresponds to an output archive, the
-    // & operator is defined similar to <<.  Likewise, when the class Archive
-    // is a type of input archive the & operator is defined similar to >>.
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
-    {
-        ar & protonateFlg;
-        ar & minimizeFlg;
-        ar & siteFlg;
-        ar & forceRedoFlg;
-        ar & getPDBflg;
-        ar & cutProt;
-        ar & ambVersion;
-        ar & surfSphNum;
-        ar & gridSphNum;
-        ar & radius;
-        ar & spacing;
-        ar & cutoffCoef;
-        ar & minVol;
-        ar & cutRadius;
-        ar & dirBuffer; 
-        ar & subRes;
-        ar & keyRes;
-        ar & nonRes;
-    }
-    
-    bool protonateFlg;
-    bool minimizeFlg;
-    bool siteFlg;
-    bool forceRedoFlg;
-    bool getPDBflg;
-    bool cutProt;
-    int ambVersion;
-    int surfSphNum;
-    int gridSphNum;
-    double radius;    
-    double spacing;
-    double cutoffCoef;
-    double minVol;
-    double cutRadius;
-    std::string dirBuffer;
-    std::string subRes;
-    std::vector<std::string> keyRes;
-    std::vector<std::string> nonRes;
-};
 
-//struct JobInputData{ 
-//    bool getPDBflg;
-//    char dirBuffer[100];
-//};
+void toConduit(JobOutData& jobOut, std::string& recCdtFile){
 
-class JobOutData{
-    
-public:
-    friend class boost::serialization::access;
-    // When the class Archive corresponds to an output archive, the
-    // & operator is defined similar to <<.  Likewise, when the class Archive
-    // is a type of input archive the & operator is defined similar to >>.
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
-    {        
-        ar & error;
-        ar & clust;
-        ar & volume;
-        ar & gbEn; 
-        ar & centroid;
-        ar & dimension;  
-        ar & pdbid;
-        ar & pdbFilePath;
-        ar & subRes;
-        ar & recPath;
-        ar & message; 
-        ar & nonRes;
-       
-    }
-    
-    bool error;
-    int clust;
-    double volume;
-    double gbEn;
-    Coor3d centroid;
-    Coor3d dimension;
-    std::string pdbid;
-    std::string pdbFilePath;
-    std::string subRes;
-    std::string recPath;
-    std::string message;
-    std::vector<std::string> nonRes;
-   
-};
+    try {
 
-//struct JobOutData{  
-//    bool error;
-//    char dirBuffer[100];
-//    char message[100];
-//};
+        Node n;
 
-void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile){
-        XMLElement * element = new XMLElement("Receptor");
-        
-        XMLElement * pdbidEle = new XMLElement("RecID");
-        XMLText * pdbidTx= new XMLText(jobOut.pdbid.c_str()); // has to use c-style string.
-        pdbidEle->LinkEndChild(pdbidTx);
-        element->LinkEndChild(pdbidEle);
+        n["rec/"+jobOut.pdbid + "/Error"] = jobOut.error;
 
-        XMLElement * pdbPathEle = new XMLElement("PDBPath");
-        XMLText * pdbPathTx= new XMLText(jobOut.pdbFilePath.c_str());
-        pdbPathEle->LinkEndChild(pdbPathTx);        
-        element->LinkEndChild(pdbPathEle);
-        
-        XMLElement * nonstdAAsEle = new XMLElement("NonStdAAList");
+        std::string recIDMeta ="rec/"+jobOut.pdbid + "/meta";
+        n[recIDMeta] = jobOut.pdbid;
+
+        n[recIDMeta + "/PDBPath"] = jobOut.pdbFilePath;
+
         for (unsigned i = 0; i < jobOut.nonRes.size(); ++i) {
-            std::string iStr=Sstrm<std::string, unsigned>(i+1);
-            XMLElement * scEle = new XMLElement("NonStdAA");
-            scEle->SetAttribute("id", iStr.c_str() );
-            XMLText * scTx = new XMLText(jobOut.nonRes[i].c_str());
-            scEle->LinkEndChild(scTx);
-            nonstdAAsEle->LinkEndChild(scEle);
+            std::string iStr = Sstrm<std::string, unsigned>(i + 1);
+            n[recIDMeta + "/NonStdAA/" + iStr] = jobOut.nonRes[i];
         }
-        element->LinkEndChild(nonstdAAsEle);        
 
-        XMLElement * recPathEle = new XMLElement("PDBQTPath");
-        XMLText * recPathTx= new XMLText(jobOut.recPath.c_str());
-        recPathEle->LinkEndChild(recPathTx);        
-        element->LinkEndChild(recPathEle);
-        
-        XMLElement * gbEle = new XMLElement("GBEN");
-        XMLText * gbTx= new XMLText(Sstrm<std::string, double>(jobOut.gbEn));
-        gbEle->LinkEndChild(gbTx);        
-        element->LinkEndChild(gbEle);        
-        
-        XMLElement * siteEle = new XMLElement("Site");
-        element->LinkEndChild(siteEle); 
+        n[recIDMeta + "/RecPath"] = jobOut.recPath;
+        n[recIDMeta + "/GBEN"] = jobOut.gbEn;
+        n[recIDMeta + "/Site/Cluster"] = jobOut.clust;
+        n[recIDMeta + "/Site/Volume"] = jobOut.volume;
+        n[recIDMeta + "/Site/Centroid/X"] = jobOut.centroid.getX();
+        n[recIDMeta + "/Site/Centroid/Y"] = jobOut.centroid.getY();
+        n[recIDMeta + "/Site/Centroid/Z"] = jobOut.centroid.getZ();
+        n[recIDMeta + "/Site/Dimension/X"] = jobOut.dimension.getX();
+        n[recIDMeta + "/Site/Dimension/Y"] = jobOut.dimension.getY();
+        n[recIDMeta + "/Site/Dimension/Z"] = jobOut.dimension.getZ();
+        n[recIDMeta + "/Mesg"] = jobOut.message;
+        std::string recIDFile ="rec/"+jobOut.pdbid + "/file/";
 
-        XMLElement * clustEle = new XMLElement("Cluster");
-        XMLText * clustTx= new XMLText(Sstrm<std::string, int>(jobOut.clust));
-        clustEle->LinkEndChild(clustTx);         
-        siteEle->LinkEndChild(clustEle);  
-        
-        XMLElement * volEle = new XMLElement("Volume");
-        XMLText * volTx= new XMLText(Sstrm<std::string, double>(jobOut.volume));
-        volEle->LinkEndChild(volTx);         
-        siteEle->LinkEndChild(volEle);  
-        
-        XMLElement * centEle = new XMLElement("Centroid");
-        siteEle->LinkEndChild(centEle);  
+        std::vector<std::string> filenames={"rec_min.pdbqt", "rec_min.rst", "rec.prmtop", "rec_min.pdb", "rec_minGB.out", "site.txt", "rec_geo.txt"};
+        std::string gridfilename="Grid-"+std::to_string(jobOut.clust)+".pdb";
+        filenames.push_back(gridfilename);
 
-        XMLElement * xcEle = new XMLElement("X");
-        XMLText * xcTx= new XMLText(Sstrm<std::string, double>(jobOut.centroid.getX() ));
-        xcEle->LinkEndChild(xcTx);          
-        centEle->LinkEndChild(xcEle);         
+        for(std::string& name : filenames)
+        {
+            std::string filename=jobOut.recPath+"/"+name;
+            std::ifstream infile(filename);
+            if(infile.good())
+            {
+                std::string buffer((std::istreambuf_iterator<char>(infile)),
+                                   std::istreambuf_iterator<char>());
+                infile.close();
+                n[recIDFile+name] = buffer;
+            }
+            else
+            {
+                std::cout << "File - " << filename << "is not there." << std::endl;
+            }
+        }
 
-        XMLElement * ycEle = new XMLElement("Y");
-        XMLText * ycTx= new XMLText(Sstrm<std::string, double>(jobOut.centroid.getY() ));
-        ycEle->LinkEndChild(ycTx);        
-        centEle->LinkEndChild(ycEle);         
+        relay::io::hdf5_append(n, recCdtFile);
 
-        XMLElement * zcEle = new XMLElement("Z");
-        XMLText * zcTx= new XMLText(Sstrm<std::string, double>(jobOut.centroid.getZ() ));
-        zcEle->LinkEndChild(zcTx); 
-        centEle->LinkEndChild(zcEle);         
-        
-        XMLElement * DimEle = new XMLElement("Dimension");
-        siteEle->LinkEndChild(DimEle);  
+    }catch(conduit::Error &error){
+        jobOut.message= error.message();
+    }
 
-        XMLElement * xdEle = new XMLElement("X");
-        XMLText * xdTx= new XMLText(Sstrm<std::string, double>(jobOut.dimension.getX() ));
-        xdEle->LinkEndChild(xdTx);          
-        DimEle->LinkEndChild(xdEle);         
-
-        XMLElement * ydEle = new XMLElement("Y");
-        XMLText * ydTx= new XMLText(Sstrm<std::string, double>(jobOut.dimension.getY() ));
-        ydEle->LinkEndChild(ydTx);  
-        DimEle->LinkEndChild(ydEle);         
-
-        XMLElement * zdEle = new XMLElement("Z");
-        XMLText * zdTx= new XMLText(Sstrm<std::string, double>(jobOut.dimension.getZ() ));
-        zdEle->LinkEndChild(zdTx);  
-        DimEle->LinkEndChild(zdEle);         
-        
-        XMLElement * mesgEle = new XMLElement("Mesg");
-        XMLText * mesgTx= new XMLText(jobOut.message);
-        mesgEle->LinkEndChild(mesgTx);          
-        element->LinkEndChild(mesgEle);          
-        
-//        element->SetAttribute(std::string("item"), jobOut.pdbid);
-//        element->SetAttribute(std::string("mesg"), jobOut.message);  
-        root->LinkEndChild(element);
-
-        element->Print(xmlTmpFile,1);
-        fputs("\n",xmlTmpFile);
-        fflush(xmlTmpFile);     
 }
 
+
 bool isRun(std::string& checkfile, JobOutData& jobOut){
-    
+
      std::ifstream inFile(checkfile.c_str());
-    
+
     if(!inFile){
         return false;
-    }  
-     
-    std::string fileLine=""; 
+    }
+
+    std::string fileLine="";
     std::string delimiter=":";
     while(inFile){
         std::getline(inFile, fileLine);
             std::vector<std::string> tokens;
-            tokenize(fileLine, tokens, delimiter); 
+            tokenize(fileLine, tokens, delimiter);
 
             if(tokens.size()!=2) continue;
             if(tokens[0]=="PDBQTPath"){
@@ -302,7 +174,7 @@ bool isRun(std::string& checkfile, JobOutData& jobOut){
             }
             if(tokens[0]=="Cluster"){
                 jobOut.clust=Sstrm<int, std::string>(tokens[1]);
-            }            
+            }
             if(tokens[0]=="Volume"){
                 jobOut.volume=Sstrm<double, std::string>(tokens[1]);
             }
@@ -326,15 +198,15 @@ bool isRun(std::string& checkfile, JobOutData& jobOut){
             }
             if(tokens[0]=="Mesg"){
                 jobOut.message=tokens[1];
-            }            
-    }  
+            }
+    }
     return true;
 }
 
 void checkPoint(std::string& checkfile, JobOutData& jobOut){
-    
+
     std::ofstream outFile(checkfile.c_str());
-    
+
     outFile << "PDBQTPath:" << jobOut.recPath << "\n"
             << "GBEN:" << jobOut.gbEn << "\n"
             << "Cluster:" << jobOut.clust << "\n"
@@ -489,8 +361,8 @@ void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& check
     errMesg = "ambpdb converting rst to " + recType + "_min_1.pdb file fails";
     command(cmd, errMesg);
 
-    cmd="ln -sf "+recType + "_min_orig.pdb Rec_min.pdb";
-    errMesg="ln Rec_min.pdb fails for"+recType + "_min_orig.pdb";
+    cmd="ln -sf "+recType + "_min_orig.pdb rec_min.pdb";
+    errMesg="ln rec_min.pdb fails for"+recType + "_min_orig.pdb";
     command(cmd, errMesg);  
 }
 
@@ -510,7 +382,8 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
 //    std::string pdbBasename;
     getFileBasename(jobOut.pdbFilePath, jobOut.pdbid);
     std::string recDir=workDir+"/scratch/com/"+jobOut.pdbid+"/rec";
-    
+    jobOut.recPath=recDir;
+
     //For restart
     std::string checkfile=recDir+"/checkpoint.txt"; 
     // If force re-do the calculation skip check the checkfile and continue calculation (by default not force re-do)
@@ -591,22 +464,22 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             cmd="obabel -ipdb std4pdbqt.pdb -opdbqt -xr -O temp.pdbqt >& pdbqt.log";
             errMesg="obabel converting std4pdbqt.pdb  temp.pdbqt to fails";
             command(cmd,errMesg);  
-            cmd="grep -v REMARK temp.pdbqt > " + jobOut.pdbid+".pdbqt";
+            cmd="grep -v REMARK temp.pdbqt > rec_min.pdbqt";
             errMesg="grep to remove REMARK fails";
             command(cmd,errMesg);  
 
         }
 
-        checkFName=jobOut.pdbid+".pdbqt";
+        checkFName="rec_min.pdbqt";
         if(!fileExist(checkFName)){
             std::string message=checkFName+" does not exist.";
             throw LBindException(message);         
         } 
-        jobOut.recPath="scratch/com/"+jobOut.pdbid+"/rec/"+jobOut.pdbid+".pdbqt";
+
 
         // Skip the site calculation
         if(!jobInput.siteFlg){
-            checkPoint(checkfile, jobOut);         
+            checkPoint(checkfile, jobOut);
             return true;
         }
 
@@ -694,22 +567,16 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     
     } catch (LBindException& e){
         jobOut.message=e.what();
-        checkPoint(checkfile, jobOut);  
+        checkPoint(checkfile, jobOut);
         return false;
     }
 
-    checkPoint(checkfile, jobOut);     
+    checkPoint(checkfile, jobOut);
     
     //END    
     return true;
 }
 
-struct RecData{
-    std::string pdbFile;
-    std::string subRes;
-    std::vector<std::string> keyRes; // key residues to help locate binding site
-    std::vector<std::string> nonRes; //non-standard residue list
-};
 
 void saveStrList(std::string& fileName, std::vector<RecData*>& strList){
     std::ifstream inFile;
@@ -750,42 +617,52 @@ void saveStrList(std::string& fileName, std::vector<RecData*>& strList){
     
 }
 
+void initInputData(JobInputData& jobInput, POdata& podata){
+    // Turn on/off protonate procedure
+    if(podata.protonateFlg=="on"){
+        jobInput.protonateFlg=true;
+    }else{
+        jobInput.protonateFlg=false;
+    }
+
+    if(podata.minimizeFlg=="on"){
+        jobInput.minimizeFlg=true;
+    }else{
+        jobInput.minimizeFlg=false;
+    }
+
+    if(podata.siteFlg=="on"){
+        jobInput.siteFlg=true;
+    }else{
+        jobInput.siteFlg=false;
+    }
+
+    if(podata.forceRedoFlg=="on"){
+        jobInput.forceRedoFlg=true;
+    }else{
+        jobInput.forceRedoFlg=false;
+    }
+
+    if(podata.cutProt=="on"){
+        jobInput.cutProt=true;
+    }else{
+        jobInput.cutProt=false;
+    }
+
+    jobInput.ambVersion=podata.version;
+    jobInput.surfSphNum=podata.surfSphNum;
+    jobInput.gridSphNum=podata.gridSphNum;
+    jobInput.radius=podata.radius;
+    jobInput.spacing=podata.spacing;
+    jobInput.cutoffCoef=podata.cutoffCoef;
+    jobInput.minVol=podata.minVol;
+    jobInput.cutRadius=podata.cutRadius;
+}
+
+
 
 int main(int argc, char** argv) {
- 
-    //! get  working directory
-    char* WORKDIR=getenv("WORKDIR");
-    std::string workDir;
-    if(WORKDIR==0) {
-        // use current working directory for working directory
-        char BUFFER[200];
-        getcwd(BUFFER, sizeof (BUFFER));
-        workDir = BUFFER;        
-    }else{
-        workDir=WORKDIR;
-    }
-    
-    //! get  input directory
-    char* INPUTDIR=getenv("INPUTDIR");
-    std::string inputDir;
-    if(INPUTDIR==0) {
-        // use current working directory for input directory
-        char BUFFER[200];
-        getcwd(BUFFER, sizeof (BUFFER));
-        inputDir = BUFFER;        
-    }else{
-        inputDir = INPUTDIR;
-    }
-    
-    //! get LBindData
-    char* LBINDDATA=getenv("LBindData");
 
-    if(LBINDDATA==0){
-        std::cerr << "LBdindData environment is not defined!" << std::endl;
-        return 1;
-    }    
-    std::string dataPath=LBINDDATA;     
-           
     // ! start MPI parallel
     
     int jobFlag=1; // 1: doing job,  0: done job
@@ -807,85 +684,38 @@ int main(int argc, char** argv) {
     
     if (world.size() < 2) {
         std::cerr << "Error: Total process less than 2" << std::endl;
-//        error=1;
-        return 1;
+        world.abort(1);
     }
-    
+
+    std::string workDir;
+    std::string inputDir;
+    std::string dataPath;
+
+    if(!initConveyorlcEnv(workDir, inputDir, dataPath)){
+        world.abort(1);
+    }
+
+
     POdata podata;
-    
-    
+
     if (world.rank() == 0) {        
         bool success=CDT1ReceptorPO(argc, argv, podata);
         if(!success){
-//            error=1; 
-            return 1;
+            world.abort(1);
         }        
     }
-
-//    MPI_Bcast(&error, 1, MPI_INT, 0, MPI_COMM_WORLD);
-//    mpi::broadcast<int>(world, error, 1);
-//    if (error !=0) {
-//        MPI_Finalize();
-//        return 1;
-//    }     
 
     std::cout << "Number of tasks= " << world.size() << " My rank= " << world.rank() << std::endl;
 
     if (world.rank() == 0) {
-                        
-        //! Tracking error using XML file
-	XMLDocument doc;  
- 	XMLDeclaration* decl = new XMLDeclaration( "1.0", "", "" );  
-	doc.LinkEndChild( decl );  
- 
-	XMLElement * root = new XMLElement( "Receptors" );  
-	doc.LinkEndChild( root );  
 
-	XMLComment * comment = new XMLComment();
-	comment->SetValue(" Tracking calculation error using XML file " );  
-	root->LinkEndChild( comment );     
-        
-        std::string trackTmpFileName=workDir+"/CDT1TrackTemp.xml";
-        FILE* xmlTmpFile=fopen(trackTmpFileName.c_str(), "w");
-        fprintf(xmlTmpFile, "<?xml version=\"1.0\" ?>\n");
-        fprintf(xmlTmpFile, "<Receptors>\n");
-        fprintf(xmlTmpFile, "    <!-- Tracking calculation error using XML file -->\n");
-//        root->Print(xmlTmpFile, 0);
-//        fputs("\n",xmlTmpFile);
-        fflush(xmlTmpFile);        
-        //! END of XML header   
-        
-        // Turn on/off protonate procedure
-        if(podata.protonateFlg=="on"){
-           jobInput.protonateFlg=true;
-        }else{
-           jobInput.protonateFlg=false;
-        }
+        //! Open a Conduit file to track the calculation
+        //Node n;
+        std::string recCdtFile=workDir+"/scratch/receptor.hdf5:/";
+        //relay::io::hdf5_write(n, recCdtFile);
 
-        if(podata.minimizeFlg=="on"){
-           jobInput.minimizeFlg=true;
-        }else{
-           jobInput.minimizeFlg=false;
-        }
-        
-        if(podata.siteFlg=="on"){
-           jobInput.siteFlg=true;
-        }else{
-           jobInput.siteFlg=false;
-        }        
+        initInputData(jobInput, podata);
 
-        if(podata.forceRedoFlg=="on"){
-           jobInput.forceRedoFlg=true;
-        }else{
-           jobInput.forceRedoFlg=false;
-        }                
-
-        if(podata.cutProt=="on"){
-           jobInput.cutProt=true;
-        }else{
-           jobInput.cutProt=false;
-        } 
-        
         std::vector<RecData*> dirList;        
         
         std::string pdbList=inputDir+"/"+podata.inputFile;
@@ -896,66 +726,44 @@ int main(int argc, char** argv) {
             ++count;
             
             if(count >world.size()-1){
-//                MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
                 world.recv(mpi::any_source, outTag, jobOut);
-                toXML(jobOut, root, xmlTmpFile);                
+                toConduit(jobOut, recCdtFile);
             }   
             
             int freeProc;
-//            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
             world.recv(mpi::any_source, rankTag, freeProc);
-            std::cout << "At Process: " << freeProc << " working on: " << dirList[i]->pdbFile  << std::endl;            
-//            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
+            std::cout << "At Process: " << freeProc << " working on: " << dirList[i]->pdbFile  << std::endl;
             world.send(freeProc, jobTag, jobFlag);
 
-//            strcpy(jobInput.dirBuffer, dirList[i].c_str());
             jobInput.dirBuffer=dirList[i]->pdbFile;
             jobInput.keyRes=dirList[i]->keyRes;
             jobInput.nonRes=dirList[i]->nonRes;
             jobInput.subRes=dirList[i]->subRes;
-            jobInput.ambVersion=podata.version;
-            jobInput.surfSphNum=podata.surfSphNum;
-            jobInput.gridSphNum=podata.gridSphNum;
-            jobInput.radius=podata.radius;
-            jobInput.spacing=podata.spacing;
-            jobInput.cutoffCoef=podata.cutoffCoef;
-            jobInput.minVol=podata.minVol;
-            jobInput.cutRadius=podata.cutRadius;
 
-//            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);
             world.send(freeProc, inpTag, jobInput);            
         }
 
         int nJobs=count;
         int nWorkers=world.size()-1;
         int ndata=(nJobs<nWorkers)? nJobs: nWorkers;
-        //int ndata=(nJobs<world.size()-1)? nJobs: world.size()-1;
+
         std::cout << "ndata=" << ndata << " nJobs=" << nJobs << std::endl;
     
         for(int i=0; i < ndata; ++i){
-//            MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
             world.recv(mpi::any_source, outTag, jobOut);
-            toXML(jobOut, root, xmlTmpFile);  
+            toConduit(jobOut, recCdtFile);
         } 
 
-        fprintf(xmlTmpFile, "</Receptors>\n"); 
-        std::string trackFileName=workDir+"/CDT1Track.xml";
-        doc.SaveFile( trackFileName );        
-        
         for(int i=1; i < world.size(); ++i){
             int freeProc;
-//            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
             world.recv(mpi::any_source, rankTag, freeProc);
             jobFlag=0;;
-//            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
             world.send(freeProc, jobTag, jobFlag);
         }        
         
     }else {
         while (1) {
-//            MPI_Send(&rank, 1, MPI_INTEGER, 0, rankTag, MPI_COMM_WORLD);
             world.send(0, rankTag, world.rank());
-//            MPI_Recv(&jobFlag, 20, MPI_CHAR, 0, jobTag, MPI_COMM_WORLD, &status2);
             world.recv(0, jobTag, jobFlag);
             if (jobFlag==0) {
                 break;
@@ -963,23 +771,18 @@ int main(int argc, char** argv) {
             // Receive parameters
 
             world.recv(0, inpTag, jobInput);
-//            MPI_Recv(&jobInput, sizeof(JobInputData), MPI_CHAR, 0, inpTag, MPI_COMM_WORLD, &status1);
                                     
             jobOut.message="Finished!";
-//            strcpy(jobOut.message, "Finished!");
 
             jobOut.error=preReceptor(jobInput, jobOut, workDir, inputDir, dataPath);            
-                        
-//            MPI_Send(&jobOut, sizeof(JobOutData), MPI_CHAR, 0, outTag, MPI_COMM_WORLD);    
+
             world.send(0, outTag, jobOut);
            
         }
     }
 
-
     std::cout << "Rank= " << world.rank() <<" MPI Wall Time= " << runingTime.elapsed() << " Sec."<< std::endl;
-    
-    
+
     return 0;
 }
 

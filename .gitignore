@@ -136,3 +136,10 @@
 /CMakeCache.txt
 /.idea
 /apps/pipeline/PPL4PostProcess
+/apps/conduitppl/CDT1Receptor
+/apps/conduitppl/CDT2Ligand
+/apps/conduitppl/CDT3Docking
+/apps/conduitppl/CDT4mmgbsa
+/apps/conduitppl/CMakeFiles
+/apps/conduitppl/Makefile
+/apps/conduitppl/cmake_install.cmake

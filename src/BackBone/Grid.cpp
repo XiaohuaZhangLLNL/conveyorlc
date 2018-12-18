@@ -442,12 +442,14 @@ void Grid::clustGrids(){
         
         ss << "================================================="  << std::endl;
         std::string numStr=Sstrm<std::string, int>(i+1);
-        if(i<9){
-            numStr="0"+numStr;
-        }
+
         ss << "Cluster " << numStr << "     size : " << clusters[i].size() << std::endl;
         ss << "Cluster " << numStr << "     volume : " << volume << std::endl;
         std::string filename="Grid-"+numStr+".pdb";
+
+        if(i<9){
+            numStr="0"+numStr;
+        }
         std::string resName="C"+numStr;
         if(i>98){
             resName="CXX";
