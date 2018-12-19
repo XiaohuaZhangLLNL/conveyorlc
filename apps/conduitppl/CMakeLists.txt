@@ -4,7 +4,7 @@ target_link_libraries(CDT1Receptor LBind ${Boost_LIBRARIES} ${MPI_CXX_LIBRARIES}
 set_target_properties(CDT1Receptor PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(TARGETS CDT1Receptor DESTINATION bin)
 
-add_executable(CDT2Ligand CDT2Ligand.cpp CDT2LigandPO.cpp InitEnv.h CDT2Ligand.h)
+add_executable(CDT2Ligand CDT2Ligand.cpp CDT2LigandPO.cpp CDT2Ligand.h InitEnv.h )
 target_link_libraries(CDT2Ligand LBind ${Boost_LIBRARIES} ${MPI_CXX_LIBRARIES} conduit conduit_relay conduit_blueprint)
 set_target_properties(CDT2Ligand PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(TARGETS CDT2Ligand DESTINATION bin)

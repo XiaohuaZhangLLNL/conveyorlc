@@ -606,10 +606,7 @@ int main(int argc, char** argv) {
     // ! start MPI parallel
     
     int jobFlag=1; // 1: doing job,  0: done job
-    
-    JobInputData jobInput;
-    JobOutData jobOut;
-            
+
     int rankTag=1;
     int jobTag=2;
 
@@ -645,6 +642,9 @@ int main(int argc, char** argv) {
     }
 
     std::cout << "Number of tasks= " << world.size() << " My rank= " << world.rank() << std::endl;
+
+    JobInputData jobInput;
+    JobOutData jobOut;
 
     if (world.rank() == 0) {
 

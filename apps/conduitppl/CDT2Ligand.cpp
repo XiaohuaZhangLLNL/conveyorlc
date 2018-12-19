@@ -12,22 +12,6 @@
 #include <sstream>
 #include <cstring>
 
-#include "Parser/Sdf.h"
-#include "Parser/Pdb.h"
-#include "MM/Amber.h"
-#include "Parser/SanderOutput.h" 
-#include "Structure/Sstrm.hpp"
-#include "Structure/Constants.h"
-#include "Structure/Molecule.h"
-#include "Parser/Mol2.h"
-#include "Common/File.hpp"
-#include "Common/Tokenize.hpp"
-#include "Common/LBindException.h"
-#include "Common/Command.hpp"
-#include "XML/XMLHeader.hpp"
-
-#include "CDT2LigandPO.h"
-
 #include <boost/scoped_ptr.hpp>
 
 #include <boost/mpi.hpp>
@@ -38,9 +22,33 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 
-namespace mpi = boost::mpi;
+#include <conduit.hpp>
+#include <conduit_relay.hpp>
+#include <conduit_relay_io_hdf5.hpp>
+#include <conduit_blueprint.hpp>
 
+#include "Parser/Sdf.h"
+#include "Parser/Pdb.h"
+#include "MM/Amber.h"
+#include "Parser/SanderOutput.h" 
+#include "Structure/Sstrm.hpp"
+#include "Structure/Constants.h"
+#include "Structure/Molecule.h"
+#include "Parser/Mol2.h"
+#include "Common/File.hpp"
+#include "Common/Utils.h"
+#include "Common/Tokenize.hpp"
+#include "Common/LBindException.h"
+#include "Common/Command.hpp"
+#include "XML/XMLHeader.hpp"
+
+#include "CDT2Ligand.h"
+#include "CDT2LigandPO.h"
+#include "InitEnv.h"
+
+namespace mpi = boost::mpi;
 using namespace LBIND;
+using namespace conduit;
 
 /*!
  * \breif preReceptors calculation receptor grid dimension from CSA sitemap output
@@ -67,162 +75,74 @@ using namespace LBIND;
    \endverbatim
  */
 
-class JobInputData{
-    
-public:
-    friend class boost::serialization::access;
-    // When the class Archive corresponds to an output archive, the
-    // & operator is defined similar to <<.  Likewise, when the class Archive
-    // is a type of input archive the & operator is defined similar to >>.
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
+
+void toConduit(JobOutData& jobOut, std::string& ligCdtFile){
+
+    try {
+
+        Node n;
+
+        std::string ligIDMeta ="lig/"+jobOut.ligID + "/meta";
+        n[ligIDMeta] = jobOut.ligID;
+
+
+        n[ligIDMeta + "/LigPath"] = jobOut.ligPath;
+        n[ligIDMeta + "/GBEN"] = jobOut.gbEn;
+        n[ligIDMeta + "/Mesg"] = jobOut.message;
+        std::string ligIDFile ="lig/"+jobOut.ligID+ "/file/";
+
+        std::vector<std::string> filenames={"LIG.prmtop", "LIG.lib", "LIG.inpcrd", "LIG_min.pdbqt",
+                                  "LIG_min.rst", "LIG_minGB.out", "ligand.frcmod"};
+
+        for(std::string& name : filenames)
+        {
+            std::string filename=jobOut.ligPath+"/"+name;
+            std::ifstream infile(filename);
+            if(infile.good())
+            {
+                std::string buffer((std::istreambuf_iterator<char>(infile)),
+                                   std::istreambuf_iterator<char>());
+                infile.close();
+                n[ligIDFile+name] = buffer;
+            }
+            else
+            {
+                std::cout << "File - " << filename << " is not there." << std::endl;
+            }
+        }
+
+        relay::io::hdf5_append(n, ligCdtFile);
+
+    }catch(conduit::Error &error){
+        jobOut.message= error.message();
+    }
+
+}
+
+bool isRun(JobInputData& jobInput){
+
+    Node n;
+    relay::io::hdf5_read(jobInput.ligCdtFile, n);
+    std::string path="lig/"+jobInput.dirBuffer;
+    if(n.has_path(path))
     {
-        ar & ambVersion;
-        ar & dirBuffer; 
-        ar & sdfBuffer;
-        ar & cmpName;
+        std::cout << "ligand - " << jobInput.dirBuffer << " has already completed!" << std::endl;
+        return true;
     }
-    
-    int ambVersion;
-    std::string dirBuffer;
-    std::string sdfBuffer;
-    std::string cmpName;
-};
-
-//struct JobInputData{        
-//    char dirBuffer[100];
-//};
-
-
-class JobOutData{
-    
-public:
-    friend class boost::serialization::access;
-    // When the class Archive corresponds to an output archive, the
-    // & operator is defined similar to <<.  Likewise, when the class Archive
-    // is a type of input archive the & operator is defined similar to >>.
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
-    {        
-        ar & error;
-        ar & gbEn;
-        ar & ligID;
-        ar & ligName;
-        ar & pdbFilePath;
-        ar & pdbqtPath;        
-        ar & message; 
-       
-    }
-    
-    bool error;
-    double gbEn;
-    std::string ligID;
-    std::string ligName;
-    std::string pdbFilePath;
-    std::string pdbqtPath;    
-    std::string message;
-   
-};
-
-
-//struct JobOutData{  
-//    bool error;
-//    char dirBuffer[100];
-//    char message[100];
-//};
-
-void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile){
-        XMLElement * element = new XMLElement("Ligand");
-        
-        XMLElement * pdbidEle = new XMLElement("LigID");
-        XMLText * pdbidTx= new XMLText(jobOut.ligID.c_str()); // has to use c-style string.
-        pdbidEle->LinkEndChild(pdbidTx);
-        element->LinkEndChild(pdbidEle);
-
-        XMLElement * ligNameEle = new XMLElement("LigName");
-        XMLText * ligNameTx= new XMLText(jobOut.ligName.c_str()); // has to use c-style string.
-        ligNameEle->LinkEndChild(ligNameTx);
-        element->LinkEndChild(ligNameEle);        
-        
-        XMLElement * pdbPathEle = new XMLElement("PDBPath");
-        XMLText * pdbPathTx= new XMLText(jobOut.pdbFilePath.c_str());
-        pdbPathEle->LinkEndChild(pdbPathTx);        
-        element->LinkEndChild(pdbPathEle);
-
-        XMLElement * recPathEle = new XMLElement("PDBQTPath");
-        XMLText * recPathTx= new XMLText(jobOut.pdbqtPath.c_str());
-        recPathEle->LinkEndChild(recPathTx);        
-        element->LinkEndChild(recPathEle);
-        
-        XMLElement * gbEle = new XMLElement("GBEN");
-        XMLText * gbTx= new XMLText(Sstrm<std::string, double>(jobOut.gbEn));
-        gbEle->LinkEndChild(gbTx);        
-        element->LinkEndChild(gbEle); 
-        
-        XMLElement * mesgEle = new XMLElement("Mesg");
-        XMLText * mesgTx= new XMLText(jobOut.message);
-        mesgEle->LinkEndChild(mesgTx);          
-        element->LinkEndChild(mesgEle);           
-
-        root->LinkEndChild(element);
-
-        element->Print(xmlTmpFile,1);
-        fputs("\n",xmlTmpFile);
-        fflush(xmlTmpFile);          
-        
+    return false;
 }
 
-bool isRun(std::string& checkfile, JobOutData& jobOut){
-    
-     std::ifstream inFile(checkfile.c_str());
-    
-    if(!inFile){
-        return false;
-    }  
-     
-    std::string fileLine=""; 
-    std::string delimiter=":";
-    while(inFile){
-        std::getline(inFile, fileLine);
-            std::vector<std::string> tokens;
-            tokenize(fileLine, tokens, delimiter); 
-
-            if(tokens.size()!=2) continue;
-            if(tokens[0]=="ligName"){
-                jobOut.ligName=tokens[1];
-            }
-            if(tokens[0]=="GBSA"){
-                jobOut.gbEn=Sstrm<double, std::string>(tokens[1]);
-            }
-            if(tokens[0]=="Mesg"){
-                jobOut.message=tokens[1];
-            }            
-    }  
-    return true;
+void rmLigDir(JobOutData& jobOut)
+{
+    std::string cmd="rm -rf " + jobOut.ligPath;
+    std::string errMesg="Remove fails for "+jobOut.ligPath;
+    command(cmd, errMesg);
 }
 
-void checkPoint(std::string& checkfile, JobOutData& jobOut){
-    
-    std::ofstream outFile(checkfile.c_str());
-    
-    outFile << "ligName:" << jobOut.ligName << "\n"
-            << "GBSA:" << jobOut.gbEn << "\n"
-            << "Mesg:" << jobOut.message << "\n";
-    outFile.close();
-}
+void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir) {
 
-bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir) {
-    
-    bool jobStatus=false;
-    
-    //chdir(workDir.c_str());
-    // ! Goto sub directory
     std::string subDir=workDir+"/scratch/lig/"+jobOut.ligID;  
-    jobOut.pdbFilePath="scratch/lig/"+jobOut.ligID+"/LIG_min.pdb";
-    jobOut.pdbqtPath="scratch/lig/"+jobOut.ligID+"/LIG_min.pdbqt";
-    
-    std::string checkfile=workDir+"/scratch/lig/"+jobOut.ligID+"/checkpoint.txt";    
-    if(isRun(checkfile, jobOut)) return true;
+    jobOut.ligPath="scratch/lig/"+jobOut.ligID;
     
     try{
         jobOut.gbEn=0.0;        
@@ -245,8 +165,7 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
 
         if(!fileExist(sdfPath)){
             std::string message=sdfPath+" does not exist.";
-            throw LBindException(message);  
-            return jobStatus;          
+            throw LBindException(message);
         }
 
         chdir(subDir.c_str());
@@ -418,162 +337,18 @@ bool preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         errMesg="sed to fix Br fails";
         command(cmd, errMesg);
 
-        //cmd="rm -f *.in divcon.pdb fort.7 leap.log mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
-        cmd="rm -f divcon.pdb fort.7 leap.log mopac.pdb ligand.pdb ligrn.pdb ligstrp.pdb LIG_minTmp.pdb";
-        //std::cout <<cmd <<std::endl; 
-        errMesg="rm remove intermediate files fails";
-        command(cmd, errMesg);
-
     } catch (LBindException& e){
-        jobOut.message= e.what();  
-        checkPoint(checkfile, jobOut);
-        return false;
+        jobOut.message= e.what();
+        return;
     }
-    
-    checkPoint(checkfile, jobOut);
-    
-    return true;
+
+    return;
 }
-
-
-//void saveStrList(std::string& fileName, std::vector<std::string>& strList){
-//    std::ifstream inFile;
-//    try {
-//        inFile.open(fileName.c_str());
-//    }
-//    catch(...){
-//        std::cout << "Cannot open file: " << fileName << std::endl;
-//    } 
-//
-//    std::string fileLine;
-//    while(inFile){
-//        std::getline(inFile, fileLine);
-//        std::vector<std::string> tokens;
-//        tokenize(fileLine, tokens); 
-//        if(tokens.size() > 0){
-//            strList.push_back(tokens[0]);
-//        }        
-//    }
-//    
-//}
-
-void splitSDF(POdata& podata, std::vector<std::string>& ligList, std::string& workDir){
-    std::ifstream inFile;
-    try {
-        inFile.open(podata.sdfFile.c_str());
-    }
-    catch(...){
-        std::cout << "preLigands >> Cannot open file" << podata.sdfFile << std::endl;
-    } 
-
-    const std::string delimter="$$$$";
-    std::string fileLine="";
-    std::string contents="";            
-
-    int count=podata.firstLigID;
-
-    while(inFile){
-        std::getline(inFile, fileLine);
-        contents=contents+fileLine+"\n";
-        if(fileLine.size()>=4 && fileLine.compare(0,4, delimter)==0){
-            std::string dir=Sstrm<std::string, int>(count);
-                // ! Goto sub directory
-            std::string subDir=workDir+"/scratch/lig/"+dir;   
-            std::string cmd="mkdir -p "+subDir;
-            system(cmd.c_str());  
-
-            std::string outputFName=subDir+"/ligand.sdf";
-            std::ofstream outFile;
-            try {
-                outFile.open(outputFName.c_str());
-            }
-            catch(...){
-                std::cout << "preLigands >> Cannot open file" << outputFName << std::endl;
-            }
-
-            outFile <<contents;
-            outFile.close(); 
-
-            contents=""; //! clean up the contents for the next structure.
-
-            ligList.push_back(dir);                    
-            ++count;
-        }
-    }    
-    
-}
-
-void xmlEJobs(std::string& xmlFile, std::vector<std::string>& ligList){
-    XMLDocument doc(xmlFile);
-    bool loadOkay = doc.LoadFile();
-
-    if (!loadOkay) {
-        std::string mesg = doc.ErrorDesc();
-        mesg = "Could not load CDT2Track.xml file.\nError: " + mesg;
-        throw LBindException(mesg);
-    }
-    
-    XMLNode* node = doc.FirstChild("Ligands");
-    assert(node);
-    XMLNode* ligNode = node->FirstChild("Ligand");
-    assert(ligNode);
-
-    for (ligNode = node->FirstChild("Ligand"); ligNode != 0; ligNode = ligNode->NextSibling("Ligand")) {
-
-        XMLNode* mesgNode = ligNode->FirstChild("Mesg");
-        assert(mesgNode);
-        XMLText* mesgTx =mesgNode->FirstChild()->ToText();
-        assert(mesgTx);
-        std::string mesgStr = mesgTx->ValueStr();
-
-        if(mesgStr=="Finished!"){        
-            XMLNode* ligIDnode = ligNode->FirstChild("LigID");
-            assert(ligIDnode);
-            XMLText* ligIDtx =ligIDnode->FirstChild()->ToText(); 
-            std::string dir=ligIDtx->ValueStr();
-            ligList.push_back(dir);
-        }
-        
-    } 
-
-    std::cout << "Print Previous Successful Ligand List: " << std::endl;
-    for(unsigned i=0; i< ligList.size(); ++i){
-        std::cout << "Ligand " << ligList[i] << std::endl;
-    }
-    
-}
-
 
 int main(int argc, char** argv) {
-    
-    //! get  working directory
-    char* WORKDIR=getenv("WORKDIR");
-    std::string workDir;
-    if(WORKDIR==0) {
-        // use current working directory for working directory
-        char BUFFER[200];
-        getcwd(BUFFER, sizeof (BUFFER));
-        workDir = BUFFER;        
-    }else{
-        workDir=WORKDIR;
-    }
-    
-    char* INPUTDIR=getenv("INPUTDIR");
-    std::string inputDir;
-    if(INPUTDIR==0) {
-        char BUFFER[200];
-        getcwd(BUFFER, sizeof (BUFFER));
-        inputDir = BUFFER;
-    }else{
-        inputDir = INPUTDIR;
-    }
 
     int jobFlag=1; // 1: doing job,  0: done job
-    
-    JobInputData jobInput;
-    JobOutData jobOut;
-    
-        
+
     int rankTag=1;
     int jobTag=2;
 
@@ -587,7 +362,15 @@ int main(int argc, char** argv) {
 
     if (world.size() < 2) {
         std::cerr << "Error: Total process less than 2" << std::endl;
-        return 1;
+        world.abort(1);
+    }
+
+    std::string workDir;
+    std::string inputDir;
+    std::string dataPath;
+
+    if(!initConveyorlcEnv(workDir, inputDir, dataPath)){
+        world.abort(1);
     }
        
     POdata podata;
@@ -596,39 +379,25 @@ int main(int argc, char** argv) {
     if (world.rank() == 0) {        
         bool success=CDT2LigandPO(argc, argv, podata);
         if(!success){
-            error=1;           
+            world.abort(1);
         }        
     }
-               
+
+    JobInputData jobInput;
+    JobOutData jobOut;
+
     if (world.rank() == 0) {
-                
-//! Tracking error using XML file
 
-	XMLDocument doc;  
- 	XMLDeclaration* decl = new XMLDeclaration( "1.0", "", "" );  
-	doc.LinkEndChild( decl );  
- 
-	XMLElement * root = new XMLElement( "Ligands" );  
-	doc.LinkEndChild( root );  
-
-	XMLComment * comment = new XMLComment();
-	comment->SetValue(" Tracking calculation error using XML file " );  
-	root->LinkEndChild( comment );  
-
-        std::string trackTmpFileName=workDir+"/CDT2TrackTemp.xml";
-        FILE* xmlFile=fopen(trackTmpFileName.c_str(), "w"); 
-        fprintf(xmlFile, "<?xml version=\"1.0\" ?>\n");
-        fprintf(xmlFile, "<Ligands>\n");
-        fprintf(xmlFile, "    <!-- Tracking calculation error using XML file -->\n");
-        fflush(xmlFile);         
- //! END of XML header
+        //! Open a Conduit file to track the calculation
+        Node n;
+        std::string ligCdtFile=workDir+"/scratch/ligand.hdf5:/";
+        n["date"]="Create By CDT2Ligand at "+timeStamp();
+        relay::io::hdf5_append(n, ligCdtFile);
+        jobInput.ligCdtFile=ligCdtFile;
         
         // Pass the ligand name option
         jobInput.cmpName=podata.cmpName;
-
-// Open output file
-        std::ofstream outFile;
-        outFile.open(podata.outputFile.c_str());
+        jobInput.ambVersion=podata.version;
 
         // Start to read in the SDF file
         std::string sdfFileName=inputDir+"/"+podata.sdfFile;
@@ -636,7 +405,8 @@ int main(int argc, char** argv) {
         try {
             inFile.open(sdfFileName.c_str());
         } catch (...) {
-            std::cout << "preLigands >> Cannot open file" << podata.sdfFile << std::endl;
+            std::cout << "CDT2Ligand >> Cannot open file" << podata.sdfFile << std::endl;
+            world.abort(1);
         }
 
         const std::string delimter = "$$$$";
@@ -644,36 +414,39 @@ int main(int argc, char** argv) {
         std::string contents = "";
 
         int count = 0;
+        int dirCnt= 0;
 
         while (inFile) {
             std::getline(inFile, fileLine);
             contents = contents + fileLine + "\n";
             if (fileLine.size() >= 4 && fileLine.compare(0, 4, delimter) == 0) {
-                if(count >= world.size()-1){
-    //                MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
-                    world.recv(mpi::any_source, outTag, jobOut);
-                    toXML(jobOut, root, xmlFile);
-                } 
+                dirCnt++;
+                jobInput.dirBuffer=std::to_string(dirCnt);
+                //For restart
+                if(isRun(jobInput)){
+                    continue;
+                }
 
-                std::string dir=Sstrm<std::string, int>(count+1);
+                count++;
+
+                if(count > world.size()-1){
+                    world.recv(mpi::any_source, outTag, jobOut);
+
+                    toConduit(jobOut, ligCdtFile);
+                    rmLigDir(jobOut);
+                }
 
                 int freeProc;
-    //            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
                 world.recv(mpi::any_source, rankTag, freeProc);
-                std::cout << "At Process: " << freeProc << " working on: " << dir << std::endl;
-    //            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
+                std::cout << "At Process: " << freeProc << " working on: " << jobInput.dirBuffer << std::endl;
                 world.send(freeProc, jobTag, jobFlag);
 
-    //            strcpy(jobInput.dirBuffer, dir.c_str());
-                jobInput.dirBuffer=dir;
                 jobInput.sdfBuffer=contents;
-                jobInput.ambVersion=podata.version;
 
-    //            MPI_Send(&jobInput, sizeof(JobInputData), MPI_CHAR, freeProc, inpTag, MPI_COMM_WORLD);
                 world.send(freeProc, inpTag, jobInput);
                 
                 contents = ""; //! clean up the contents for the next structure.
-                count++;
+
             }
                              
         }
@@ -684,45 +457,35 @@ int main(int argc, char** argv) {
         std::cout << "ndata=" << ndata << " nJobs=" << nJobs << std::endl;
     
         for(int i=0; i < ndata; ++i){
-//            MPI_Recv(&jobOut, sizeof(JobOutData), MPI_CHAR, MPI_ANY_SOURCE, outTag, MPI_COMM_WORLD, &status2);
             world.recv(mpi::any_source, outTag, jobOut);
-            toXML(jobOut, root, xmlFile);
+
+            toConduit(jobOut, ligCdtFile);
+            rmLigDir(jobOut);
         } 
-        
-        fprintf(xmlFile, "</Ligands>\n");
-        fflush(xmlFile);
-        std::string trackFileName=workDir+"/"+podata.xmlOut;
-        doc.SaveFile(trackFileName);
+
         
         for(int i=1; i < world.size(); ++i){
             int freeProc;
-//            MPI_Recv(&freeProc, 1, MPI_INTEGER, MPI_ANY_SOURCE, rankTag, MPI_COMM_WORLD, &status1);
             world.recv(mpi::any_source, rankTag, freeProc);
             jobFlag=0;;
-//            MPI_Send(&jobFlag, 1, MPI_INTEGER, freeProc, jobTag, MPI_COMM_WORLD); 
             world.send(freeProc, jobTag, jobFlag);
         }
         
     }else {
         while (1) {
-//            MPI_Send(&rank, 1, MPI_INTEGER, 0, rankTag, MPI_COMM_WORLD);
             world.send(0, rankTag, world.rank());
-//            MPI_Recv(&jobFlag, 20, MPI_CHAR, 0, jobTag, MPI_COMM_WORLD, &status2);
             world.recv(0, jobTag, jobFlag);
             if (jobFlag==0) {
                 break;
             }
-            // Receive parameters
 
             world.recv(0, inpTag, jobInput);
-//            MPI_Recv(&jobInput, sizeof(JobInputData), MPI_CHAR, 0, inpTag, MPI_COMM_WORLD, &status1);
                         
             jobOut.ligID=jobInput.dirBuffer;
             jobOut.message="Finished!";
 
-            jobOut.error==preLigands(jobInput, jobOut, workDir);            
-          
-//            MPI_Send(&jobOut, sizeof(JobOutData), MPI_CHAR, 0, outTag, MPI_COMM_WORLD);
+            preLigands(jobInput, jobOut, workDir);
+
             world.send(0, outTag, jobOut);
         }
     }
