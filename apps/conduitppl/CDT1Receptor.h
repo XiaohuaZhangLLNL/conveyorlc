@@ -34,6 +34,7 @@ public:
         ar & cutRadius;
         ar & dirBuffer;
         ar & subRes;
+        ar & recCdtFile;
         ar & keyRes;
         ar & nonRes;
     }
@@ -54,6 +55,7 @@ public:
     double cutRadius;
     std::string dirBuffer;
     std::string subRes;
+    std::string recCdtFile;
     std::vector<std::string> keyRes;
     std::vector<std::string> nonRes;
 };
@@ -73,7 +75,7 @@ public:
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
-        ar & error;
+        ar & rerun;
         ar & clust;
         ar & volume;
         ar & gbEn;
@@ -88,7 +90,7 @@ public:
 
     }
 
-    bool error;
+    bool rerun;
     int clust;
     double volume;
     double gbEn;

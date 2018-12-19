@@ -47,6 +47,7 @@
 #include "Common/File.hpp"
 #include "Common/Tokenize.hpp"
 #include "Common/LBindException.h"
+#include "Common/Utils.h"
 #include "XML/XMLHeader.hpp"
 
 #include "CDT1Receptor.h"
@@ -95,8 +96,6 @@ void toConduit(JobOutData& jobOut, std::string& recCdtFile){
 
         Node n;
 
-        n["rec/"+jobOut.pdbid + "/Error"] = jobOut.error;
-
         std::string recIDMeta ="rec/"+jobOut.pdbid + "/meta";
         n[recIDMeta] = jobOut.pdbid;
 
@@ -120,7 +119,8 @@ void toConduit(JobOutData& jobOut, std::string& recCdtFile){
         n[recIDMeta + "/Mesg"] = jobOut.message;
         std::string recIDFile ="rec/"+jobOut.pdbid + "/file/";
 
-        std::vector<std::string> filenames={"rec_min.pdbqt", "rec_min.rst", "rec.prmtop", "rec_min.pdb", "rec_minGB.out", "site.txt", "rec_geo.txt"};
+        std::vector<std::string> filenames={"rec_min.pdbqt", "rec_min.rst", "rec.prmtop", "rec_min.pdb",
+                                            "rec_minGB.out", "site.txt", "rec_geo.txt"};
         std::string gridfilename="Grid-"+std::to_string(jobOut.clust)+".pdb";
         filenames.push_back(gridfilename);
 
@@ -137,7 +137,7 @@ void toConduit(JobOutData& jobOut, std::string& recCdtFile){
             }
             else
             {
-                std::cout << "File - " << filename << "is not there." << std::endl;
+                std::cout << "File - " << filename << " is not there." << std::endl;
             }
         }
 
@@ -150,76 +150,30 @@ void toConduit(JobOutData& jobOut, std::string& recCdtFile){
 }
 
 
-bool isRun(std::string& checkfile, JobOutData& jobOut){
+bool isRun(JobInputData& jobInput){
 
-     std::ifstream inFile(checkfile.c_str());
+    std::string pdbid;
+    getFileBasename(jobInput.dirBuffer, pdbid);
+    //std::cout << "Receptor - " << jobInput.dirBuffer << " input!" << std::endl;
 
-    if(!inFile){
-        return false;
+    Node n;
+    relay::io::hdf5_read(jobInput.recCdtFile, n);
+    std::string path="rec/"+pdbid;
+    if(n.has_path(path))
+    {
+        std::cout << "Receptor - " << pdbid << " has already completed!" << std::endl;
+        return true;
     }
-
-    std::string fileLine="";
-    std::string delimiter=":";
-    while(inFile){
-        std::getline(inFile, fileLine);
-            std::vector<std::string> tokens;
-            tokenize(fileLine, tokens, delimiter);
-
-            if(tokens.size()!=2) continue;
-            if(tokens[0]=="PDBQTPath"){
-                jobOut.recPath=tokens[1];
-            }
-            if(tokens[0]=="GBEN"){
-                jobOut.gbEn=Sstrm<double, std::string>(tokens[1]);
-            }
-            if(tokens[0]=="Cluster"){
-                jobOut.clust=Sstrm<int, std::string>(tokens[1]);
-            }
-            if(tokens[0]=="Volume"){
-                jobOut.volume=Sstrm<double, std::string>(tokens[1]);
-            }
-            if(tokens[0]=="cx"){
-                jobOut.centroid.setX(Sstrm<double, std::string>(tokens[1]) );
-            }
-            if(tokens[0]=="cy"){
-                jobOut.centroid.setY(Sstrm<double, std::string>(tokens[1]) );
-            }
-            if(tokens[0]=="cz"){
-                jobOut.centroid.setZ(Sstrm<double, std::string>(tokens[1]) );
-            }
-            if(tokens[0]=="dx"){
-                jobOut.dimension.setX(Sstrm<double, std::string>(tokens[1]) );
-            }
-            if(tokens[0]=="dy"){
-                jobOut.dimension.setY(Sstrm<double, std::string>(tokens[1]) );
-            }
-            if(tokens[0]=="dz"){
-                jobOut.dimension.setZ(Sstrm<double, std::string>(tokens[1]) );
-            }
-            if(tokens[0]=="Mesg"){
-                jobOut.message=tokens[1];
-            }
-    }
-    return true;
+    return false;
 }
 
-void checkPoint(std::string& checkfile, JobOutData& jobOut){
-
-    std::ofstream outFile(checkfile.c_str());
-
-    outFile << "PDBQTPath:" << jobOut.recPath << "\n"
-            << "GBEN:" << jobOut.gbEn << "\n"
-            << "Cluster:" << jobOut.clust << "\n"
-            << "Volume:" << jobOut.volume << "\n"
-            << "cx:" << jobOut.centroid.getX() << "\n"
-            << "cy:" << jobOut.centroid.getY() << "\n"
-            << "cz:" << jobOut.centroid.getZ() << "\n"
-            << "dx:" << jobOut.dimension.getX() << "\n"
-            << "dy:" << jobOut.dimension.getY() << "\n"
-            << "dz:" << jobOut.dimension.getZ() << "\n"
-            << "Mesg:" << jobOut.message << "\n";
-    outFile.close();
+void rmRecDir(JobOutData& jobOut)
+{
+    std::string cmd="rm -rf " + jobOut.recPath;
+    std::string errMesg="Remove fails for "+jobOut.recPath;
+    command(cmd, errMesg);
 }
+
 
 void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& checkFName, std::string& recType, std::string& libDir) {
     std::string tleapFName = recType + "_leap.in";
@@ -366,10 +320,8 @@ void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& check
     command(cmd, errMesg);  
 }
 
-bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, std::string& inputDir, std::string& dataPath){
-    
-    bool jobStatus=false;
-    
+void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, std::string& inputDir, std::string& dataPath){
+
     chdir(workDir.c_str());
     jobOut.pdbFilePath=inputDir+"/"+jobInput.dirBuffer; 
     if(jobInput.subRes.size()!=0){
@@ -381,16 +333,9 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
 
 //    std::string pdbBasename;
     getFileBasename(jobOut.pdbFilePath, jobOut.pdbid);
-    std::string recDir=workDir+"/scratch/com/"+jobOut.pdbid+"/rec";
+    std::string recDir=workDir+"/scratch/rec/"+jobOut.pdbid;
     jobOut.recPath=recDir;
 
-    //For restart
-    std::string checkfile=recDir+"/checkpoint.txt"; 
-    // If force re-do the calculation skip check the checkfile and continue calculation (by default not force re-do)
-    if(!jobInput.forceRedoFlg){ 
-        if(isRun(checkfile, jobOut)) return true;
-    }
-    
     try{
 
         if(!fileExist(jobOut.pdbFilePath)){
@@ -479,8 +424,7 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
 
         // Skip the site calculation
         if(!jobInput.siteFlg){
-            checkPoint(checkfile, jobOut);
-            return true;
+            return;
         }
 
         // Get geometry
@@ -567,14 +511,11 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     
     } catch (LBindException& e){
         jobOut.message=e.what();
-        checkPoint(checkfile, jobOut);
-        return false;
+        return;
     }
 
-    checkPoint(checkfile, jobOut);
-    
-    //END    
-    return true;
+    //END
+    return;
 }
 
 
@@ -660,7 +601,6 @@ void initInputData(JobInputData& jobInput, POdata& podata){
 }
 
 
-
 int main(int argc, char** argv) {
 
     // ! start MPI parallel
@@ -680,7 +620,6 @@ int main(int argc, char** argv) {
     mpi::communicator world;    
 
     mpi::timer runingTime;
-//    int error=0;
     
     if (world.size() < 2) {
         std::cerr << "Error: Total process less than 2" << std::endl;
@@ -710,24 +649,38 @@ int main(int argc, char** argv) {
     if (world.rank() == 0) {
 
         //! Open a Conduit file to track the calculation
-        //Node n;
+        Node n;
         std::string recCdtFile=workDir+"/scratch/receptor.hdf5:/";
-        //relay::io::hdf5_write(n, recCdtFile);
+        n["date"]="Create By CDT1Receptor at "+timeStamp();
+        relay::io::hdf5_append(n, recCdtFile);
+        jobInput.recCdtFile=recCdtFile;
 
         initInputData(jobInput, podata);
 
         std::vector<RecData*> dirList;        
         
         std::string pdbList=inputDir+"/"+podata.inputFile;
+
         saveStrList(pdbList, dirList);
         int count=0;
            
         for(unsigned i=0; i<dirList.size(); ++i){
+            jobInput.dirBuffer=dirList[i]->pdbFile;
+            //For restart
+            // If force re-do the calculation skip check the hdf5 file and continue calculation (by default not force re-do)
+            if(!jobInput.forceRedoFlg){
+                if(isRun(jobInput)){
+                    continue;
+                }
+            }
+
             ++count;
             
             if(count >world.size()-1){
                 world.recv(mpi::any_source, outTag, jobOut);
+
                 toConduit(jobOut, recCdtFile);
+                rmRecDir(jobOut);
             }   
             
             int freeProc;
@@ -735,7 +688,6 @@ int main(int argc, char** argv) {
             std::cout << "At Process: " << freeProc << " working on: " << dirList[i]->pdbFile  << std::endl;
             world.send(freeProc, jobTag, jobFlag);
 
-            jobInput.dirBuffer=dirList[i]->pdbFile;
             jobInput.keyRes=dirList[i]->keyRes;
             jobInput.nonRes=dirList[i]->nonRes;
             jobInput.subRes=dirList[i]->subRes;
@@ -751,7 +703,9 @@ int main(int argc, char** argv) {
     
         for(int i=0; i < ndata; ++i){
             world.recv(mpi::any_source, outTag, jobOut);
+
             toConduit(jobOut, recCdtFile);
+            rmRecDir(jobOut);
         } 
 
         for(int i=1; i < world.size(); ++i){
@@ -773,8 +727,9 @@ int main(int argc, char** argv) {
             world.recv(0, inpTag, jobInput);
                                     
             jobOut.message="Finished!";
+            jobOut.rerun=false;
 
-            jobOut.error=preReceptor(jobInput, jobOut, workDir, inputDir, dataPath);            
+            preReceptor(jobInput, jobOut, workDir, inputDir, dataPath);
 
             world.send(0, outTag, jobOut);
            
