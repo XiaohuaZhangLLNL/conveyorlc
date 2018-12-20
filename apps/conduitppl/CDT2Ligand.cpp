@@ -82,6 +82,8 @@ void toConduit(JobOutData& jobOut, std::string& ligCdtFile){
 
         Node n;
 
+        n["lig/"+jobOut.ligID + "/status"]=jobOut.error;
+
         std::string ligIDMeta ="lig/"+jobOut.ligID + "/meta";
         n[ligIDMeta] = jobOut.ligID;
 
@@ -141,10 +143,13 @@ void rmLigDir(JobOutData& jobOut)
 
 void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir) {
 
-    std::string subDir=workDir+"/scratch/lig/"+jobOut.ligID;  
-    jobOut.ligPath="scratch/lig/"+jobOut.ligID;
-    
     try{
+        jobOut.ligID=jobInput.dirBuffer;
+        jobOut.message="Finished!";
+
+        std::string subDir=workDir+"/scratch/lig/"+jobOut.ligID;
+        jobOut.ligPath=subDir;
+
         jobOut.gbEn=0.0;        
         std::string sdfPath=subDir+"/ligand.sdf";
 
@@ -339,9 +344,11 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
 
     } catch (LBindException& e){
         jobOut.message= e.what();
+        jobOut.error=false;
         return;
     }
 
+    jobOut.error=true;
     return;
 }
 
@@ -374,7 +381,6 @@ int main(int argc, char** argv) {
     }
        
     POdata podata;
-    int error=0;
     
     if (world.rank() == 0) {        
         bool success=CDT2LigandPO(argc, argv, podata);
@@ -480,9 +486,6 @@ int main(int argc, char** argv) {
             }
 
             world.recv(0, inpTag, jobInput);
-                        
-            jobOut.ligID=jobInput.dirBuffer;
-            jobOut.message="Finished!";
 
             preLigands(jobInput, jobOut, workDir);
 

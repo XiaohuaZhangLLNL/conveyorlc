@@ -75,7 +75,7 @@ public:
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
-        ar & rerun;
+        ar & error;
         ar & clust;
         ar & volume;
         ar & gbEn;
@@ -90,7 +90,7 @@ public:
 
     }
 
-    bool rerun;
+    bool error;
     int clust;
     double volume;
     double gbEn;

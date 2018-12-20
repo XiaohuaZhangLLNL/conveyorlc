@@ -96,6 +96,8 @@ void toConduit(JobOutData& jobOut, std::string& recCdtFile){
 
         Node n;
 
+        n["rec/"+jobOut.pdbid + "/status"]=jobOut.error;
+
         std::string recIDMeta ="rec/"+jobOut.pdbid + "/meta";
         n[recIDMeta] = jobOut.pdbid;
 
@@ -322,21 +324,19 @@ void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& check
 
 void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, std::string& inputDir, std::string& dataPath){
 
-    chdir(workDir.c_str());
-    jobOut.pdbFilePath=inputDir+"/"+jobInput.dirBuffer; 
-    if(jobInput.subRes.size()!=0){
-    	jobOut.subRes=inputDir+"/"+jobInput.subRes;
-    }else{
-    	jobOut.subRes="";
-    }
-    jobOut.nonRes=jobInput.nonRes;    
-
-//    std::string pdbBasename;
-    getFileBasename(jobOut.pdbFilePath, jobOut.pdbid);
-    std::string recDir=workDir+"/scratch/rec/"+jobOut.pdbid;
-    jobOut.recPath=recDir;
-
     try{
+        chdir(workDir.c_str());
+        jobOut.pdbFilePath=inputDir+"/"+jobInput.dirBuffer;
+        if(jobInput.subRes.size()!=0){
+            jobOut.subRes=inputDir+"/"+jobInput.subRes;
+        }else{
+            jobOut.subRes="";
+        }
+        jobOut.nonRes=jobInput.nonRes;
+
+        getFileBasename(jobOut.pdbFilePath, jobOut.pdbid);
+        std::string recDir=workDir+"/scratch/rec/"+jobOut.pdbid;
+        jobOut.recPath=recDir;
 
         if(!fileExist(jobOut.pdbFilePath)){
             std::string mesg="CDT1Receptor::preReceptors: PDB file "+jobOut.pdbFilePath+" does NOT exist.";
@@ -424,6 +424,7 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
 
         // Skip the site calculation
         if(!jobInput.siteFlg){
+            jobOut.error=true;
             return;
         }
 
@@ -511,10 +512,12 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
     
     } catch (LBindException& e){
         jobOut.message=e.what();
+        jobOut.error=false;
         return;
     }
 
     //END
+    jobOut.error=true;
     return;
 }
 
@@ -648,6 +651,12 @@ int main(int argc, char** argv) {
 
     if (world.rank() == 0) {
 
+        // if force re-do just delete the receptor.hdf5
+        if(jobInput.forceRedoFlg){
+            std::string cmd="rm -f "+ workDir+"/scratch/receptor.hdf5";
+            std::string errMesg="Remove fails for "+workDir+"/scratch/receptor.hdf5";
+            command(cmd, errMesg);
+        }
         //! Open a Conduit file to track the calculation
         Node n;
         std::string recCdtFile=workDir+"/scratch/receptor.hdf5:/";
@@ -727,7 +736,6 @@ int main(int argc, char** argv) {
             world.recv(0, inpTag, jobInput);
                                     
             jobOut.message="Finished!";
-            jobOut.rerun=false;
 
             preReceptor(jobInput, jobOut, workDir, inputDir, dataPath);
 
