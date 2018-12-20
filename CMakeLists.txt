@@ -80,6 +80,11 @@ include_directories(${SQLITE3_INCLUDE_DIRS})
 find_package( ZLIB REQUIRED )
 include_directories( ${ZLIB_INCLUDE_DIRS} )
 
+# find HDF5
+
+find_package( HDF5 REQUIRED )
+include_directories( ${HDF5_INCLUDE_DIRS} )
+
 # find Conduit for handling hierarchical scientific data
 find_package( Conduit REQUIRED )
 include_directories(${CONDUIT_INCLUDE_DIRS})
