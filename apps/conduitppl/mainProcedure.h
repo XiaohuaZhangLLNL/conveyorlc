@@ -50,7 +50,7 @@ void main_procedure(model& m, const boost::optional<model>& ref, // m is non-con
         bool score_only, bool local_only, bool randomize_only, bool no_cache,
         const grid_dims& gd, int exhaustiveness,
         const flv& weights,
-        int cpu, int seed, int verbosity, sz num_modes, fl energy_range, std::stringstream& log);
+        int cpu, int seed, int verbosity, sz num_modes, fl energy_range, std::stringstream& log, sz& how_many);
 
 struct usage_error : public std::runtime_error {
 

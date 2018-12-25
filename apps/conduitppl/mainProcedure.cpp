@@ -131,7 +131,7 @@ void do_search(model& m, const boost::optional<model>& ref, const scoring_functi
         std::stringstream& out_name,
         const vec& corner1, const vec& corner2,
         const parallel_mc& par, fl energy_range, sz num_modes,
-        int seed, int verbosity, bool score_only, bool local_only, std::stringstream& log, const terms& t, const flv& weights) {
+        int seed, int verbosity, bool score_only, bool local_only, std::stringstream& log, const terms& t, const flv& weights, sz& how_many) {
     conf_size s = m.get_size();
     conf c = m.get_initial_conf();
     fl e = max_fl;
@@ -219,7 +219,7 @@ void do_search(model& m, const boost::optional<model>& ref, const scoring_functi
         if (!out_cont.empty())
             best_mode_model.set(out_cont.front().c);
 
-        sz how_many = 0;
+        how_many = 0;
         std::vector<std::string> remarks;
 
         VINA_FOR_IN(i, out_cont) {
@@ -254,7 +254,7 @@ void main_procedure(model& m, const boost::optional<model>& ref, // m is non-con
         bool score_only, bool local_only, bool randomize_only, bool no_cache,
         const grid_dims& gd, int exhaustiveness,
         const flv& weights,
-        int cpu, int seed, int verbosity, sz num_modes, fl energy_range, std::stringstream& log) {
+        int cpu, int seed, int verbosity, sz num_modes, fl energy_range, std::stringstream& log, sz& how_many) {
 
     doing(verbosity, "Setting up the scoring function", log);
 
@@ -296,7 +296,7 @@ void main_procedure(model& m, const boost::optional<model>& ref, // m is non-con
                     out_name,
                     corner1, corner2,
                     par, energy_range, num_modes,
-                    seed, verbosity, score_only, local_only, log, t, weights);
+                    seed, verbosity, score_only, local_only, log, t, weights, how_many);
         } else {
             bool cache_needed = !(score_only || randomize_only || local_only);
             if (cache_needed) doing(verbosity, "Analyzing the binding site", log);
@@ -307,7 +307,7 @@ void main_procedure(model& m, const boost::optional<model>& ref, // m is non-con
                     out_name,
                     corner1, corner2,
                     par, energy_range, num_modes,
-                    seed, verbosity, score_only, local_only, log, t, weights);
+                    seed, verbosity, score_only, local_only, log, t, weights, how_many);
         }
     }
 }

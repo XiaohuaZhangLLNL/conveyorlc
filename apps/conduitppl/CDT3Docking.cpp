@@ -13,6 +13,7 @@
 #include <stack>
 #include <vector> // ligand paths
 #include <cmath> // for ceila
+#include <unordered_set>
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -25,6 +26,11 @@
 #include <boost/mpi/environment.hpp>
 #include <boost/mpi/communicator.hpp>
 
+#include <conduit.hpp>
+#include <conduit_relay.hpp>
+#include <conduit_relay_io_hdf5.hpp>
+#include <conduit_blueprint.hpp>
+
 #include "VinaLC/parse_pdbqt.h"
 #include "VinaLC/parallel_mc.h"
 #include "VinaLC/file.h"
@@ -36,149 +42,100 @@
 #include "VinaLC/weighted_terms.h"
 #include "VinaLC/current_weights.h"
 #include "VinaLC/quasi_newton.h"
-//#include "gzstream.h"
-//#include "tee.h"
 #include "VinaLC/coords.h" // add_to_output_container
 #include "VinaLC/tokenize.h"
+#include "Common/Command.hpp"
 
 #include "dock.h"
 #include "mpiparser.h"
 #include "XML/XMLHeader.hpp"
+#include "InitEnv.h"
 
+using namespace conduit;
 namespace mpi = boost::mpi;
+using namespace boost::filesystem;
 using namespace LBIND;
 
 
-void toXML(JobOutData& jobOut, XMLElement* root, FILE* xmlTmpFile) {
-    XMLElement * element = new XMLElement("Complex");
 
-    XMLElement * pdbidEle = new XMLElement("RecID");
-    XMLText * pdbidTx = new XMLText(jobOut.pdbID.c_str()); // has to use c-style string.
-    pdbidEle->LinkEndChild(pdbidTx);
-    element->LinkEndChild(pdbidEle);
-    
-    XMLElement * nonstdAAsEle = new XMLElement("NonStdAAList");
-    for (unsigned i = 0; i < jobOut.nonRes.size(); ++i) {
-        std::string iStr=Sstrm<std::string, unsigned>(i+1);
-        XMLElement * scEle = new XMLElement("NonStdAA");
-        scEle->SetAttribute("id", iStr.c_str() );
-        XMLText * scTx = new XMLText(jobOut.nonRes[i].c_str());
-        scEle->LinkEndChild(scTx);
-        nonstdAAsEle->LinkEndChild(scEle);
+void getKeysHDF5(std::string& fileName, std::vector<std::string>& keysFinish)
+{
+    Node n;
+
+    hid_t dock_hid=relay::io::hdf5_open_file_for_read(fileName);
+    relay::io::hdf5_read(dock_hid, n);
+
+    NodeIterator itrRec = n["dock"].children();
+
+    while(itrRec.has_next())
+    {
+        Node &nRec=itrRec.next();
+
+        NodeIterator itrLig = nRec.children();
+
+        while(itrLig.has_next())
+        {
+            Node &nLig=itrLig.next();
+            std::string key=nRec.name()+"/"+nLig.name();
+            keysFinish.push_back(key);
+        }
+
     }
-    element->LinkEndChild(nonstdAAsEle);
+    relay::io::hdf5_close_file(dock_hid);
 
-    XMLElement * ligidEle = new XMLElement("LigID");
-    XMLText * ligidTx = new XMLText(jobOut.ligID.c_str()); // has to use c-style string.
-    ligidEle->LinkEndChild(ligidTx);
-    element->LinkEndChild(ligidEle);
-
-    XMLElement * pdbPathEle = new XMLElement("LogPath");
-    XMLText * pdbPathTx = new XMLText(jobOut.logPath.c_str());
-    pdbPathEle->LinkEndChild(pdbPathTx);
-    element->LinkEndChild(pdbPathEle);
-
-    XMLElement * recPathEle = new XMLElement("PosePath");
-    XMLText * recPathTx = new XMLText(jobOut.posePath.c_str());
-    recPathEle->LinkEndChild(recPathTx);
-    element->LinkEndChild(recPathEle);
-
-    XMLElement * scoresEle = new XMLElement("Scores");
-    for (unsigned i = 0; i < jobOut.scores.size(); ++i) {
-        std::string iStr=Sstrm<std::string, unsigned>(i+1);
-        XMLElement * scEle = new XMLElement("Pose");
-        scEle->SetAttribute("id", iStr.c_str() );
-        XMLText * scTx = new XMLText(Sstrm<std::string, double>(jobOut.scores[i]));
-        scEle->LinkEndChild(scTx);
-        scoresEle->LinkEndChild(scEle);
-    }
-    element->LinkEndChild(scoresEle);
-
-    XMLElement * mesgEle = new XMLElement("Mesg");
-    XMLText * mesgTx = new XMLText(jobOut.mesg);
-    mesgEle->LinkEndChild(mesgTx);
-    element->LinkEndChild(mesgEle);
-
-    root->LinkEndChild(element);
-
-    element->Print(xmlTmpFile, 1);
-    fputs("\n", xmlTmpFile);
-    fflush(xmlTmpFile);          
-        
 }
 
+void toConduit(JobOutData& jobOut, std::string& dockHDF5File){
+    try {
 
-inline void geometry(JobInputData& jobInput, std::vector<double>& geo){
-//    const fl granularity = 0.375;
-    vec center(geo[0], geo[1], geo[2]);
-    vec span(geo[3], geo[4], geo[5]);
+        Node n;
 
-    for(unsigned j=0;j<3; ++j){
-        jobInput.n[j]=sz(std::ceil(span[j] / jobInput.granularity));
-        fl real_span = jobInput.granularity * jobInput.n[j];
-        jobInput.begin[j]=center[j] - real_span / 2;
-        jobInput.end[j]=jobInput.begin[j] + real_span;
-    }    
+        std::string keyPath="dock/"+jobOut.pdbID +"/"+jobOut.ligID;
+
+        n[keyPath+ "/status"]=jobOut.error;
+
+        std::string recIDMeta =keyPath+ "/meta/";
+        n[recIDMeta+"numPose"]=jobOut.numPose;
+        n[recIDMeta+"Mesg"]=jobOut.mesg;
+
+        for(int i=0; i< jobOut.scores.size(); ++i)
+        {
+            n[recIDMeta+"scores/"+std::to_string(i+1)]=jobOut.scores[i];
+        }
+
+        std::string recIDFile =keyPath + "/file/";
+
+        n[recIDFile+"scores.log"]=jobOut.scorelog;
+        n[recIDFile+"poses.pdbqt"]=jobOut.pdbqtfile;
+
+        relay::io::hdf5_append(n, dockHDF5File);
+
+    }catch(conduit::Error &error){
+        jobOut.mesg= error.message();
+    }
+
+
 }
 
-bool isRun(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
-    
-    std::string checkfile =workDir + "/scratch/com/" + jobInput.recBuffer + "/dock/" + jobInput.ligBuffer+"/scores.log";
-    std::ifstream inFile(checkfile.c_str());
-     
-    if(!inFile){
-        return false;
-    } 
-    
-    //std::cout << checkfile << std::endl;
-
-    std::string logStr="";
-    std::string fileLine;
-    
-    while(inFile){
-        std::getline(inFile, fileLine);
-        logStr=logStr+fileLine+"\n";       
-    }
-     
-    jobOut.scores.clear();
-    bool success=getScores(logStr, jobOut.scores);
-    if(success){
-        jobOut.mesg="Finished!";
+void toHDF5File(JobInputData& jobInput, JobOutData& jobOut, std::string& dockHDF5File)
+{
+    if(jobInput.useScoreCF){
+        if(jobOut.scores.size()>0){
+            if(jobOut.scores[0]<jobInput.scoreCF){
+                toConduit(jobOut, dockHDF5File);
+            }
+        }
     }else{
-        jobOut.mesg="No scores!";
+        toConduit(jobOut, dockHDF5File);
     }
-    jobOut.nonRes=jobInput.nonRes;
-
-    jobOut.pdbID=jobInput.recBuffer;
-    jobOut.ligID=jobInput.ligBuffer;
-
-    jobOut.logPath=checkfile;
-    jobOut.posePath="scratch/com/" + jobInput.recBuffer + "/dock/" + jobInput.ligBuffer+"/poses.pdbqt";    
-    
-    return true;
 }
 
 
 int main(int argc, char* argv[]) {
-    
-    //! get  working directory
-    char* WORKDIR=getenv("WORKDIR");
-    std::string workDir;
-    if(WORKDIR==0) {
-        // use current working directory for working directory
-        char BUFFER[200];
-        getcwd(BUFFER, sizeof (BUFFER));
-        workDir = BUFFER;        
-    }else{
-        workDir=WORKDIR;
-    }
-    
+
     // ! MPI Parallel   
     int jobFlag=1; // 1: doing job,  0: done job
-    
-    JobInputData jobInput;
-    JobOutData jobOut;
-        
+
     int rankTag=1;
     int jobTag=2;
 
@@ -189,146 +146,141 @@ int main(int argc, char* argv[]) {
     mpi::communicator world;    
     mpi::timer runingTime;
 
+    if (world.size() < 2) {
+        std::cerr << "Error: Total process less than 2" << std::endl;
+        world.abort(1);
+    }
+
+    std::string workDir;
+    std::string inputDir;
+    std::string dataPath;
+
+    if(!initConveyorlcEnv(workDir, inputDir, dataPath)){
+        world.abort(1);
+    }
+
     std::cout << "Number of tasks= " << world.size() << " My rank= " << world.rank() << std::endl;
+
+    JobInputData jobInput;
+    JobOutData jobOut;
+
+    std::unordered_set<std::string> keysCalc;
+
+    std::vector<std::string> keysFinish;
 
     if (world.rank() == 0) {
         std::cout << "Master Node: " << world.size() << " My rank= " << world.rank() << std::endl;
         std::string recFile;
-        std::string fleFile;
-        std::string ligFile;      
+        std::string ligFile;
         std::vector<std::string> recList;
         std::vector<std::string> fleList;
         std::vector<std::string> ligList;
-        std::vector<std::vector<double> > geoList;
-        std::vector<std::vector<std::string> > nonAAList;
-       
-        std::cout << "Begin Parser" << std::endl;
-        int success=mpiParser(argc, argv, recFile, fleFile, ligFile, ligList, recList, fleList, geoList, nonAAList, jobInput);
-        if(success!=0) {
-            std::cerr << "Error: Parser input error" << std::endl;
-            return 1;            
-        }
-        std::cout << "End of Parser" << std::endl;
 
-    if (world.size() < 2) {
-        std::cerr << "Error: Total process less than 2" << std::endl;
-        return 1;
+        int success = mpiParser(argc, argv, ligFile, recFile, ligList, recList, fleList, jobInput);
+        if (success != 0) {
+            std::cerr << "Error: Parser input error" << std::endl;
+            world.abort(1);
+        }
+
+        //Create a HDF5 output directory for docking
+        std::string cmd = "mkdir -p " + workDir+"/scratch/dockHDF5";
+        std::string errMesg="mkdir dockHDF5 fails";
+        LBIND::command(cmd, errMesg);
+
+        for(int i=0; i < recList.size(); ++i)
+        {
+            for(int j=0; j< ligList.size(); ++j)
+            {
+                std::string key=recList[i]+"/"+ligList[j];
+                //std::cout << key <<std::endl;
+                keysCalc.insert(key);
+            }
+        }
+
+        std::vector<std::vector<std::string> > allKeysFinish;
+        gather(world, keysFinish, allKeysFinish, 0);
+
+        for(int i=0; i < allKeysFinish.size(); ++i)
+        {
+            std::vector<std::string> keysVec=allKeysFinish[i];
+            for(int j=0; j< keysVec.size(); ++j)
+            {
+                keysCalc.erase(keysVec[j]);
+            }
+        }
+
+    }else{
+
+        std::string dockHDF5Dir=workDir+"/scratch/dockHDF5";
+        path dockHDF5path(dockHDF5Dir);
+        std::vector<std::string> hdf5Files;
+        if(is_directory(dockHDF5path)) {
+            for(auto& entry : boost::make_iterator_range(directory_iterator(dockHDF5path), {}))
+                hdf5Files.push_back(entry.path().string());
+        }
+        int start = world.rank()-1;
+        int stride = world.size()-1;
+
+        for(int i=start; i<hdf5Files.size(); i=i+stride)
+        {
+            getKeysHDF5(hdf5Files[i], keysFinish);
+        }
+
+        gather(world, keysFinish, 0);
     }
+
+
+    if (world.rank() == 0) {
         unsigned num_cpus = boost::thread::hardware_concurrency();
         if (num_cpus > 0)
             jobInput.cpu = num_cpus;
         else
             jobInput.cpu = 1;    
-        
-        
-        int count=0;
-                
+
         jobInput.flexible=false;
-        if(fleList.size()==recList.size()){
-            jobInput.flexible=true;
-        }
         
         if(jobInput.randomize){
             srand(unsigned(std::time(NULL)));
         }
-        
-        
-//! Tracking error using XML file
-//        std::cout << "Begin XML" << std::endl;
-	XMLDocument doc;  
- 	XMLDeclaration* decl = new XMLDeclaration( "1.0", "", "" );  
-	doc.LinkEndChild( decl );  
- 
-	XMLElement * root = new XMLElement( "Complexes" );  
-	doc.LinkEndChild( root );  
 
-	XMLComment * comment = new XMLComment();
-	comment->SetValue(" Tracking calculation error using XML file " );  
-	root->LinkEndChild( comment );  
-         
-        std::string trackTmpFileName=workDir+"/CDT3TrackTemp.xml";
-        FILE* xmlFile=fopen(trackTmpFileName.c_str(), "w"); 
-        fprintf(xmlFile, "<?xml version=\"1.0\" ?>\n");
-        fprintf(xmlFile, "<Complexes>\n");
-        fprintf(xmlFile, "    <!-- Tracking calculation error using XML file -->\n");
-        fflush(xmlFile); 
-//        std::cout << "END XML" << std::endl;       
- //! END of XML header        
-        if(recList.size() != geoList.size()){
-            std::cout << "recList.size()= " << recList.size() << " geoList.size()= " << geoList.size()  << std::endl;
-            std::cerr << "Error: recList and geoList should have same size" << std::endl;
-            return 1;              
-        }
-        for (unsigned i = 0; i < recList.size(); ++i) {
-            std::vector<double> geo = geoList[i];
-            geometry(jobInput, geo);
-            for (unsigned j = 0; j < ligList.size(); ++j) {
-                if (jobInput.randomize) {
-                    jobInput.seed = rand();
-                }
-                
-//                std::cout << "i=" << i << " j=" << j << std::endl;
+        std::string delimiter = "/";
+        //int count=0;
+        std::unordered_set<std::string> :: iterator itr;
+        for (itr = keysCalc.begin(); itr != keysCalc.end(); itr++) {
+            std::cout << (*itr) << std::endl;
 
-                ++count;
-                if (count > world.size()-1) {
-                    world.recv(mpi::any_source, outTag, jobOut);
-                    if(jobInput.useScoreCF){
-                        if(jobOut.scores.size()>0){
-                            if(jobOut.scores[0]<jobInput.scoreCF){
-                                toXML(jobOut, root, xmlFile);
-                            }
-                        }
-                    }else{
-                        toXML(jobOut, root, xmlFile);
-                    }               
-                }
-                int freeProc;
-                world.recv(mpi::any_source, rankTag, freeProc);
-                world.send(freeProc, jobTag, jobFlag);
-                // Start to send parameters                                        
-                jobInput.recBuffer = recList[i];
-                jobInput.ligBuffer = ligList[j];
-                
-                jobInput.nonRes = nonAAList[i];
-                 
-                if (jobInput.flexible) {
-                    jobInput.fleBuffer = fleList[i];
-                }
-
-                std::cout << "At Process: " << freeProc << " working on  Receptor: " << recList[i] << "  Ligand: " <<  ligList[j]<< std::endl;
-
-                world.send(freeProc, inpTag, jobInput);
-
+            /*
+            ++count;
+            if (count > world.size()-1) {
+                world.recv(mpi::any_source, outTag, jobOut);
+                toFile(jobInput, jobOut);
             }
+            */
+            int freeProc;
+            world.recv(mpi::any_source, rankTag, freeProc);
+            world.send(freeProc, jobTag, jobFlag);
+            // Start to send parameters
+            jobInput.key = (*itr);
+
+            std::cout << "At Process: " << freeProc << " working on  Key: " << jobInput.key << std::endl;
+
+            world.send(freeProc, inpTag, jobInput);
 
         }
-     
 
+        /*
         int nJobs=count;
         int nWorkers=world.size()-1;
         int ndata=(nJobs<nWorkers)? nJobs: nWorkers;
-        //int ndata=(nJobs<world.size()-1)? nJobs: world.size()-1;
+
         std::cout << "ndata=" << ndata << " nJobs=" << nJobs << std::endl;
     
         for(unsigned i=0; i < ndata; ++i){
             world.recv(mpi::any_source, outTag, jobOut);
-            if(jobInput.useScoreCF){
-                if(jobOut.scores.size()>0){
-                    if(jobOut.scores[0]<jobInput.scoreCF){
-                        toXML(jobOut, root, xmlFile);
-                    }
-                }
-            }else{
-                toXML(jobOut, root, xmlFile);
-            } 
-// add output here
+            toFile(jobInput, jobOut);
         }
+        */
 
-        fprintf(xmlFile, "</Complexes>\n");
-        fflush(xmlFile);
-        std::string trackFileName=workDir+"/CDT3Track.xml";
-        doc.SaveFile(trackFileName);       
-        
         for(unsigned i=1; i < world.size(); ++i){
             int freeProc;
             world.recv(mpi::any_source, rankTag, freeProc);
@@ -337,6 +289,8 @@ int main(int argc, char* argv[]) {
         }
 
     } else {
+        std::string dockHDF5File=workDir+"/scratch/dockHDF5/dock_proc"+std::to_string(world.rank())+".hdf5:/";
+        //hid_t dock_hid=relay::io::hdf5_open_file_for_read_write(dockHDF5File);
         while (1) {
 
             world.send(0, rankTag, world.rank());
@@ -348,15 +302,15 @@ int main(int argc, char* argv[]) {
             // Receive parameters
 
             world.recv(0, inpTag, jobInput);
-            
-//            std::cout << "world.rank()=" << world.rank() 
-//                    << " Rec=" << jobInput.recBuffer << " Lig=" << jobInput.ligBuffer << std::endl;
-            if(!isRun(jobInput, jobOut, workDir)) {
-                dockjob(jobInput, jobOut, workDir); 
-            }
-            world.send(0, outTag, jobOut);
+
+            dockjob(jobInput, jobOut, workDir);
+
+            //world.send(0, outTag, jobOut);
+            toHDF5File(jobInput, jobOut, dockHDF5File);
         }
+        //relay::io::hdf5_close_file(dock_hid);
     }
+
 
     std::cout << "Rank= " << world.rank() <<" MPI Wall Time= " << runingTime.elapsed() << " Sec."<< std::endl;
 

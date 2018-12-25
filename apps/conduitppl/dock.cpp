@@ -34,6 +34,11 @@
 #include <boost/filesystem/convenience.hpp> // filesystem::basename
 #include <boost/thread/thread.hpp> // hardware_concurrency // FIXME rm ?
 
+#include <conduit.hpp>
+#include <conduit_relay.hpp>
+#include <conduit_relay_io_hdf5.hpp>
+#include <conduit_blueprint.hpp>
+
 #include "VinaLC/parse_pdbqt.h"
 #include "VinaLC/parallel_mc.h"
 #include "VinaLC/file.h"
@@ -46,6 +51,7 @@
 #include "VinaLC/current_weights.h"
 #include "VinaLC/quasi_newton.h"
 #include "Common/Command.hpp"
+#include "Common/LBindException.h"
 //#include "gzstream.h"
 //#include "tee.h"
 #include "VinaLC/coords.h" // add_to_output_container
@@ -56,10 +62,12 @@
 #include "mainProcedure.h"
 
 
-bool getScores(std::string& log, std::vector<double>& scores){
+using namespace conduit;
+
+bool getScores(JobOutData& jobOut){
 
     std::vector<std::string> lines;
-    tokenize(log, lines, "\n");  
+    tokenize(jobOut.scorelog, lines, "\n");
     if(lines.size()<5)  return false;
 
     for (unsigned i = 4; i < lines.size(); ++i) {
@@ -67,28 +75,112 @@ bool getScores(std::string& log, std::vector<double>& scores){
         tokenize(lines[i], values);
         if (values.size() > 2) {
             double score = Sstrm<double, std::string>(values[1]);
-            scores.push_back(score);
+            jobOut.scores.push_back(score);
         }
     }
     
-    if(scores.size()==0) return false;
+    if(jobOut.scores.size()==0) return false;
     
     return true;
 }
 
-int dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
-    try {
+
+void getRecData(JobInputData& jobInput, std::string& recKey, grid_dims& gd){
+    Node n;
+
+    hid_t rec_hid=relay::io::hdf5_open_file_for_read(jobInput.recFile);
+    relay::io::hdf5_read(rec_hid, n);
+
+    std::string pdbqtPath="rec/"+recKey+"/file/rec_min.pdbqt";
+    //std::cout << pdbqtPath << std::endl;
+    if(n.has_path(pdbqtPath)){
+        std::string outLines=n[pdbqtPath].as_string();
+
+        std::ofstream outFile("rec_min.pdbqt");
+        outFile << outLines;
+    }else{
+        throw LBIND::LBindException("Cannot retrieve pdbqt file for "+recKey);
+    }
+
+    std::vector<std::string> axis={"X", "Y", "Z"};
+    std::vector<std::string> kind={"Centroid", "Dimension"};
+
+    std::vector<double> geo;
+
+    for(std::string& k : kind)
+    {
+        for(std::string& a : axis)
+        {
+            std::string keyPath="rec/"+recKey+"/meta/Site/"+k+"/"+a;
+            if(n.has_path(keyPath)){
+                double val=n[keyPath].as_double();
+                geo.push_back(val);
+            }else{
+                throw LBIND::LBindException("Cannot retrieve "+k+" "+a);
+            }
+        }
+    }
+
+    relay::io::hdf5_close_file(rec_hid);
+
+    if(geo.size()!=6) {
+        throw LBIND::LBindException("Size of geo is not equal to 6");
+    }
+    vec center(geo[0], geo[1], geo[2]);
+    vec span(geo[3], geo[4], geo[5]);
+
+
+    VINA_FOR_IN(i, gd) {
+        gd[i].n = sz(std::ceil(span[i] / jobInput.granularity));
+        fl real_span = jobInput.granularity * gd[i].n;
+        gd[i].begin = center[i] - real_span / 2;
+        gd[i].end = gd[i].begin + real_span;
+    }
+
+
+}
+
+void getLigData(std::string& fileName, std::string& ligKey, std::stringstream& ligSS){
+    Node n;
+
+    hid_t lig_hid=relay::io::hdf5_open_file_for_read(fileName);
+    relay::io::hdf5_read(lig_hid, n);
+
+    std::string pdbqtPath="lig/"+ligKey+"/file/LIG_min.pdbqt";
+    if(n.has_path(pdbqtPath)){
+        std::string outLines=n[pdbqtPath].as_string();
+
+        ligSS << outLines;
+    }else{
+        throw LBIND::LBindException("Cannot retrieve pdbqt file for "+ligKey);
+    }
+
+    relay::io::hdf5_close_file(lig_hid);
+}
+
+
+void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
+    try{
+        jobOut.error= true;
 //        std::string flex_name, config_name, out_name, log_name;
+        if (jobInput.randomize) {
+            jobInput.seed = rand();
+        }
         int seed=jobInput.seed;
         int verbosity = 1;
         int num_modes = jobInput.num_modes;
         fl energy_range = jobInput.energy_range;
-        
-        jobOut.pdbID=jobInput.recBuffer;
-        jobOut.ligID=jobInput.ligBuffer;
-        
-        jobOut.logPath="scratch/com/" + jobInput.recBuffer + "/dock/" + jobInput.ligBuffer+"/scores.log";
-        jobOut.posePath="scratch/com/" + jobInput.recBuffer + "/dock/" + jobInput.ligBuffer+"/poses.pdbqt";        
+
+        std::vector<std::string> keys;
+        tokenize(jobInput.key, keys, "/");
+
+        if(keys.size()!=2)
+        {
+            throw LBIND::LBindException("Keys should have a pair for "+ jobInput.key);
+        }
+
+        jobOut.pdbID=keys[0];
+        jobOut.ligID=keys[1];
 
         // -0.035579, -0.005156, 0.840245, -0.035069, -0.587439, 0.05846
         fl weight_gauss1 = -0.035579;
@@ -99,41 +191,26 @@ int dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
         fl weight_rot = 0.05846;
         bool score_only = false, local_only = false, randomize_only = false; // FIXME
 
-        std::string dockDir = workDir + "/scratch/com/" + jobInput.recBuffer + "/dock/" + jobInput.ligBuffer;
-        std::string cmd = "mkdir -p " + dockDir;
+        jobOut.dockDir = workDir + "/scratch/dock/" + jobOut.pdbID + "/" + jobOut.ligID;
+        std::string cmd = "mkdir -p " + jobOut.dockDir;
         std::string errMesg="mkdir dockDir fails";
         LBIND::command(cmd, errMesg);
         // cd to the rec directory to performance calculation
-        chdir(dockDir.c_str());
-        
-        
-        
-        std::string ligand_name = jobInput.ligBuffer;
-//        std::string rigid_name = jobInput.recBuffer;
-        std::string rigid_name =workDir+"/scratch/com/"+jobInput.recBuffer+"/rec/"+jobInput.recBuffer+".pdbqt";
-        std::string flex_name = jobInput.fleBuffer;
+        chdir(jobOut.dockDir.c_str());
+
+
+        grid_dims gd; // n's = 0 via default c'tor
+        getRecData(jobInput, jobOut.pdbID, gd);
+
+        std::string rigid_name =jobOut.dockDir+"/rec_min.pdbqt";
+        std::string flex_name = "";
         int exhaustiveness=jobInput.exhaustiveness;
         int cpu=jobInput.cpu;
-        
+
+        std::string ligand_name = jobOut.ligID;
         std::stringstream ligSS;
-        std::string pdbqtPath=workDir+"/scratch/lig/"+jobInput.ligBuffer+"/LIG_min.pdbqt";
+        getLigData(jobInput.ligFile, ligand_name, ligSS);
 
-        std::ifstream ligFile;
-        ligFile.open(pdbqtPath.c_str());
-        std::string fileLine;
-
-        while (std::getline(ligFile, fileLine)) {
-            ligSS << fileLine << std::endl;
-        }
-        
-//        ligSS << jobInput.ligFile;
-        
-//        std::cout << "===========LIG file  jobInput ===============" << std::endl;
-//        std::cout <<jobInput.ligFile;
-//        
-//        std::cout << "===========LIG file   ligSS===============" << std::endl;
-//        std::cout <<ligSS.str();        
-                
 
         sz max_modes_sz = static_cast<sz> (num_modes);
 
@@ -144,12 +221,8 @@ int dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
         if(jobInput.flexible){
                 flex_name_opt = flex_name;
         }
-//        out_name = default_output(ligand_name);
-        std::stringstream out_name;
-//        out_name << "REMARK RECEPTOR "<< rigid_name << std::endl;
-//        out_name << "REMARK LIGAND " << ligand_name << std::endl;
 
-        grid_dims gd; // n's = 0 via default c'tor
+        std::stringstream out_name;
 
         flv weights;
         weights.push_back(weight_gauss1);
@@ -158,17 +231,8 @@ int dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
         weights.push_back(weight_hydrophobic);
         weights.push_back(weight_hydrogen);
         weights.push_back(5 * weight_rot / 0.1 - 1); // linearly maps onto a different range, internally. see everything.cpp
-        
-        VINA_FOR_IN(i, gd) {
-            gd[i].n = jobInput.n[i];
-            gd[i].begin = jobInput.begin[i];
-            gd[i].end = jobInput.end[i];
-        }
-        
-        std::stringstream log;
 
-//        log_name = ligand_name +".log";
-//        log.init(log_name);
+        std::stringstream log;
 
         doing(verbosity, "Reading input", log);
 
@@ -178,74 +242,80 @@ int dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
         boost::optional<model> ref;
         done(verbosity, log);
 
+        sz how_many=0;
         main_procedure(m, ref,
                 out_name,
                 score_only, local_only, randomize_only, false, // no_cache == false
                 gd, exhaustiveness,
                 weights,
-                cpu, seed, verbosity, max_modes_sz, energy_range, log);
-        
-        std::ofstream logFile;
-        std::ofstream outFile;
-        
-        logFile.open("scores.log");
-        outFile.open("poses.pdbqt"); 
-        
-        std::string logStr=log.str();
-        logFile << logStr;
-        outFile << out_name.str();
+                cpu, seed, verbosity, max_modes_sz, energy_range, log, how_many);
 
-        logFile.close();
-        outFile.close();
+        jobOut.numPose=how_many;
+
+        jobOut.scorelog=log.str();
+
+        jobOut.pdbqtfile=out_name.str();
+
         
         jobOut.scores.clear();
-        bool success=getScores(logStr, jobOut.scores);
+        bool success=getScores(jobOut);
         if(success){
             jobOut.mesg="Finished!";
         }else{
             jobOut.mesg="No scores!";
         }
-        jobOut.nonRes=jobInput.nonRes;
+        if(how_many<1){
+            jobOut.mesg="No scores!";
+        }
 
-        
     } catch (file_error& e) {
-        std::cerr << "\n\nError: could not open \"" << e.name.string() << "\" for " << (e.in ? "reading" : "writing") << ".\n";
+        //std::cerr << "\n\nError: could not open \"" << e.name.string() << "\" for " << (e.in ? "reading" : "writing") << ".\n";
         jobOut.mesg="Could not open " + e.name.string() + " for " + (e.in ? "reading" : "writing");
-        return 1;
+        jobOut.error= false;
     } catch (boost::filesystem::filesystem_error& e) {
-        std::cerr << "\n\nFile system error: " << e.what() << '\n';
+        //std::cerr << "\n\nFile system error: " << e.what() << '\n';
         jobOut.mesg="File system error: ";
         jobOut.mesg=jobOut.mesg+ e.what();
-        return 1;
+        jobOut.error= false;
     } catch (usage_error& e) {
-        std::cerr << "\n\nUsage error: " << e.what() << ".\n";
+        //std::cerr << "\n\nUsage error: " << e.what() << ".\n";
         jobOut.mesg="Usage error: ";
         jobOut.mesg=jobOut.mesg+ e.what();
-        return 1;
+        jobOut.error= false;
     } catch (parse_error& e) {
-        std::cerr << "\n\nParse error on line " << e.line << " in file \"" << e.file.string() << "\": " << e.reason << '\n';
+        //std::cerr << "\n\nParse error on line " << e.line << " in file \"" << e.file.string() << "\": " << e.reason << '\n';
         jobOut.mesg="Parse error on line " + Sstrm<std::string, unsigned>(e.line) + " in file " + e.file.string() + ": " + e.reason;
-        return 1;
+        jobOut.error= false;
     } catch (std::bad_alloc&) {
-        std::cerr << "\n\nError: insufficient memory!\n";
+        //std::cerr << "\n\nError: insufficient memory!\n";
         jobOut.mesg="Insufficient memory!";
-        return 1;
+        jobOut.error= false;
     } catch (std::exception& e) { // Errors that shouldn't happen:
-        std::cerr << "\n\nAn error occurred: " << e.what() << ". " << std::endl;
-        jobOut.mesg="An error occurred: " ;
-        jobOut.mesg=jobOut.mesg+ e.what();
-        return 1;
+        //std::cerr << "\n\nAn error occurred: " << e.what() << ". " << std::endl;
+        jobOut.mesg="An error occurred: " + std::string(e.what());
+        jobOut.error= false;
     } catch (internal_error& e) {
-        std::cerr << "\n\nAn internal error occurred in " << e.file << "(" << e.line << "). " << std::endl;
-        jobOut.mesg="An internal error occurred in " + e.file + " line: " + Sstrm<std::string, unsigned>(e.line);
-        return 1;
+        //std::cerr << "\n\nAn internal error occurred in " << e.file << "(" << e.line << "). " << std::endl;
+        jobOut.mesg = "An internal error occurred in " + e.file + " line: " + Sstrm<std::string, unsigned>(e.line);
+        jobOut.error= false;
+    } catch (LBIND::LBindException& e) {
+        jobOut.mesg = e.what();
+        jobOut.error= false;
+    } catch(conduit::Error &error){
+        jobOut.mesg= error.message();
+        jobOut.error= false;
     } catch (...) {
-        std::cerr << "\n\nAn unknown error occurred. " << std::endl;
+        //std::cerr << "\n\nAn unknown error occurred. " << std::endl;
         jobOut.mesg="An unknown error occurred";
-        return 1;
-    }  
-    
-    return 0;
+        jobOut.error= false;
+    }
+
+    // Remove the working dire
+    std::string cmd = "rm -rf " + jobOut.dockDir;
+    std::string errMesg="remove dockDir fails";
+    LBIND::command(cmd, errMesg);
+
+
     
 }
 

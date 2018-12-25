@@ -143,3 +143,14 @@
 /apps/conduitppl/CMakeFiles
 /apps/conduitppl/Makefile
 /apps/conduitppl/cmake_install.cmake
+CMakeFiles/
+ConveyorLC.cbp
+apps/CMakeFiles/
+apps/pipeline/CMakeFiles/
+apps/tools/CMakeFiles/
+apps/tools/calcSite
+apps/tools/cmake_install.cmake
+build/
+src/CMakeFiles/
+src/cmake_install.cmake
+src/libLBind.a
