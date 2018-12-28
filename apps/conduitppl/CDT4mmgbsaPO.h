@@ -9,15 +9,15 @@
 #define	CDT4MMGBSAPO_H
 
 #include <string>
+#include "CDT4mmgbsa.h"
 
 struct POdata{
-    std::string recFile;
-//    std::string ligFile;
-//    std::string outputFile;
-    std::string xmlFile;
-    bool restart;
+
     int version;
-//    bool pbFlag;
+    std::string dockInDir;
+    std::string recFile;
+    std::string ligFile;
+
 };
 
 bool CDT4mmgbsaPO(int argc, char** argv, POdata& podata);

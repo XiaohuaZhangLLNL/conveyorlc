@@ -48,7 +48,6 @@
 
 #include "dock.h"
 #include "mpiparser.h"
-#include "XML/XMLHeader.hpp"
 #include "InitEnv.h"
 
 using namespace conduit;
@@ -187,6 +186,10 @@ int main(int argc, char* argv[]) {
         std::string errMesg="mkdir dockHDF5 fails";
         LBIND::command(cmd, errMesg);
 
+        // reserve large chunk of memory to speed up the process
+        std::unordered_set<std::string>::size_type keySize=recList.size()*ligList.size();
+        keysCalc.reserve(keySize);
+
         for(int i=0; i < recList.size(); ++i)
         {
             for(int j=0; j< ligList.size(); ++j)
@@ -247,7 +250,7 @@ int main(int argc, char* argv[]) {
         //int count=0;
         std::unordered_set<std::string> :: iterator itr;
         for (itr = keysCalc.begin(); itr != keysCalc.end(); itr++) {
-            std::cout << (*itr) << std::endl;
+            //std::cout << (*itr) << std::endl;
 
             /*
             ++count;

@@ -310,7 +310,7 @@ void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
         jobOut.error= false;
     }
 
-    // Remove the working dire
+    // Remove the working directory
     std::string cmd = "rm -rf " + jobOut.dockDir;
     std::string errMesg="remove dockDir fails";
     LBIND::command(cmd, errMesg);

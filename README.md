@@ -629,3 +629,150 @@ study:
           depends: [PPL4mmgbsa]
 
 ```
+
+## 4 Work with Conduit and HDF5
+
+### 4.1 Conduit and HDF5
+
+Conduit is an open source project from Lawrence Livermore National Laboratory 
+that provides an intuitive model for describing hierarchical scientific data. 
+Conduit has I/O interfacces to HDF5. 
+The purpose to use Conduit in the program is to reduce the number of files.
+
+To install Conduit:
+
+```asm
+git clone --recursive https://github.com/llnl/conduit.git
+cd conduit
+mkdir build
+cd build
+cmake ../src/ -DCMAKE_INSTALL_PREFIX:PATH=<conduit_installation_dir> -DHDF5_DIR=<Path_to_HDF5_library>
+```
+
+Install pipeline with Conduit and HDF5 support:
+
+```asm
+cmake ../ -DCMAKE_INSTALL_PREFIX=<conveyorlc_installation_dir> -DBOOST_ROOT=<Path_to_Boost_library> \
+-DHDF5_ROOT=<path_to_HDF5_library> -DCONDUIT_DIR=<path_to_Conduit_library>
+```
+
+### 4.2 Executables
+
+The executables with Conduit and HDF5 support are
+```asm
+CDT1Receptor CDT2Ligand   CDT3Docking  CDT4mmgbsa
+```
+
+### 4.3 Submitting scripts
+
+#### 4.3.1 To run the receptor preparation with CDT1Receptor
+
+```asm
+!/bin/bash
+
+export LBindData=/usr/gapps/aha/quartz/conveyorlc/data
+export PATH=/usr/gapps/aha/quartz/conveyorlc/bin:/usr/gapps/aha/quartz/bin:$PATH
+export AMBERHOME=/usr/gapps/aha/quartz/amber16
+export AMBERHOME10=/usr/gapps/aha/quartz/amber10
+export PATH=$AMBERHOME/bin/:$AMBERHOME10/bin/:$PATH
+
+srun -N 1 -n 4 -ppdebug CDT1Receptor --input  pdb.list --output out --version 13
+```
+
+#### 4.3.2 To run the ligand preparation 
+
+```asm
+!/bin/bash
+
+export LBindData=/usr/gapps/aha/quartz/conveyorlc/data
+export PATH=/usr/gapps/aha/quartz/conveyorlc/bin:/usr/gapps/aha/quartz/bin:$PATH
+export AMBERHOME=/usr/gapps/aha/quartz/amber16
+export AMBERHOME10=/usr/gapps/aha/quartz/amber10
+export PATH=$AMBERHOME/bin/:$AMBERHOME10/bin/:$PATH
+
+srun -N 1 -n 10  -ppdebug CDT2Ligand --sdf pur2.sdf --version 13
+```
+
+#### 4.3.3 To run the docking
+
+```asm
+#!/bin/bash
+
+export LBindData=/usr/gapps/aha/quartz/conveyorlc/data
+export PATH=/usr/gapps/aha/quartz/conveyorlc/bin:/usr/gapps/aha/quartz/bin:$PATH
+export AMBERHOME=/usr/gapps/aha/quartz/amber16
+export AMBERHOME10=/usr/gapps/aha/quartz/amber10
+export PATH=$AMBERHOME/bin/:$AMBERHOME10/bin/:$PATH
+
+srun -N 4 -n 4 -c 16  -ppdebug CDT3Docking
+```
+
+#### 4.3.4 To run the MM/GBSA
+
+```asm
+#!/bin/bash
+
+export LBindData=/usr/gapps/aha/quartz/conveyorlc/data
+export PATH=/usr/gapps/aha/quartz/conveyorlc/bin:/usr/gapps/aha/quartz/bin:$PATH
+export AMBERHOME=/usr/gapps/aha/quartz/amber16
+export AMBERHOME10=/usr/gapps/aha/quartz/amber10
+export PATH=$AMBERHOME/bin/:$AMBERHOME10/bin/:$PATH
+
+srun -N 1 -n 16  -ppdebug CDT4mmgbsa --version 13
+```
+
+### 4.4 Output data structures
+
+The output data structure is different from XML version. 
+The calculated data are all in the scratch
+
+```asm
+scratch/
+
+    rec/
+    
+    receptor.hdf5
+    
+    lig/
+       
+    ligand.hdf5
+    
+    dock/
+    
+    dockHDF5/
+        dock_proc1.hdf5 
+        dock_proc2.hdf5 
+        dock_proc3.hdf5 
+        ...
+        dock_proc<N-1>.hdf5
+    
+    gbsa/
+    
+    gbsaHDF5/
+        gbsa_proc1.hdf5 
+        gbsa_proc2.hdf5 
+        gbsa_proc3.hdf5
+        ... 
+        gbsa_proc<N-1>.hdf5
+        
+```
+
+rec, lig, dock, gbsa are the sub-directories for temporarily storing 
+the individual calculation. All the files will be deleted after individual 
+calculation is completed.
+
+All the necessary data/files for different stage calculations are stored in 
+HDF5 such as receptor.hdf5, ligand.hdf5, dock_procN.hdf5, and gbsa_procN.hdf5
+Receptor preparation will only produce one HDF5 - receptor.hdf5 and so does
+ligand preparation - ligand.hdf5.
+dock and MM/GBSA will have maximum of N-1 number of the HDF files, 
+where N is the number of MPI tasks used in the calculation.
+Note that normally number of MPI tasks used in MM/GBSA is much larger than
+that in the docking calculation.
+
+The HDF5 files can be opened by HDF viewer downloaded from: 
+https://www.hdfgroup.org/downloads/hdfview/
+
+### 4.5 Python scripts 
+
+TODO
