@@ -781,7 +781,7 @@ int main(int argc, char** argv) {
     char* LBINDDATA=getenv("LBindData");
 
     if(LBINDDATA==0){
-        std::cerr << "LBdindData environment is not defined!" << std::endl;
+        std::cerr << "LBindData environment is not defined!" << std::endl;
         return 1;
     }    
     std::string dataPath=LBINDDATA;     

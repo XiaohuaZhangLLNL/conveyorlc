@@ -38,7 +38,7 @@ inline bool initConveyorlcEnv(std::string& workDir, std::string& inputDir, std::
     char* LBINDDATA=getenv("LBindData");
 
     if(LBINDDATA==0){
-        std::cerr << "LBdindData environment is not defined!" << std::endl;
+        std::cerr << "LBindData environment is not defined!" << std::endl;
         return false;
     }
     dataPath=LBINDDATA;
