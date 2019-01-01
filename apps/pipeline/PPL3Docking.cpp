@@ -212,7 +212,7 @@ int main(int argc, char* argv[]) {
 
     if (world.size() < 2) {
         std::cerr << "Error: Total process less than 2" << std::endl;
-        return 1;
+        world.abort(1);
     }
         unsigned num_cpus = boost::thread::hardware_concurrency();
         if (num_cpus > 0)

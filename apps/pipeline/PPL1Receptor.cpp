@@ -804,13 +804,7 @@ int main(int argc, char** argv) {
 
     mpi::timer runingTime;
 //    int error=0;
-    
-    if (world.size() < 2) {
-        std::cerr << "Error: Total process less than 2" << std::endl;
-//        error=1;
-        return 1;
-    }
-    
+
     POdata podata;
     
     
@@ -820,6 +814,12 @@ int main(int argc, char** argv) {
 //            error=1; 
             return 1;
         }        
+    }
+
+    if (world.size() < 2) {
+        std::cerr << "Error: Total process less than 2" << std::endl;
+//        error=1;
+        world.abort(1);
     }
 
 //    MPI_Bcast(&error, 1, MPI_INT, 0, MPI_COMM_WORLD);

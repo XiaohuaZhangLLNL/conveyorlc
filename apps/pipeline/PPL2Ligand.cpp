@@ -587,18 +587,16 @@ int main(int argc, char** argv) {
 
     if (world.size() < 2) {
         std::cerr << "Error: Total process less than 2" << std::endl;
+//        error=1;
         return 1;
     }
-       
-    POdata podata;
-    int error=0;
-    
-    if (world.rank() == 0) {        
-        bool success=PPL2LigandPO(argc, argv, podata);
-        if(!success){
-            error=1;           
-        }        
+
+    if (world.size() < 2) {
+        std::cerr << "Error: Total process less than 2" << std::endl;
+        world.abort(1);;
     }
+       
+≈
                
     if (world.rank() == 0) {
                 

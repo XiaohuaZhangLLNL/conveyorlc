@@ -620,11 +620,6 @@ int main(int argc, char** argv) {
     mpi::communicator world;    
 
     mpi::timer runingTime;
-    
-    if (world.size() < 2) {
-        std::cerr << "Error: Total process less than 2" << std::endl;
-        world.abort(1);
-    }
 
     std::string workDir;
     std::string inputDir;
@@ -642,6 +637,11 @@ int main(int argc, char** argv) {
         if(!success){
             world.abort(1);
         }        
+    }
+    
+    if (world.size() < 2) {
+        std::cerr << "Error: Total process less than 2" << std::endl;
+        world.abort(1);
     }
 
     std::cout << "Number of tasks= " << world.size() << " My rank= " << world.rank() << std::endl;

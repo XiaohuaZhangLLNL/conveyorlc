@@ -381,22 +381,23 @@ int main(int argc, char** argv) {
     mpi::communicator world;  
     mpi::timer runingTime;
 
-    if (world.size() < 2) {
-        std::cerr << "Error: Total process less than 2" << std::endl;
-        return 1;
-    }
-    
     POdata podata;
     int error=0;
- 
-    if (world.rank() == 0) {        
+
+    if (world.rank() == 0) {
         bool success=PPL4mmgbsaPO(argc, argv, podata);
         if(!success){
             error=1;
             return 1;
         }
     }
-    
+
+
+    if (world.size() < 2) {
+        std::cerr << "Error: Total process less than 2" << std::endl;
+        world.abort(1);
+    }
+
     
     std::cout << "Number of tasks= " << world.size() << " My rank= " << world.rank() << std::endl;
 

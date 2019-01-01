@@ -177,6 +177,7 @@ void mmgbsa(CDTmeta& cdtMeta) {
     try{
 
         CDTgbsa::run(cdtMeta);
+        cdtMeta.message= "Finished!";
         cdtMeta.error=true;
 
     } catch (LBindException& e){
@@ -205,6 +206,12 @@ int main(int argc, char** argv) {
     std::string inputDir;
     std::string dataPath;
 
+    POdata podata;
+    bool success = CDT4mmgbsaPO(argc, argv, podata);
+    if (!success) {
+        world.abort(1);
+    }
+
     if(!initConveyorlcEnv(workDir, inputDir, dataPath)){
         world.abort(1);
     }
@@ -219,11 +226,6 @@ int main(int argc, char** argv) {
     std::vector<std::string> dockingKeys;
     std::vector<std::vector<std::string> > allDockingKeys;
 
-    POdata podata;
-    bool success = CDT4mmgbsaPO(argc, argv, podata);
-    if (!success) {
-        world.abort(1);
-    }
 
     if (world.rank() == 0) {
 

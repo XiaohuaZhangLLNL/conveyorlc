@@ -145,11 +145,6 @@ int main(int argc, char* argv[]) {
     mpi::communicator world;    
     mpi::timer runingTime;
 
-    if (world.size() < 2) {
-        std::cerr << "Error: Total process less than 2" << std::endl;
-        world.abort(1);
-    }
-
     std::string workDir;
     std::string inputDir;
     std::string dataPath;
@@ -178,6 +173,11 @@ int main(int argc, char* argv[]) {
         int success = mpiParser(argc, argv, ligFile, recFile, ligList, recList, fleList, jobInput);
         if (success != 0) {
             std::cerr << "Error: Parser input error" << std::endl;
+            world.abort(1);
+        }
+
+        if (world.size() < 2) {
+            std::cerr << "Error: Total process less than 2" << std::endl;
             world.abort(1);
         }
 
