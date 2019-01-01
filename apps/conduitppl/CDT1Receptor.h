@@ -76,6 +76,7 @@ public:
     void serialize(Archive & ar, const unsigned int version)
     {
         ar & error;
+        ar & cutProt;
         ar & clust;
         ar & volume;
         ar & gbEn;
@@ -91,6 +92,7 @@ public:
     }
 
     bool error;
+    bool cutProt;
     int clust;
     double volume;
     double gbEn;

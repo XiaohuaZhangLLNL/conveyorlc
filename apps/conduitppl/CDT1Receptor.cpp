@@ -108,6 +108,7 @@ void toConduit(JobOutData& jobOut, std::string& recCdtFile){
             n[recIDMeta + "/NonStdAA/" + iStr] = jobOut.nonRes[i];
         }
 
+        n[recIDMeta + "/IsCutProt"] = jobOut.cutProt;
         n[recIDMeta + "/RecPath"] = jobOut.recPath;
         n[recIDMeta + "/GBEN"] = jobOut.gbEn;
         n[recIDMeta + "/Site/Cluster"] = jobOut.clust;
@@ -123,6 +124,12 @@ void toConduit(JobOutData& jobOut, std::string& recCdtFile){
 
         std::vector<std::string> filenames={"rec_min.pdbqt", "rec_min.rst", "rec.prmtop", "rec_min.pdb",
                                             "rec_minGB.out", "site.txt", "rec_geo.txt"};
+        if(jobOut.cutProt){
+            filenames.push_back("recCut_min.rst");
+            filenames.push_back("recCut.prmtop");
+            filenames.push_back("recCut_minGB.out");
+        }
+
         std::string gridfilename="Grid-"+std::to_string(jobOut.clust)+".pdb";
         filenames.push_back(gridfilename);
 
@@ -503,6 +510,7 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         outFile.close();
         
         if(jobInput.cutProt){
+            jobOut.cutProt=jobInput.cutProt;
             std::string fileName="recCut.pdb";
             pGrid->writeCutRecPDB(fileName, pComplex.get(), jobInput.cutRadius);
             std::string recType="recCut";

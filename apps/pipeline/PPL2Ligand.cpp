@@ -721,7 +721,7 @@ int main(int argc, char** argv) {
             jobOut.ligID=jobInput.dirBuffer;
             jobOut.message="Finished!";
 
-            jobOut.error==preLigands(jobInput, jobOut, workDir);            
+            jobOut.error=preLigands(jobInput, jobOut, workDir);
           
 //            MPI_Send(&jobOut, sizeof(JobOutData), MPI_CHAR, 0, outTag, MPI_COMM_WORLD);
             world.send(0, outTag, jobOut);
