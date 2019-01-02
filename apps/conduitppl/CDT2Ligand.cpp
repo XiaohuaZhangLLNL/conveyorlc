@@ -87,7 +87,7 @@ void toConduit(JobOutData& jobOut, std::string& ligCdtFile){
         std::string ligIDMeta ="lig/"+jobOut.ligID + "/meta";
         n[ligIDMeta] = jobOut.ligID;
 
-
+        n[ligIDMeta + "/name"] = jobOut.ligName;
         n[ligIDMeta + "/LigPath"] = jobOut.ligPath;
         n[ligIDMeta + "/GBEN"] = jobOut.gbEn;
         n[ligIDMeta + "/Mesg"] = jobOut.message;
