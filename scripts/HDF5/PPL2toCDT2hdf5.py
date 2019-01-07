@@ -45,10 +45,9 @@ def main():
 
     print("Created by PPL2toCDT2hdf5.py at "+datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S"))
 
-    curDir=os.getcwd()
-    hdf5path=curDir+"/"+args.outfile
+    hdf5path = os.path.abspath(args.outfile)
     print(hdf5path)
-    ligDirPath = curDir+"/"+args.scrDir + "/lig"
+    ligDirPath = os.path.abspath(args.scrDir + "/lig")
     print(ligDirPath)
     os.chdir(ligDirPath)
     dirs = os.listdir(".")
