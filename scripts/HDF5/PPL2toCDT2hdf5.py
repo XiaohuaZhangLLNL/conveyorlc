@@ -4,14 +4,46 @@ import datetime
 import conduit
 import conduit.relay
 import numpy as np
+import tarfile
+
+
+"""
+Running the PPL2 conversion on LC
+
+cd <your_running_directory_contains_scratch/lig>
+ 
+/usr/gapps/bbs/TOSS-3/spack/bin/cdtPython.sh PPL2toCDT2hdf5.py
+ 
+Or if you provide inputs:
+ 
+/usr/gapps/bbs/TOSS-3/spack/bin/cdtPython.sh PPL2toCDT2hdf5.py -d <path_to_scratch> -o <path_to_hdf5_file>
+
+It assume that the scratch/lig has following data strcture
+
+scratch/lig/1
+scratch/lig/2
+...
+scratch/lig/N
+
+Each directory must have: 'checkpoint.txt' (Otherwise it will skip the directory)
+and may including: 'LIG.inpcrd', 'LIG.lib', 'LIG.prmtop', 'LIG_min.rst', 'LIG_minGB.out', 'ligand.frcmod', 'LIG_min.pdbqt'
+
+If the required files are in the 'output.tgz'
+
+/usr/gapps/bbs/TOSS-3/spack/bin/cdtPython.sh PPL2toCDT2hdf5.py -z 
+
+"""
+
 
 def getArgs():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--scrDir', action='store', dest='scrDir', default='scratch1',
+    parser.add_argument('-d', '--scrDir', action='store', dest='scrDir', default='scratch',
                         help='path to scratch directory')
-    parser.add_argument('-o', '--out', action='store', dest='outfile', default='scratch1/ligand.hdf5',
+    parser.add_argument('-o', '--out', action='store', dest='outfile', default='scratch/ligand.hdf5',
                         help='path to ligand.hdf5 file')
+    parser.add_argument('-z', '--isZip', action='store_true', dest='isZip', default=False,
+                        help='path to scratch directory')
 
     args = parser.parse_args()
 
@@ -34,7 +66,11 @@ def filesToHDF(n, cmpdKey, fileList):
             with open(file, 'r') as f:
                 n[cmpdKey+"/file/"+file] = f.read()
 
-
+def extract_files(members):
+    extractList = ['checkpoint.txt', 'ligand.frcmod', 'LIG_minGB.out']
+    for tarinfo in members:
+        if os.path.basename(tarinfo.name) in extractList:
+            yield tarinfo
 
 def main():
     args=getArgs()
@@ -57,6 +93,13 @@ def main():
             #print(cmpdPath)
             os.chdir(cmpdPath)
             print(os.getcwd())
+            if args.isZip:
+                zipfile=os.path.join(cmpdPath, "output.tgz")
+                if os.path.isfile(zipfile):
+                    tar = tarfile.open(zipfile)
+                    tar.extractall(members=extract_files(tar))
+                    tar.close()
+
             checkfile = os.path.join(cmpdPath, "checkpoint.txt")
             if os.path.isfile(checkfile):
                 parseCheckpoint(checkfile)
@@ -77,11 +120,11 @@ def main():
                 if 'GBSA' in checkData:
                     n[cmpdKey + '/meta/GBEN'] = float(checkData['GBSA'])
 
-            n[cmpdKey + '/meta/LigPath']=cmpdPath
+                n[cmpdKey + '/meta/LigPath']=cmpdPath
 
-            fileList=['LIG.inpcrd', 'LIG.lib', 'LIG.prmtop', 'LIG_min.rst', 'LIG_minGB.out', 'ligand.frcmod', 'LIG_min.pdbqt']
+                fileList=['LIG.inpcrd', 'LIG.lib', 'LIG.prmtop', 'LIG_min.rst', 'LIG_minGB.out', 'ligand.frcmod', 'LIG_min.pdbqt']
 
-            filesToHDF(n, cmpdKey, fileList)
+                filesToHDF(n, cmpdKey, fileList)
 
     conduit.relay.io.save(n, hdf5path)
 
