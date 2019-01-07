@@ -9,9 +9,9 @@ def getArgs():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--scrDir', action='store', dest='scrDir', default='scratch1',
-                        help='ddcMD object output file (default=PPL3TrackNew.xml).')
+                        help='path to scratch directory')
     parser.add_argument('-o', '--out', action='store', dest='outfile', default='scratch1/ligand.hdf5',
-                        help='ddcMD object output file (default=PPL3TrackNew.xml).')
+                        help='path to ligand.hdf5 file')
 
     args = parser.parse_args()
 
@@ -45,46 +45,45 @@ def main():
 
     print("Created by PPL2toCDT2hdf5.py at "+datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S"))
 
-    hdf5path=os.path.abspath(args.outfile)
+    curDir=os.getcwd()
+    hdf5path=curDir+"/"+args.outfile
     print(hdf5path)
-    ligDirPath = os.path.abspath(args.scrDir + "/lig")
+    ligDirPath = curDir+"/"+args.scrDir + "/lig"
     print(ligDirPath)
     os.chdir(ligDirPath)
     dirs = os.listdir(".")
     for cmpd in dirs:
-        cmpdPath = os.path.join(ligDirPath, cmpd)
-        print(cmpdPath)
-        os.chdir(cmpdPath)
-        print(os.getcwd())
-        checkfile = os.path.join(cmpdPath, "checkpoint.txt")
-        if os.path.isfile(checkfile):
-            parseCheckpoint(checkfile)
-            checkData=parseCheckpoint(checkfile)
-            cmpdKey='/lig/' + cmpd
-            print(checkData)
-            if 'Mesg' in checkData:
-                if checkData['Mesg'] == 'Finished!':
-                    n[cmpdKey + '/status'] = np.int32(1)
-                else:
-                    n[cmpdKey + '/status'] = np.int32(0)
-                n[cmpdKey+'/meta/Mesg']=checkData['Mesg']
-                n[cmpdKey+'/meta/Mesg']=checkData['Mesg']
+        if cmpd.isdigit():
+            cmpdPath = os.path.join(ligDirPath, cmpd)
+            #print(cmpdPath)
+            os.chdir(cmpdPath)
+            print(os.getcwd())
+            checkfile = os.path.join(cmpdPath, "checkpoint.txt")
+            if os.path.isfile(checkfile):
+                parseCheckpoint(checkfile)
+                checkData=parseCheckpoint(checkfile)
+                cmpdKey='/lig/' + cmpd
+                print(checkData)
+                if 'Mesg' in checkData:
+                    if checkData['Mesg'] == 'Finished!':
+                        n[cmpdKey + '/status'] = np.int32(1)
+                    else:
+                        n[cmpdKey + '/status'] = np.int32(0)
+                    n[cmpdKey+'/meta/Mesg']=checkData['Mesg']
+                    n[cmpdKey+'/meta/Mesg']=checkData['Mesg']
 
-            if 'ligName' in checkData:
-                n[cmpdKey + '/meta/name'] = checkData['ligName']
+                if 'ligName' in checkData:
+                    n[cmpdKey + '/meta/name'] = checkData['ligName']
 
-            if 'GBSA' in checkData:
-                n[cmpdKey + '/meta/GBEN'] = float(checkData['GBSA'])
+                if 'GBSA' in checkData:
+                    n[cmpdKey + '/meta/GBEN'] = float(checkData['GBSA'])
 
-        n[cmpdKey + '/meta/LigPath']=cmpdPath
+            n[cmpdKey + '/meta/LigPath']=cmpdPath
 
-        fileList=['LIG.inpcrd', 'LIG.lib', 'LIG.prmtop', 'LIG_min.rst', 'LIG_minGB.out', 'ligand.frcmod', 'LIG_min.pdbqt']
+            fileList=['LIG.inpcrd', 'LIG.lib', 'LIG.prmtop', 'LIG_min.rst', 'LIG_minGB.out', 'ligand.frcmod', 'LIG_min.pdbqt']
 
-        filesToHDF(n, cmpdKey, fileList)
+            filesToHDF(n, cmpdKey, fileList)
 
-        #exit(0)
-
-    #conduit.relay.io.save(n, args.outfile)
     conduit.relay.io.save(n, hdf5path)
 
 
