@@ -1,9 +1,11 @@
 import argparse
 import os.path
 import datetime
+import math
 import conduit
 import conduit.relay
 import numpy as np
+
 
 """
 Running the PPL2 conversion on LC
@@ -57,6 +59,43 @@ def filesToHDF(n, cmpdKey, fileList):
             with open(file, 'r') as f:
                 n[cmpdKey + "/file/" + file] = f.read()
 
+def equalFloat(v1, v2):
+    if math.fabs(v1-v2) < 1:
+        return True
+    return False
+
+def findNonAA():
+    nonAA=[]
+    if os.path.isfile("rec_leap.in"):
+        with open("rec_leap.in", "r") as f:
+            for line in f:
+                if line[0:7]=='loadoff':
+                    strs=line.split()
+                    if len(strs)==2:
+                        base = os.path.basename(strs[1])
+                        aa = os.path.splitext(base)[0]
+                        nonAA.append(aa)
+    return nonAA
+
+def findCluster(volume, cx, cy, cz):
+    if os.path.isfile("site.txt"):
+        with open("site.txt", "r") as f:
+            lines = f.readlines()
+            for i in range(0, len(lines)):
+                line=lines[i]
+                if line[0:7]=='Cluster':
+                    if line[15:21]=='volume':
+                        strs=line.split()
+                        vol=float(strs[4])
+                        if equalFloat(vol, volume):
+                            substrs=lines[i+2].split()
+                            if len(substrs)==6:
+                                xe = equalFloat(float(substrs[1]), cx)
+                                ye = equalFloat(float(substrs[3]), cy)
+                                ze = equalFloat(float(substrs[4]), cz)
+                                if xe and ye and ze:
+                                    return (True, strs[1])
+    return (False, None)
 
 def main():
     args = getArgs()
@@ -78,32 +117,84 @@ def main():
         # print(cmpdPath)
         os.chdir(recPath)
         print(os.getcwd())
+
+        clust = None
+        cx=None
+        cy=None
+        cz=None
+        volume=None
+
         checkfile = os.path.join(recPath, "checkpoint.txt")
         if os.path.isfile(checkfile):
             parseCheckpoint(checkfile)
             checkData = parseCheckpoint(checkfile)
-            cmpdKey = '/lig/' + cmpd
+            recKey = '/rec/' + recid
             print(checkData)
             if 'Mesg' in checkData:
                 if checkData['Mesg'] == 'Finished!':
-                    n[cmpdKey + '/status'] = np.int32(1)
+                    n[recKey + '/status'] = np.int32(1)
                 else:
-                    n[cmpdKey + '/status'] = np.int32(0)
-                n[cmpdKey + '/meta/Mesg'] = checkData['Mesg']
-                n[cmpdKey + '/meta/Mesg'] = checkData['Mesg']
+                    n[recKey + '/status'] = np.int32(0)
+                n[recKey + '/meta/Mesg'] = checkData['Mesg']
 
-            if 'ligName' in checkData:
-                n[cmpdKey + '/meta/name'] = checkData['ligName']
+            if 'GBEN' in checkData:
+                n[recKey + '/meta/GBEN'] = float(checkData['GBEN'])
 
-            if 'GBSA' in checkData:
-                n[cmpdKey + '/meta/GBEN'] = float(checkData['GBSA'])
+            if 'Volume' in checkData:
+                volume= float(checkData['Volume'])
+                n[recKey + '/meta/Site/Volume'] = volume
 
-        n[cmpdKey + '/meta/LigPath'] = cmpdPath
+            if 'Cluster' in checkData:
+                clust=int(checkData['Cluster'])
+                n[recKey + '/meta/Site/Cluster'] = clust
 
-        fileList = ['LIG.inpcrd', 'LIG.lib', 'LIG.prmtop', 'LIG_min.rst', 'LIG_minGB.out', 'ligand.frcmod',
-                    'LIG_min.pdbqt']
+            if 'cx' in checkData:
+                cx=float(checkData['cx'])
+                n[recKey + '/meta/Site/Centriod/X'] = cx
+            if 'cy' in checkData:
+                cy=float(checkData['cy'])
+                n[recKey + '/meta/Site/Centriod/Y'] = cy
+            if 'cz' in checkData:
+                cz=float(checkData['cz'])
+                n[recKey + '/meta/Site/Centriod/Z'] = cz
+            if 'dx' in checkData:
+                n[recKey + '/meta/Site/Dimension/X'] = float(checkData['dx'])
+            if 'dy' in checkData:
+                n[recKey + '/meta/Site/Dimension/Y'] = float(checkData['dy'])
+            if 'dz' in checkData:
+                n[recKey + '/meta/Site/Dimension/Z'] = float(checkData['dz'])
 
-        filesToHDF(n, cmpdKey, fileList)
+            noAA=findNonAA()
+            for idx, val in enumerate(noAA):
+                n[recKey + '/meta/NonStdAA/'+str(idx+1)] = val
+
+
+        n[recKey + '/meta/RecPath'] = recPath
+
+        pdbqtfile=recid+".pdbqt"
+        if os.path.isfile(pdbqtfile):
+            with open(pdbqtfile, 'r') as f:
+                n[recKey + "/file/rec_min.pdbqt"] = f.read()
+
+        if clust:
+            gridPDBfile='Grid-'+str(clust).zfill(2)+".pdb"
+            if os.path.isfile(gridPDBfile):
+                with open(gridPDBfile, 'r') as f:
+                    n[recKey + "/file/Grid-"+str(clust)+".pdb"] = f.read()
+        else:
+            if volume and cx and cy and cz:
+                (found, clustID)=findCluster(volume, cx, cy, cz)
+                if found:
+                    gridPDBfile = 'Grid-' + clustID + ".pdb"
+                    clust=int(clustID)
+                    n[recKey + '/meta/Site/Cluster'] = clust
+                    if os.path.isfile(gridPDBfile):
+                        with open(gridPDBfile, 'r') as f:
+                            n[recKey + "/file/Grid-"+str(clust)+".pdb"] = f.read()
+
+
+        fileList = ['rec.prmtop', 'rec_min.pdb','rec_min.rst', 'rec_minGB.out', 'site.txt', 'rec_geo.txt']
+        filesToHDF(n, recKey, fileList)
 
     conduit.relay.io.save(n, hdf5path)
 
