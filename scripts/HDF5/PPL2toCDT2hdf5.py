@@ -76,12 +76,13 @@ def main():
     args=getArgs()
     print("Default inputs: ", args.scrDir, args.outfile)
 
-    n = conduit.Node()
-    n['date'] ="Created by PPL2toCDT2hdf5.py at " + datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
+    nHeader = conduit.Node()
+    nHeader['date'] ="Created by PPL2toCDT2hdf5.py at " + datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
+    hdf5path = os.path.abspath(args.outfile)
+    conduit.relay.io.save_merged(nHeader, hdf5path)
 
     print("Created by PPL2toCDT2hdf5.py at "+datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S"))
 
-    hdf5path = os.path.abspath(args.outfile)
     print(hdf5path)
     ligDirPath = os.path.abspath(args.scrDir + "/lig")
     print(ligDirPath)
@@ -89,6 +90,7 @@ def main():
     dirs = os.listdir(".")
     for cmpd in dirs:
         if cmpd.isdigit():
+            n = conduit.Node()
             cmpdPath = os.path.join(ligDirPath, cmpd)
             #print(cmpdPath)
             os.chdir(cmpdPath)
@@ -126,7 +128,8 @@ def main():
 
                 filesToHDF(n, cmpdKey, fileList)
 
-    conduit.relay.io.save(n, hdf5path)
+            conduit.relay.io.save_merged(n, hdf5path)
+
 
 
 if __name__ == '__main__':

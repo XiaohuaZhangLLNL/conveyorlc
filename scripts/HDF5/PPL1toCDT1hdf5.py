@@ -5,6 +5,7 @@ import math
 import conduit
 import conduit.relay
 import numpy as np
+import glob
 
 
 """
@@ -101,13 +102,15 @@ def main():
     args = getArgs()
     print("Default inputs: ", args.scrDir, args.outfile)
 
-    n = conduit.Node()
-    n['date'] = "Created by PPL1toCDT1hdf5.py at " + datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
-
+    nHeader = conduit.Node()
+    nHeader['date'] = "Created by PPL1toCDT1hdf5.py at " + datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
     print("Created by PPL1toCDT1hdf5.py at " + datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S"))
 
     hdf5path = os.path.abspath(args.outfile)
     print(hdf5path)
+
+    conduit.relay.io.save_merged(nHeader, hdf5path)
+
     comDirPath = os.path.abspath(args.scrDir + "/com")
     print(comDirPath)
     os.chdir(comDirPath)
@@ -117,6 +120,8 @@ def main():
         # print(cmpdPath)
         os.chdir(recPath)
         print(os.getcwd())
+
+        n = conduit.Node()
 
         clust = None
         cx=None
@@ -173,30 +178,39 @@ def main():
 
         pdbqtfile=recid+".pdbqt"
         if os.path.isfile(pdbqtfile):
+            print(pdbqtfile)
             with open(pdbqtfile, 'r') as f:
                 n[recKey + "/file/rec_min.pdbqt"] = f.read()
 
-        if clust:
-            gridPDBfile='Grid-'+str(clust).zfill(2)+".pdb"
-            if os.path.isfile(gridPDBfile):
-                with open(gridPDBfile, 'r') as f:
-                    n[recKey + "/file/Grid-"+str(clust)+".pdb"] = f.read()
-        else:
-            if volume and cx and cy and cz:
-                (found, clustID)=findCluster(volume, cx, cy, cz)
-                if found:
-                    gridPDBfile = 'Grid-' + clustID + ".pdb"
-                    clust=int(clustID)
-                    n[recKey + '/meta/Site/Cluster'] = clust
-                    if os.path.isfile(gridPDBfile):
-                        with open(gridPDBfile, 'r') as f:
-                            n[recKey + "/file/Grid-"+str(clust)+".pdb"] = f.read()
-
+        #if clust:
+        #    gridPDBfile='Grid-'+str(clust).zfill(2)+".pdb"
+        #    if os.path.isfile(gridPDBfile):
+        #        with open(gridPDBfile, 'r') as f:
+        #            n[recKey + "/file/Grid-"+str(clust)+".pdb"] = f.read()
+        #else:
+        #    if volume and cx and cy and cz:
+        #        (found, clustID)=findCluster(volume, cx, cy, cz)
+        #        if found:
+        #            gridPDBfile = 'Grid-' + clustID + ".pdb"
+        #            clust=int(clustID)
+        #            n[recKey + '/meta/Site/Cluster'] = clust
+        #            if os.path.isfile(gridPDBfile):
+        #                with open(gridPDBfile, 'r') as f:
+        #                    n[recKey + "/file/Grid-"+str(clust)+".pdb"] = f.read()
+        if not clust:
+            (found, clustID) = findCluster(volume, cx, cy, cz)
+            if found:
+                clust = int(clustID)
+                n[recKey + '/meta/Site/Cluster'] = clust
 
         fileList = ['rec.prmtop', 'rec_min.pdb','rec_min.rst', 'rec_minGB.out', 'site.txt', 'rec_geo.txt']
+
+        for gridfile in glob.glob('Grid-*.pdb'):
+            fileList.append(gridfile)
+
         filesToHDF(n, recKey, fileList)
 
-    conduit.relay.io.save(n, hdf5path)
+        conduit.relay.io.save_merged(n, hdf5path)
 
 
 if __name__ == '__main__':
