@@ -160,7 +160,7 @@ def PPL3toCDT3_MPI(args):
     comm=MPI.COMM_WORLD
     rank=comm.rank
     size = comm.size
-    print(rank, size)
+    #print(rank, size)
     if rank==0:
         if not os.path.exists(args.outfile):
             os.makedirs(args.outfile)
@@ -178,11 +178,11 @@ def PPL3toCDT3_MPI(args):
     #for recid in dirs:
     for i in xrange(rank, len(dirs), size):
         recid=dirs[i]
-        print(rank, i, recid)
+        #print(rank, i, recid)
         recPath = os.path.join(comDirPath, recid+"/dock")
         if os.path.isdir(recPath):
             os.chdir(recPath)
-            print(rank, os.getcwd())
+            #print(rank, os.getcwd())
             ligs=os.listdir(".")
 
             for ligid in ligs:
@@ -201,7 +201,9 @@ def PPL3toCDT3_MPI(args):
             calcKeyList=calcKeyList+klist
 
     calcKeyList = comm.bcast(calcKeyList, root=0)
-    print(rank, calcKeyList)
+
+    if rank==0:
+        print(rank, calcKeyList)
 
     calcKeySize=len(calcKeyList)
 
@@ -209,18 +211,19 @@ def PPL3toCDT3_MPI(args):
 
         nHeader = conduit.Node()
         nHeader['date'] = "Created by PPL3toCDT3hdf5.py at " + datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
-        print("Created by PPL3toCDT3hdf5.py at " + datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S"))
+        if rank==0:
+            print("Created by PPL3toCDT3hdf5.py at " + datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S"))
 
 
         hdf5path=os.path.join(hdf5pathDir, "dock_proc"+str(rank)+".hdf5")
-        print(hdf5path)
+        print(rank, hdf5path)
 
         conduit.relay.io.save_merged(nHeader, hdf5path)
 
         for i in xrange(rank, calcKeySize, size):
             calcKey=calcKeyList[i]
             strs=calcKey.split("/")
-            print(rank, strs)
+            #print(rank, strs)
             if len(strs)==2:
                 recid=strs[0]
                 ligid=strs[1]
