@@ -130,6 +130,11 @@ def main():
 
             conduit.relay.io.save_merged(n, hdf5path)
 
+            if args.isZip:
+                extractList = ['checkpoint.txt', 'ligand.frcmod', 'LIG_minGB.out']
+                for file in extractList:
+                    if os.path.isfile(file):
+                        os.remove(file)
 
 
 if __name__ == '__main__':

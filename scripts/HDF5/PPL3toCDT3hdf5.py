@@ -52,7 +52,7 @@ srun -N2 -n32 python PPL3toCDT3hdf5.py
 ---------------
 
 
-It assume that the scratch/lig has following data strcture
+It assume that the scratch/lig has following data structure
 
 scratch/com/<pdbname1>/dock/1
 scratch/com/<pdbname1>/dock/2
@@ -113,7 +113,7 @@ def PPL3toCDT3(args):
     hdf5path=os.path.join(hdf5pathDir, "dock_proc1.hdf5")
     print(hdf5path)
 
-    conduit.relay.io.save_merged(nHeader, hdf5path)
+    conduit.relay.io.save(nHeader, hdf5path)
 
     comDirPath = os.path.abspath(args.scrDir + "/com")
     print(comDirPath)
@@ -186,12 +186,8 @@ def PPL3toCDT3_MPI(args):
             ligs=os.listdir(".")
 
             for ligid in ligs:
-                ligPath = os.path.join(recPath, ligid)
-                if os.path.isdir(ligPath):
-                    os.chdir(ligPath)
-                    entryKey=recid+"/"+ligid
-                    keyList.append(entryKey)
-                    continue
+                entryKey = recid + "/" + ligid
+                keyList.append(entryKey)
 
     allKeys=comm.gather(keyList, root=0)
 
@@ -218,7 +214,7 @@ def PPL3toCDT3_MPI(args):
         hdf5path=os.path.join(hdf5pathDir, "dock_proc"+str(rank)+".hdf5")
         print(rank, hdf5path)
 
-        conduit.relay.io.save_merged(nHeader, hdf5path)
+        conduit.relay.io.save(nHeader, hdf5path)
 
         for i in xrange(rank, calcKeySize, size):
             calcKey=calcKeyList[i]
