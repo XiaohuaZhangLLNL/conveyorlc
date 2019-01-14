@@ -173,43 +173,43 @@ def main():
                 n[recKey + '/meta/NonStdAA/'+str(idx+1)] = val
 
 
-        n[recKey + '/meta/RecPath'] = recPath
+            n[recKey + '/meta/RecPath'] = recPath
 
-        pdbqtfile=recid+".pdbqt"
-        if os.path.isfile(pdbqtfile):
-            print(pdbqtfile)
-            with open(pdbqtfile, 'r') as f:
-                n[recKey + "/file/rec_min.pdbqt"] = f.read()
+            pdbqtfile=recid+".pdbqt"
+            if os.path.isfile(pdbqtfile):
+                print(pdbqtfile)
+                with open(pdbqtfile, 'r') as f:
+                    n[recKey + "/file/rec_min.pdbqt"] = f.read()
 
-        #if clust:
-        #    gridPDBfile='Grid-'+str(clust).zfill(2)+".pdb"
-        #    if os.path.isfile(gridPDBfile):
-        #        with open(gridPDBfile, 'r') as f:
-        #            n[recKey + "/file/Grid-"+str(clust)+".pdb"] = f.read()
-        #else:
-        #    if volume and cx and cy and cz:
-        #        (found, clustID)=findCluster(volume, cx, cy, cz)
-        #        if found:
-        #            gridPDBfile = 'Grid-' + clustID + ".pdb"
-        #            clust=int(clustID)
-        #            n[recKey + '/meta/Site/Cluster'] = clust
-        #            if os.path.isfile(gridPDBfile):
-        #                with open(gridPDBfile, 'r') as f:
-        #                    n[recKey + "/file/Grid-"+str(clust)+".pdb"] = f.read()
-        if not clust:
-            (found, clustID) = findCluster(volume, cx, cy, cz)
-            if found:
-                clust = int(clustID)
-                n[recKey + '/meta/Site/Cluster'] = clust
+            #if clust:
+            #    gridPDBfile='Grid-'+str(clust).zfill(2)+".pdb"
+            #    if os.path.isfile(gridPDBfile):
+            #        with open(gridPDBfile, 'r') as f:
+            #            n[recKey + "/file/Grid-"+str(clust)+".pdb"] = f.read()
+            #else:
+            #    if volume and cx and cy and cz:
+            #        (found, clustID)=findCluster(volume, cx, cy, cz)
+            #        if found:
+            #            gridPDBfile = 'Grid-' + clustID + ".pdb"
+            #            clust=int(clustID)
+            #            n[recKey + '/meta/Site/Cluster'] = clust
+            #            if os.path.isfile(gridPDBfile):
+            #                with open(gridPDBfile, 'r') as f:
+            #                    n[recKey + "/file/Grid-"+str(clust)+".pdb"] = f.read()
+            if not clust:
+                (found, clustID) = findCluster(volume, cx, cy, cz)
+                if found:
+                    clust = int(clustID)
+                    n[recKey + '/meta/Site/Cluster'] = clust
 
-        fileList = ['rec.prmtop', 'rec_min.pdb', 'rec_min_orig','rec_min.rst',
-                    'recCut.prmtop', 'recCut_min_orig.pdb', 'recCut_min.rst',
-                    'rec_minGB.out', 'site.txt', 'rec_geo.txt']
+            fileList = ['rec.prmtop', 'rec_min.pdb', 'rec_min_orig','rec_min.rst',
+                        'recCut.prmtop', 'recCut_min_orig.pdb', 'recCut_min.rst',
+                        'rec_minGB.out', 'site.txt', 'rec_geo.txt']
 
-        for gridfile in glob.glob('Grid-*.pdb'):
-            fileList.append(gridfile)
+            for gridfile in glob.glob('Grid-*.pdb'):
+                fileList.append(gridfile)
 
-        filesToHDF(n, recKey, fileList)
+            filesToHDF(n, recKey, fileList)
 
     conduit.relay.io.save_merged(n, hdf5path)
 
