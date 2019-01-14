@@ -93,7 +93,7 @@ def findCluster(volume, cx, cy, cz):
                             if len(substrs)==6:
                                 xe = equalFloat(float(substrs[1]), cx)
                                 ye = equalFloat(float(substrs[3]), cy)
-                                ze = equalFloat(float(substrs[4]), cz)
+                                ze = equalFloat(float(substrs[5]), cz)
                                 if xe and ye and ze:
                                     return (True, strs[1])
     return (False, None)
@@ -115,13 +115,12 @@ def main():
     print(comDirPath)
     os.chdir(comDirPath)
     dirs = os.listdir(".")
+    n = conduit.Node()
     for recid in dirs:
         recPath = os.path.join(comDirPath, recid+"/rec")
         # print(cmpdPath)
         os.chdir(recPath)
         print(os.getcwd())
-
-        n = conduit.Node()
 
         clust = None
         cx=None
@@ -203,14 +202,16 @@ def main():
                 clust = int(clustID)
                 n[recKey + '/meta/Site/Cluster'] = clust
 
-        fileList = ['rec.prmtop', 'rec_min.pdb','rec_min.rst', 'rec_minGB.out', 'site.txt', 'rec_geo.txt']
+        fileList = ['rec.prmtop', 'rec_min.pdb', 'rec_min_orig','rec_min.rst',
+                    'recCut.prmtop', 'recCut_min_orig.pdb', 'recCut_min.rst',
+                    'rec_minGB.out', 'site.txt', 'rec_geo.txt']
 
         for gridfile in glob.glob('Grid-*.pdb'):
             fileList.append(gridfile)
 
         filesToHDF(n, recKey, fileList)
 
-        conduit.relay.io.save_merged(n, hdf5path)
+    conduit.relay.io.save_merged(n, hdf5path)
 
 
 if __name__ == '__main__':
