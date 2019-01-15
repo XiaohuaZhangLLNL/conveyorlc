@@ -118,98 +118,99 @@ def main():
     n = conduit.Node()
     for recid in dirs:
         recPath = os.path.join(comDirPath, recid+"/rec")
-        # print(cmpdPath)
-        os.chdir(recPath)
-        print(os.getcwd())
+        if os.path.isdir(recPath):
+            # print(cmpdPath)
+            os.chdir(recPath)
+            print(os.getcwd())
 
-        clust = None
-        cx=None
-        cy=None
-        cz=None
-        volume=None
+            clust = None
+            cx=None
+            cy=None
+            cz=None
+            volume=None
 
-        checkfile = os.path.join(recPath, "checkpoint.txt")
-        if os.path.isfile(checkfile):
-            parseCheckpoint(checkfile)
-            checkData = parseCheckpoint(checkfile)
-            recKey = '/rec/' + recid
-            print(checkData)
-            if 'Mesg' in checkData:
-                if checkData['Mesg'] == 'Finished!':
-                    n[recKey + '/status'] = np.int32(1)
-                else:
-                    n[recKey + '/status'] = np.int32(0)
-                n[recKey + '/meta/Mesg'] = checkData['Mesg']
+            checkfile = os.path.join(recPath, "checkpoint.txt")
+            if os.path.isfile(checkfile):
+                parseCheckpoint(checkfile)
+                checkData = parseCheckpoint(checkfile)
+                recKey = '/rec/' + recid
+                print(checkData)
+                if 'Mesg' in checkData:
+                    if checkData['Mesg'] == 'Finished!':
+                        n[recKey + '/status'] = np.int32(1)
+                    else:
+                        n[recKey + '/status'] = np.int32(0)
+                    n[recKey + '/meta/Mesg'] = checkData['Mesg']
 
-            if 'GBEN' in checkData:
-                n[recKey + '/meta/GBEN'] = float(checkData['GBEN'])
+                if 'GBEN' in checkData:
+                    n[recKey + '/meta/GBEN'] = float(checkData['GBEN'])
 
-            if 'Volume' in checkData:
-                volume= float(checkData['Volume'])
-                n[recKey + '/meta/Site/Volume'] = volume
+                if 'Volume' in checkData:
+                    volume= float(checkData['Volume'])
+                    n[recKey + '/meta/Site/Volume'] = volume
 
-            if 'Cluster' in checkData:
-                clust=int(checkData['Cluster'])
-                n[recKey + '/meta/Site/Cluster'] = clust
-
-            if 'cx' in checkData:
-                cx=float(checkData['cx'])
-                n[recKey + '/meta/Site/Centriod/X'] = cx
-            if 'cy' in checkData:
-                cy=float(checkData['cy'])
-                n[recKey + '/meta/Site/Centriod/Y'] = cy
-            if 'cz' in checkData:
-                cz=float(checkData['cz'])
-                n[recKey + '/meta/Site/Centriod/Z'] = cz
-            if 'dx' in checkData:
-                n[recKey + '/meta/Site/Dimension/X'] = float(checkData['dx'])
-            if 'dy' in checkData:
-                n[recKey + '/meta/Site/Dimension/Y'] = float(checkData['dy'])
-            if 'dz' in checkData:
-                n[recKey + '/meta/Site/Dimension/Z'] = float(checkData['dz'])
-
-            noAA=findNonAA()
-            for idx, val in enumerate(noAA):
-                n[recKey + '/meta/NonStdAA/'+str(idx+1)] = val
-
-
-            n[recKey + '/meta/RecPath'] = recPath
-
-            pdbqtfile=recid+".pdbqt"
-            if os.path.isfile(pdbqtfile):
-                print(pdbqtfile)
-                with open(pdbqtfile, 'r') as f:
-                    n[recKey + "/file/rec_min.pdbqt"] = f.read()
-
-            #if clust:
-            #    gridPDBfile='Grid-'+str(clust).zfill(2)+".pdb"
-            #    if os.path.isfile(gridPDBfile):
-            #        with open(gridPDBfile, 'r') as f:
-            #            n[recKey + "/file/Grid-"+str(clust)+".pdb"] = f.read()
-            #else:
-            #    if volume and cx and cy and cz:
-            #        (found, clustID)=findCluster(volume, cx, cy, cz)
-            #        if found:
-            #            gridPDBfile = 'Grid-' + clustID + ".pdb"
-            #            clust=int(clustID)
-            #            n[recKey + '/meta/Site/Cluster'] = clust
-            #            if os.path.isfile(gridPDBfile):
-            #                with open(gridPDBfile, 'r') as f:
-            #                    n[recKey + "/file/Grid-"+str(clust)+".pdb"] = f.read()
-            if not clust:
-                (found, clustID) = findCluster(volume, cx, cy, cz)
-                if found:
-                    clust = int(clustID)
+                if 'Cluster' in checkData:
+                    clust=int(checkData['Cluster'])
                     n[recKey + '/meta/Site/Cluster'] = clust
 
-            fileList = ['rec.prmtop', 'rec_min.pdb', 'rec_min_orig','rec_min.rst',
-                        'recCut.prmtop', 'recCut_min_orig.pdb', 'recCut_min.rst',
-                        'rec_minGB.out', 'site.txt', 'rec_geo.txt']
+                if 'cx' in checkData:
+                    cx=float(checkData['cx'])
+                    n[recKey + '/meta/Site/Centriod/X'] = cx
+                if 'cy' in checkData:
+                    cy=float(checkData['cy'])
+                    n[recKey + '/meta/Site/Centriod/Y'] = cy
+                if 'cz' in checkData:
+                    cz=float(checkData['cz'])
+                    n[recKey + '/meta/Site/Centriod/Z'] = cz
+                if 'dx' in checkData:
+                    n[recKey + '/meta/Site/Dimension/X'] = float(checkData['dx'])
+                if 'dy' in checkData:
+                    n[recKey + '/meta/Site/Dimension/Y'] = float(checkData['dy'])
+                if 'dz' in checkData:
+                    n[recKey + '/meta/Site/Dimension/Z'] = float(checkData['dz'])
 
-            for gridfile in glob.glob('Grid-*.pdb'):
-                fileList.append(gridfile)
+                noAA=findNonAA()
+                for idx, val in enumerate(noAA):
+                    n[recKey + '/meta/NonStdAA/'+str(idx+1)] = val
 
-            filesToHDF(n, recKey, fileList)
+
+                n[recKey + '/meta/RecPath'] = recPath
+
+                pdbqtfile=recid+".pdbqt"
+                if os.path.isfile(pdbqtfile):
+                    print(pdbqtfile)
+                    with open(pdbqtfile, 'r') as f:
+                        n[recKey + "/file/rec_min.pdbqt"] = f.read()
+
+                #if clust:
+                #    gridPDBfile='Grid-'+str(clust).zfill(2)+".pdb"
+                #    if os.path.isfile(gridPDBfile):
+                #        with open(gridPDBfile, 'r') as f:
+                #            n[recKey + "/file/Grid-"+str(clust)+".pdb"] = f.read()
+                #else:
+                #    if volume and cx and cy and cz:
+                #        (found, clustID)=findCluster(volume, cx, cy, cz)
+                #        if found:
+                #            gridPDBfile = 'Grid-' + clustID + ".pdb"
+                #            clust=int(clustID)
+                #            n[recKey + '/meta/Site/Cluster'] = clust
+                #            if os.path.isfile(gridPDBfile):
+                #                with open(gridPDBfile, 'r') as f:
+                #                    n[recKey + "/file/Grid-"+str(clust)+".pdb"] = f.read()
+                if not clust:
+                    (found, clustID) = findCluster(volume, cx, cy, cz)
+                    if found:
+                        clust = int(clustID)
+                        n[recKey + '/meta/Site/Cluster'] = clust
+
+                fileList = ['rec.prmtop', 'rec_min.pdb', 'rec_min_orig','rec_min.rst',
+                            'recCut.prmtop', 'recCut_min_orig.pdb', 'recCut_min.rst',
+                            'rec_minGB.out', 'site.txt', 'rec_geo.txt']
+
+                for gridfile in glob.glob('Grid-*.pdb'):
+                    fileList.append(gridfile)
+
+                filesToHDF(n, recKey, fileList)
 
     conduit.relay.io.save_merged(n, hdf5path)
 
