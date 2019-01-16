@@ -17,6 +17,8 @@ def getArgs():
                         help='receptor HDF5 output file')
     parser.add_argument('-n', '--name', action='store', dest='recname', default=None,
                         help='receptor name')
+    parser.add_argument('-dn', '--deletename', action='store', dest='delname', default=None,
+                        help='receptor name')
     args = parser.parse_args()
 
     return args
@@ -69,6 +71,13 @@ def getDataByName(args):
         with open(fileItr.name(), 'w') as f:
             f.write(fileItr.node().value())
 
+def rmCalcByName(args):
+    hdf5path = os.path.abspath(args.infile)
+
+    with h5py.File(hdf5path, "a") as f:
+        recGroup=f['/rec']
+        del recGroup[args.delname]
+
 
 def main():
     args=getArgs()
@@ -79,6 +88,9 @@ def main():
 
     if args.recname:
         getDataByName(args)
+
+    if args.delname:
+        rmCalcByName(args)
 
     #n_load = conduit.Node()
     #relay.io.load(n_load, hdf5path)
