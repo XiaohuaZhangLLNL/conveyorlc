@@ -155,13 +155,13 @@ def main():
 
                 if 'cx' in checkData:
                     cx=float(checkData['cx'])
-                    n[recKey + '/meta/Site/Centriod/X'] = cx
+                    n[recKey + '/meta/Site/Centroid/X'] = cx
                 if 'cy' in checkData:
                     cy=float(checkData['cy'])
-                    n[recKey + '/meta/Site/Centriod/Y'] = cy
+                    n[recKey + '/meta/Site/Centroid/Y'] = cy
                 if 'cz' in checkData:
                     cz=float(checkData['cz'])
-                    n[recKey + '/meta/Site/Centriod/Z'] = cz
+                    n[recKey + '/meta/Site/Centroid/Z'] = cz
                 if 'dx' in checkData:
                     n[recKey + '/meta/Site/Dimension/X'] = float(checkData['dx'])
                 if 'dy' in checkData:
