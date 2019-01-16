@@ -115,7 +115,7 @@ def main():
     print(comDirPath)
     os.chdir(comDirPath)
     dirs = os.listdir(".")
-    n = conduit.Node()
+
     for recid in dirs:
         recPath = os.path.join(comDirPath, recid+"/rec")
         if os.path.isdir(recPath):
@@ -131,6 +131,7 @@ def main():
 
             checkfile = os.path.join(recPath, "checkpoint.txt")
             if os.path.isfile(checkfile):
+                n = conduit.Node()
                 parseCheckpoint(checkfile)
                 checkData = parseCheckpoint(checkfile)
                 recKey = '/rec/' + recid
@@ -212,7 +213,7 @@ def main():
 
                 filesToHDF(n, recKey, fileList)
 
-    conduit.relay.io.save_merged(n, hdf5path)
+                conduit.relay.io.save_merged(n, hdf5path)
 
 
 if __name__ == '__main__':
