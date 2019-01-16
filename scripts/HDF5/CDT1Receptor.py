@@ -19,6 +19,8 @@ def getArgs():
                         help='receptor name')
     parser.add_argument('-dn', '--deletename', action='store', dest='delname', default=None,
                         help='receptor name')
+    parser.add_argument('-sn', '--savename', action='store', dest='savename', default=None,
+                        help='receptor name')
     args = parser.parse_args()
 
     return args
@@ -78,6 +80,22 @@ def rmCalcByName(args):
         recGroup=f['/rec']
         del recGroup[args.delname]
 
+def saveDataByName(args):
+
+    hdf5path = os.path.abspath(args.infile)
+    hdf5pathOut=os.path.abspath(args.outfile)
+
+    n = conduit.Node()
+    relay.io.load(n, hdf5path)
+
+    cmpdKey="rec/"+args.savename
+
+    nOut=conduit.Node()
+
+    nOut[cmpdKey]=n[cmpdKey]
+
+    relay.io.save(nOut, hdf5pathOut)
+
 
 def main():
     args=getArgs()
@@ -91,6 +109,9 @@ def main():
 
     if args.delname:
         rmCalcByName(args)
+
+    if args.savename:
+        saveDataByName(args)
 
     #n_load = conduit.Node()
     #relay.io.load(n_load, hdf5path)
