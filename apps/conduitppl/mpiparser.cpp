@@ -56,7 +56,7 @@ void saveRec(std::string& fileName, std::vector<std::string>& recList){
     {
         Node &nRec=itrRec.next();
         int status = nRec["status"].as_int();
-        std::cout << status << " " << nRec.name() << std::endl;
+        //std::cout << status << " " << nRec.name() << std::endl;
         if (status == 1)
         {
             recList.push_back(nRec.name());

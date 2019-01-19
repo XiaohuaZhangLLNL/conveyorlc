@@ -310,6 +310,10 @@ void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
         jobOut.error= false;
     }
 
+    // Go back the workdir to get rid of following error
+    // shell-init: error retrieving current directory: getcwd: cannot access
+    chdir(workDir.c_str());
+
     // Remove the working directory
     std::string cmd = "rm -rf " + jobOut.dockDir;
     std::string errMesg="remove dockDir fails";
