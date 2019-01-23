@@ -24,6 +24,10 @@ def getArgs():
                         help='PPL2Track.xml input file (default=PPL2Track.xml)')
     parser.add_argument('-s', '--sdf', action='store', dest='sdffile', default=None,
                         help='SDF input file (default=None)')
+    parser.add_argument('-il', '--idlist', action='store', dest='idlist', default=None,
+                        help='ligand ID list to keep (default=None)')
+    parser.add_argument('-nl', '--namelist', action='store', dest='namelist', default=None,
+                        help='ligand name list to keep  (default=None)')
     parser.add_argument('-o', '--out', action='store', dest='outfile', default='PPL2BadLigand.xml',
                         help='ddcMD object output file (default=PPL2BadLigand.xml).')
     parser.add_argument('-m', '--miss', action='store', dest='misfile', default='PPL2MisLigand.xml',
@@ -33,9 +37,7 @@ def getArgs():
 
     return args
 
-def main():
-
-    args=getArgs()
+def filter4BadMis(args):
     print ("Default inputs: ", args.xmlfile, args.sdffile)
 
     count=0
@@ -75,6 +77,57 @@ def main():
     with open(args.misfile, "w") as f:
         f.write(xmlstr)
 
+def filterByLigandID(args):
+    print ("Default inputs: ", args.xmlfile, args.idlist)
+
+    ids=[]
+
+    with open(args.idlist) as f:
+        for line in f:
+            ids.append(int(line.strip()))
+
+    tree = ET.ElementTree(file=args.xmlfile)
+    root = tree.getroot()
+
+    for ligand in root.findall('Ligand'):
+        ligID=int(ligand.find('LigID').text)
+        if ligID not in ids:
+            root.remove(ligand)
+
+    tree.write(args.outfile)
+
+def filterByLigandName(args):
+    print ("Default inputs: ", args.xmlfile, args.idlist)
+
+    names=[]
+
+    with open(args.idlist) as f:
+        for line in f:
+            names.append(line.strip())
+
+    tree = ET.ElementTree(file=args.xmlfile)
+    root = tree.getroot()
+
+    for ligand in root.findall('Ligand'):
+        ligName=ligand.find('LigName').text
+        if ligName not in names:
+            root.remove(ligand)
+
+    tree.write(args.outfile)
+
+
+def main():
+
+    args=getArgs()
+
+    if args.sdffile:
+        filter4BadMis(args)
+
+    if args.idlist:
+        filterByLigandID(args)
+
+    if args.namelist:
+        filterByLigandID(args)
 
 if __name__ == '__main__':
     main()

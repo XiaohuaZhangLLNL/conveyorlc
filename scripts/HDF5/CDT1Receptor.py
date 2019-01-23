@@ -57,10 +57,10 @@ def getDataByName(args):
     print("Receptor path", n[cmpdKey + '/meta/RecPath'] )
     print("Site     ")
     print("     Volume ",n[cmpdKey + '/meta/Site/Volume'], "     Cluster ", n[cmpdKey + '/meta/Site/Cluster'],)
-    x = n[cmpdKey + '/meta/Site/Centriod/X']
-    y = n[cmpdKey + '/meta/Site/Centriod/Y']
-    z = n[cmpdKey + '/meta/Site/Centriod/Z']
-    print("         Centriod  ", (x, y, z))
+    x = n[cmpdKey + '/meta/Site/Centroid/X']
+    y = n[cmpdKey + '/meta/Site/Centroid/Y']
+    z = n[cmpdKey + '/meta/Site/Centroid/Z']
+    print("         Centroid  ", (x, y, z))
     x = n[cmpdKey + '/meta/Site/Dimension/X']
     y = n[cmpdKey + '/meta/Site/Dimension/Y']
     z = n[cmpdKey + '/meta/Site/Dimension/Z']
