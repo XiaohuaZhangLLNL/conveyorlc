@@ -78,7 +78,8 @@ def getArgs():
                         help='path to scratch directory')
     parser.add_argument('-o', '--outDir', action='store', dest='outfile', default='scratch/gbsaHDF5',
                         help='path to gbsaing HDF5 files')
-
+    parser.add_argument('-z', '--zip', action='store_true', dest='iszip', default=False,
+                        help='receptor HDF5 output file')
     args = parser.parse_args()
 
     return args
@@ -117,6 +118,84 @@ def extract_files(members):
         if os.path.basename(tarinfo.name) in extractList:
             yield tarinfo
 
+def posetohdf5(recid, ligPath, ligid, poseID, hdf5path):
+    posePath = os.path.join(ligPath, poseID)
+    os.chdir(posePath)
+    checkfile = os.path.join(posePath, 'checkpoint.txt')
+
+    if os.path.isfile(checkfile):
+        n = conduit.Node()
+        ligidReal = getID(ligid)
+        poseIDReal = getID(poseID)
+        checkData = parseCheckpoint(checkfile)
+        entryKey = '/gbsa/' + recid + "/" + ligidReal + "/p" + poseIDReal
+        print(checkData)
+        if 'Mesg' in checkData:
+            if checkData['Mesg'] == 'Finished!':
+                n[entryKey + '/status'] = np.int32(1)
+            else:
+                n[entryKey + '/status'] = np.int32(0)
+            n[entryKey + '/meta/Mesg'] = checkData['Mesg']
+
+        if 'GBSA' in checkData:
+            n[entryKey + '/meta/bindGB'] = float(checkData['GBSA'])
+
+        if 'vina' in checkData:
+            n[entryKey + '/meta/dockScore'] = float(checkData['vina'])
+
+        mmgbsafile = os.path.join(posePath, 'mmgbsa_results.tar.gz')
+
+        if os.path.isfile(mmgbsafile):
+            tar = tarfile.open(mmgbsafile)
+            tar.extractall(members=extract_files(tar))
+            tar.close()
+
+        extractList = ['Com.inpcrd', 'Com.prmtop', 'Com_leap.log',
+                       'Com_min.pdb', 'Com_min.rst', 'Com_min_GB.out',
+                       'Lig_leap.log', 'Rec_minGB.out', 'rec_leap.log']
+
+        filesToHDF(n, entryKey, extractList)
+        for file in extractList:
+            if os.path.isfile(file):
+                os.remove(file)
+
+        conduit.relay.io.save_merged(n, hdf5path)
+
+
+def ligWorkFlow(recPath, recid, hdf5path):
+    for ligid in glob.glob('lig_*'):
+        ligPath = os.path.join(recPath, ligid)
+        if os.path.isdir(ligPath):
+
+            os.chdir(ligPath)
+
+            for poseID in glob.glob('pose_*'):
+                posetohdf5(recid, ligPath, ligid, poseID, hdf5path)
+
+
+def ligWorkFlowZip(recPath, recid, hdf5path):
+    for ligzip in glob.glob('lig_*.tar.gz'):
+
+        # print(ligzip)
+        strs = ligzip.split('.')
+        if len(strs) != 3:
+            continue
+        ligid = strs[0]
+        print(ligid)
+        tar = tarfile.open(ligzip)
+        tar.extractall()
+        tar.close()
+        ligPath = os.path.join(recPath, ligid)
+        if os.path.isdir(ligPath):
+
+            os.chdir(ligPath)
+
+            for poseID in glob.glob('pose_*'):
+                posetohdf5(recid, ligPath, ligid, poseID, hdf5path)
+
+        os.chdir(recPath)
+        os.system('rm -rf ' + ligid)
+
 
 def PPL4toCDT4(args):
 
@@ -142,69 +221,15 @@ def PPL4toCDT4(args):
         if os.path.isdir(recPath):
             os.chdir(recPath)
             print(os.getcwd())
+            if args.iszip:
+                ligWorkFlowZip(recPath, recid, hdf5path)
+            else:
+                ligWorkFlow(recPath, recid, hdf5path)
 
-            ligs=os.listdir(".")
-
-            for ligid in ligs:
-                ligPath = os.path.join(recPath, ligid)
-                if os.path.isdir(ligPath):
-                    n = conduit.Node()
-                    ligidReal = getID(ligid)
-                    os.chdir(ligPath)
-                    poses=os.listdir(".")
-
-                    for poseID in poses:
-                        posePath=os.path.join(ligPath, poseID)
-                        os.chdir(posePath)
-                        checkfile=os.path.join(posePath, 'checkpoint.txt')
-
-                        if os.path.isfile(checkfile):
-                            poseIDReal=getID(poseID)
-                            checkData = parseCheckpoint(checkfile)
-                            entryKey = '/gbsa/' + recid+"/"+ligidReal+"/p"+poseIDReal
-                            print(checkData)
-                            if 'Mesg' in checkData:
-                                if checkData['Mesg'] == 'Finished!':
-                                    n[entryKey + '/status'] = np.int32(1)
-                                else:
-                                    n[entryKey + '/status'] = np.int32(0)
-                                n[entryKey + '/meta/Mesg'] = checkData['Mesg']
-
-                            if 'GBSA' in checkData:
-                                n[entryKey + '/meta/bindGB'] = float(checkData['GBSA'])
-
-                            if 'vina' in checkData:
-                                n[entryKey + '/meta/dockScore'] = float(checkData['vina'])
-
-                            mmgbsafile = os.path.join(posePath, 'mmgbsa_results.tar.gz')
-
-                            if os.path.isfile(mmgbsafile):
-                                tar = tarfile.open(mmgbsafile)
-                                tar.extractall(members=extract_files(tar))
-                                tar.close()
-
-                            extractList = ['Com.inpcrd', 'Com.prmtop', 'Com_leap.log',
-                                           'Com_min.pdb', 'Com_min.rst', 'Com_min_GB.out',
-                                           'Lig_leap.log', 'Rec_minGB.out', 'rec_leap.log']
-
-                            filesToHDF(n, entryKey, extractList)
-                            for file in extractList:
-                                if os.path.isfile(file):
-                                    os.remove(file)
-
-                    conduit.relay.io.save_merged(n, hdf5path)
-
-
-def PPL4toCDT4_MPI(args):
+def getKeysMPI(args):
     comm=MPI.COMM_WORLD
     rank=comm.rank
     size = comm.size
-    #print(rank, size)
-    if rank==0:
-        if not os.path.exists(args.outfile):
-            os.makedirs(args.outfile)
-
-    hdf5pathDir = os.path.abspath(args.outfile)
 
     keyList=[]
 
@@ -230,8 +255,97 @@ def PPL4toCDT4_MPI(args):
                         entryKey=recid+"/"+ligid+"/"+poseID
                         keyList.append(entryKey)
 
+    allKeys=comm.gather(keyList, root=0)
+
+    return allKeys
+
+def getKeysMPIzip(args):
+    comm=MPI.COMM_WORLD
+    rank=comm.rank
+    size = comm.size
+
+    keyList=[]
+
+    comDirPath = os.path.abspath(args.scrDir + "/com")
+    if rank==0:
+        print(comDirPath)
+    os.chdir(comDirPath)
+    dirs = os.listdir(".")
+
+
+    for i in xrange(rank, len(dirs), size):
+        recid=dirs[i]
+        #print(rank, i, recid)
+        recPath = os.path.join(comDirPath, recid+"/gbsa")
+        if os.path.isdir(recPath):
+            os.chdir(recPath)
+            for ligzip in glob.glob('lig_*.tar.gz'):
+                entryKey = recid + "/" + ligzip
+                keyList.append(entryKey)
 
     allKeys=comm.gather(keyList, root=0)
+
+    return allKeys
+
+def databyKeyMPI(rank, calcKey, comDirPath, hdf5path):
+    strs = calcKey.split("/")
+    # print(rank, strs)
+    if len(strs) == 3:
+        recid = strs[0]
+        ligid = strs[1]
+        poseID = strs[2]
+
+        posePath = os.path.join(comDirPath, recid + "/gbsa/" + ligid + "/" + poseID)
+        print(rank, posePath)
+        ligPath = os.path.join(comDirPath, recid + "/gbsa/" + ligid)
+        posetohdf5(recid, ligPath, ligid, poseID, hdf5path)
+
+
+def databyKeyMPIzip(rank, calcKey, comDirPath, hdf5path):
+    strs = calcKey.split("/")
+    # print(rank, strs)
+    if len(strs) == 2:
+        recid = strs[0]
+        ligzip = strs[1]
+
+        strs = ligzip.split('.')
+        ligid = strs[0]
+        #print(ligid)
+        recPath = os.path.join(comDirPath, recid + "/gbsa/")
+        os.chdir(recPath)
+        tar = tarfile.open(ligzip)
+        tar.extractall()
+        tar.close()
+
+        ligPath = os.path.join(recPath, ligid)
+        if os.path.isdir(ligPath):
+
+            os.chdir(ligPath)
+
+            for poseID in glob.glob('pose_*'):
+                posetohdf5(recid, ligPath, ligid, poseID, hdf5path)
+
+        os.chdir(recPath)
+        os.system('rm -rf ' + ligid)
+
+
+def PPL4toCDT4_MPI(args):
+    comm=MPI.COMM_WORLD
+    rank=comm.rank
+    size = comm.size
+    #print(rank, size)
+    comDirPath = os.path.abspath(args.scrDir + "/com")
+
+    if rank==0:
+        if not os.path.exists(args.outfile):
+            os.makedirs(args.outfile)
+
+    hdf5pathDir = os.path.abspath(args.outfile)
+
+    if args.iszip:
+        allKeys = getKeysMPIzip(args)
+    else:
+        allKeys = getKeysMPI(args)
 
     calcKeyList=[]
     if rank==0:
@@ -258,59 +372,15 @@ def PPL4toCDT4_MPI(args):
 
         conduit.relay.io.save_merged(nHeader, hdf5path)
 
+
+
         for i in xrange(rank, calcKeySize, size):
             calcKey=calcKeyList[i]
-            strs=calcKey.split("/")
-            #print(rank, strs)
-            if len(strs)==3:
-                recid=strs[0]
-                ligid=strs[1]
-                poseID=strs[2]
-                posePath = os.path.join(comDirPath, recid + "/gbsa/"+ligid+"/"+poseID)
-                print(rank, posePath)
-                if os.path.isdir(posePath):
-                    os.chdir(posePath)
+            if args.iszip:
+                databyKeyMPIzip(rank, calcKey, comDirPath, hdf5path)
+            else:
+                databyKeyMPI(rank, calcKey, comDirPath, hdf5path)
 
-                    checkfile = os.path.join(posePath, 'checkpoint.txt')
-
-                    if os.path.isfile(checkfile):
-                        ligidReal=getID(ligid)
-                        poseIDReal = getID(poseID)
-                        checkData = parseCheckpoint(checkfile)
-                        entryKey = '/gbsa/' + recid + "/" + ligidReal + "/p" + poseIDReal
-                        print(checkData)
-                        n = conduit.Node()
-                        if 'Mesg' in checkData:
-                            if checkData['Mesg'] == 'Finished!':
-                                n[entryKey + '/status'] = np.int32(1)
-                            else:
-                                n[entryKey + '/status'] = np.int32(0)
-                            n[entryKey + '/meta/Mesg'] = checkData['Mesg']
-
-                        if 'GBSA' in checkData:
-                            n[entryKey + '/meta/bindGB'] = float(checkData['GBSA'])
-
-                        if 'vina' in checkData:
-                            n[entryKey + '/meta/dockScore'] = float(checkData['vina'])
-
-                        mmgbsafile = os.path.join(posePath, 'mmgbsa_results.tar.gz')
-
-                        if os.path.isfile(mmgbsafile):
-                            tar = tarfile.open(mmgbsafile)
-                            tar.extractall(members=extract_files(tar))
-                            tar.close()
-
-                        extractList = ['Com.inpcrd', 'Com.prmtop', 'Com_leap.log',
-                                       'Com_min.pdb', 'Com_min.rst', 'Com_min_GB.out',
-                                       'Lig_leap.log', 'Rec_minGB.out', 'rec_leap.log']
-
-                        filesToHDF(n, entryKey, extractList)
-
-                        conduit.relay.io.save_merged(n, hdf5path)
-
-                        for file in extractList:
-                            if os.path.isfile(file):
-                                os.remove(file)
 
 def main():
     comm=MPI.COMM_WORLD

@@ -77,8 +77,8 @@ def numpyIsNumber(obj):
 
 def getMetaCSV(args):
 
-    #keys = {"status", "meta/Mesg", "meta/bindGB", "meta/comGB", "meta/recGB", "meta/ligGB", "meta/dockScore"}
-    keys = {"status", "meta/bindGB", "meta/comGB", "meta/recGB", "meta/ligGB", "meta/dockScore"}
+    #keys = ["status", "meta/Mesg", "meta/bindGB", "meta/comGB", "meta/recGB", "meta/ligGB", "meta/dockScore"]
+    keys = ["status", "meta/bindGB", "meta/comGB", "meta/recGB", "meta/ligGB", "meta/dockScore"]
     dockDir = os.path.abspath(args.indir)
 
     outfh=open(args.meta, "w")
