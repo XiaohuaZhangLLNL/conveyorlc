@@ -193,15 +193,46 @@ def PPL3toCDT3_MPI(args):
 
     calcKeyList=[]
     if rank==0:
-        for klist in allKeys:
-            calcKeyList=calcKeyList+klist
+        calcKeyList=[item for sublist in allKeys for item in sublist]
 
     calcKeyList = comm.bcast(calcKeyList, root=0)
 
     if rank==0:
-        print(rank, calcKeyList)
+        print(rank, 'calcKeyList initial', calcKeyList)
 
-    calcKeySize=len(calcKeyList)
+    # figure out the keys already in HDF5 files
+    os.chdir(hdf5pathDir)
+    h5files=glob.glob('dock_proc*.hdf5')
+    h5KeyList=[]
+    for i in xrange(rank, len(h5files), size):
+        h5f=h5files[i]
+        n = conduit.Node()
+        conduit.relay.io.load(n, h5f)
+        itrRec = n["dock"].children()
+        for rec in itrRec:
+            recid=rec.name()
+            nrec=rec.node()
+            itrLig=nrec.children()
+            for lig in itrLig:
+                ligid = lig.name()
+                entryKey = recid + "/" + ligid
+                h5KeyList.append(entryKey)
+
+    allh5KeyList = comm.gather(h5KeyList, root=0)
+    finishKeyList=[]
+    if rank==0:
+        finishKeyList=[item for sublist in allh5KeyList for item in sublist]
+
+    finishKeyList = comm.bcast(finishKeyList, root=0)
+
+    if rank==0:
+        print(rank, 'finishKeyList', finishKeyList)
+
+    calcKeyList=[item for item in calcKeyList if item not in finishKeyList]
+    calcKeySize = len(calcKeyList)
+
+    if rank==0:
+        print(rank, 'calcKeyList end ',  calcKeyList)
 
     if rank<calcKeySize:
 

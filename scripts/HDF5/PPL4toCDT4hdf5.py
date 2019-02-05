@@ -301,7 +301,7 @@ def databyKeyMPI(rank, calcKey, comDirPath, hdf5path):
         posetohdf5(recid, ligPath, ligid, poseID, hdf5path)
 
 
-def databyKeyMPIzip(rank, calcKey, comDirPath, hdf5path):
+def databyKeyMPIzip(rank, calcKey, comDirPath, hdf5path, finishKeyList):
     strs = calcKey.split("/")
     # print(rank, strs)
     if len(strs) == 2:
@@ -323,7 +323,10 @@ def databyKeyMPIzip(rank, calcKey, comDirPath, hdf5path):
             os.chdir(ligPath)
 
             for poseID in glob.glob('pose_*'):
-                posetohdf5(recid, ligPath, ligid, poseID, hdf5path)
+                entryKey=recid+"/"+ligid+"/"+poseID
+                #print('databyKeyMPIzip rank', rank, entryKey)
+                if entryKey not in finishKeyList:
+                    posetohdf5(recid, ligPath, ligid, poseID, hdf5path)
 
         os.chdir(recPath)
         os.system('rm -rf ' + ligid)
@@ -349,13 +352,52 @@ def PPL4toCDT4_MPI(args):
 
     calcKeyList=[]
     if rank==0:
-        for klist in allKeys:
-            calcKeyList=calcKeyList+klist
+        calcKeyList = [item for sublist in allKeys for item in sublist]
 
     calcKeyList = comm.bcast(calcKeyList, root=0)
 
     if rank==0:
-        print(rank, calcKeyList)
+        print(rank, 'calcKeyList initial', calcKeyList)
+
+    # figure out the keys already in HDF5 files
+    os.chdir(hdf5pathDir)
+    h5files=glob.glob('gbsa_proc*.hdf5')
+    h5KeyList=[]
+    for i in xrange(rank, len(h5files), size):
+        h5f=h5files[i]
+        n = conduit.Node()
+        conduit.relay.io.load(n, h5f)
+        itrRec = n["gbsa"].children()
+        for rec in itrRec:
+            recid=rec.name()
+            nrec=rec.node()
+            itrLig=nrec.children()
+            for lig in itrLig:
+                ligid = lig.name()
+                nlig=lig.node()
+                itrPose=nlig.children()
+                for pose in itrPose:
+                    poseid=pose.name()
+                    entryKey = recid + "/lig_" + ligid+"/pose_"+poseid[1:]
+                    h5KeyList.append(entryKey)
+
+    allh5KeyList = comm.gather(h5KeyList, root=0)
+    finishKeyList=[]
+    if rank==0:
+        finishKeyList=[item for sublist in allh5KeyList for item in sublist]
+
+    finishKeyList = comm.bcast(finishKeyList, root=0)
+
+    if rank==0:
+        print(rank, 'finishKeyList', finishKeyList)
+
+    if not args.iszip:
+        calcKeyList=[item for item in calcKeyList if item not in finishKeyList]
+
+    calcKeySize = len(calcKeyList)
+
+    if rank==0:
+        print(rank, 'calcKeyList end ', calcKeyList)
 
     calcKeySize=len(calcKeyList)
 
@@ -377,7 +419,7 @@ def PPL4toCDT4_MPI(args):
         for i in xrange(rank, calcKeySize, size):
             calcKey=calcKeyList[i]
             if args.iszip:
-                databyKeyMPIzip(rank, calcKey, comDirPath, hdf5path)
+                databyKeyMPIzip(rank, calcKey, comDirPath, hdf5path, finishKeyList)
             else:
                 databyKeyMPI(rank, calcKey, comDirPath, hdf5path)
 
