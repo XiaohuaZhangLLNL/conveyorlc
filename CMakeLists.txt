@@ -34,6 +34,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     add_definitions(-DSYSTEM_WINDOWS)
 endif()
 
+
+if(APPLE)
+    set(CONDUIT_DIR "/Users/zhang30/inst/conveyorlc_contrib/conduit/")
+    set(HDF5_ROOT "/Users/zhang30/inst/macports/")
+endif()
 # detect host processor
 message(STATUS "The host processor is ${CMAKE_HOST_SYSTEM_PROCESSOR}")
 

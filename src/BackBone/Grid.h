@@ -29,7 +29,8 @@ public:
     void run(double probeRadius, int numberSphere, double minVolume);
     void getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid);
     void getTopSiteGeo(Coor3d& dockDim, Coor3d& centroid, double& volume);
-    int  getSiteIndex();     
+    int  getSiteIndex();
+    int  getNumSites();
     bool getKeySiteGeo(Coor3d& aveKeyResCoor, Coor3d& dockDim, Coor3d& centroid, double& volume);
     
     //void setNumSphere(int numSphere);
@@ -64,6 +65,7 @@ private:
     bool outputPDB;
     
     int siteIndex;
+    int numSites;
     
     std::vector<Coor3d*> spPoints;
     std::vector<Coor3d*> grids;

@@ -258,6 +258,10 @@ int Grid::getSiteIndex(){
     return this->siteIndex;
 }
 
+int Grid::getNumSites(){
+    return this->numSites;
+}
+
 void Grid::writeCutRecPDB(std::string& fileName, Complex* pComplex, double cutRadius){
     std::ofstream outFile;
     try {
