@@ -666,6 +666,10 @@ int main(int argc, char** argv) {
             command(cmd, errMesg);
         }
         //! Open a Conduit file to track the calculation
+        std::string cmd = "mkdir -p " + workDir+"/scratch";
+        std::string errMesg="mkdir scratch directory fails";
+        LBIND::command(cmd, errMesg);
+        
         Node n;
         std::string recCdtFile=workDir+"/scratch/receptor.hdf5:/";
         n["date"]="Create By CDT1Receptor at "+timeStamp();
