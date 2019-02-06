@@ -151,6 +151,7 @@ Thank you!\n";
         inputs.add_options()
                 ("recFile", value<std::string > (&recFile)->default_value("scratch/receptor.hdf5"), "receptor HDF5 file")
                 ("ligFile", value<std::string > (&ligFile)->default_value("scratch/ligand.hdf5"), "ligand HDF5 file")
+                ("noCombine", bool_switch(&jobInput.noCombine), "do one ligand to one receptor docking")
                 ("exhaustiveness", value<int>(&(jobInput.exhaustiveness))->default_value(8), "exhaustiveness (default value 8) of the global search (roughly proportional to time): 1+")
                 ("granularity", value<double>(&(jobInput.granularity))->default_value(0.375), "the granularity of grids (default value 0.375)")
                 ("num_modes", value<int>(&jobInput.num_modes)->default_value(10), "maximum number (default value 10) of binding modes to generate")

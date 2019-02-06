@@ -88,12 +88,13 @@ bool getScores(JobOutData& jobOut){
 void getRecData(JobInputData& jobInput, std::string& recKey, grid_dims& gd){
     Node n;
 
-    try {
-        hid_t rec_hid = relay::io::hdf5_open_file_for_read(jobInput.recFile);
-        relay::io::hdf5_read(rec_hid, n);
-    }catch (...){
+    hid_t rec_hid = relay::io::hdf5_open_file_for_read(jobInput.recFile);
+
+    if(!rec_hid){
         throw LBIND::LBindException("Conduit HDF5 cannot read "+jobInput.recFile);
     }
+
+    relay::io::hdf5_read(rec_hid, n);
 
     std::string pdbqtPath="rec/"+recKey+"/file/rec_min.pdbqt";
     //std::cout << pdbqtPath << std::endl;

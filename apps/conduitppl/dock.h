@@ -29,6 +29,7 @@ public:
     void serialize(Archive & ar, const unsigned int version)
     {
         ar & useScoreCF;
+        ar & noCombine;
         ar & flexible;
         ar & randomize;
         ar & cpu;
@@ -43,7 +44,8 @@ public:
         ar & ligFile;
     }
 
-    bool useScoreCF; //switch to turn on score cutoff    
+    bool useScoreCF; //switch to turn on score cutoff
+    bool noCombine;
     bool flexible;
     bool randomize;
     int cpu;

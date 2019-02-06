@@ -186,17 +186,33 @@ int main(int argc, char* argv[]) {
         std::string errMesg="mkdir dockHDF5 fails";
         LBIND::command(cmd, errMesg);
 
+        // Generate the keys based on combination or no combination
         // reserve large chunk of memory to speed up the process
-        std::unordered_set<std::string>::size_type keySize=recList.size()*ligList.size();
-        keysCalc.reserve(keySize);
+        if (jobInput.noCombine){
+            if(recList.size() != ligList.size()){
+                std::cerr << "Number of receptors does not match that of ligands" << std::endl;
+                world.abort(1);
+            }
 
-        for(int i=0; i < recList.size(); ++i)
-        {
-            for(int j=0; j< ligList.size(); ++j)
-            {
-                std::string key=recList[i]+"/"+ligList[j];
+            std::unordered_set<std::string>::size_type keySize = recList.size();
+            keysCalc.reserve(keySize);
+
+            for (int i = 0; i < recList.size(); ++i) {
+                std::string key = recList[i] + "/" + ligList[i];
                 //std::cout << key <<std::endl;
                 keysCalc.insert(key);
+            }
+
+        }else {
+            std::unordered_set<std::string>::size_type keySize = recList.size() * ligList.size();
+            keysCalc.reserve(keySize);
+
+            for (int i = 0; i < recList.size(); ++i) {
+                for (int j = 0; j < ligList.size(); ++j) {
+                    std::string key = recList[i] + "/" + ligList[j];
+                    //std::cout << key <<std::endl;
+                    keysCalc.insert(key);
+                }
             }
         }
 
