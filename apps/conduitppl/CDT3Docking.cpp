@@ -169,8 +169,9 @@ int main(int argc, char* argv[]) {
         std::vector<std::string> recList;
         std::vector<std::string> fleList;
         std::vector<std::string> ligList;
+        std::vector<std::string> comList;
 
-        int success = mpiParser(argc, argv, ligFile, recFile, ligList, recList, fleList, jobInput);
+        int success = mpiParser(argc, argv, ligFile, recFile, ligList, recList, comList, fleList, jobInput);
         if (success != 0) {
             std::cerr << "Error: Parser input error" << std::endl;
             world.abort(1);
@@ -188,22 +189,7 @@ int main(int argc, char* argv[]) {
 
         // Generate the keys based on combination or no combination
         // reserve large chunk of memory to speed up the process
-        if (jobInput.noCombine){
-            if(recList.size() != ligList.size()){
-                std::cerr << "Number of receptors does not match that of ligands" << std::endl;
-                world.abort(1);
-            }
-
-            std::unordered_set<std::string>::size_type keySize = recList.size();
-            keysCalc.reserve(keySize);
-
-            for (int i = 0; i < recList.size(); ++i) {
-                std::string key = recList[i] + "/" + ligList[i];
-                //std::cout << key <<std::endl;
-                keysCalc.insert(key);
-            }
-
-        }else {
+        if (jobInput.comFile=="") {
             std::unordered_set<std::string>::size_type keySize = recList.size() * ligList.size();
             keysCalc.reserve(keySize);
 
@@ -214,6 +200,24 @@ int main(int argc, char* argv[]) {
                     keysCalc.insert(key);
                 }
             }
+        }else {
+
+            std::unordered_set<std::string>::size_type keySize = comList.size();
+            keysCalc.reserve(keySize);
+
+            for (int i = 0; i < comList.size(); ++i) {
+                std::vector<std::string> tokens;
+                std::string key=comList[i];
+                tokenize(key, tokens, "/");
+                if(tokens.size()==2) {
+                    if (std::find(recList.begin(), recList.end(),tokens[0])!=recList.end()) {
+                        if (std::find(ligList.begin(), ligList.end(),tokens[1])!=ligList.end()) {
+                            keysCalc.insert(key);
+                        }
+                    }
+                }
+            }
+
         }
 
         std::vector<std::vector<std::string> > allKeysFinish;

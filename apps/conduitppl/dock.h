@@ -29,7 +29,6 @@ public:
     void serialize(Archive & ar, const unsigned int version)
     {
         ar & useScoreCF;
-        ar & noCombine;
         ar & flexible;
         ar & randomize;
         ar & cpu;
@@ -42,10 +41,10 @@ public:
         ar & key;
         ar & recFile;
         ar & ligFile;
+        ar & comFile;
     }
 
     bool useScoreCF; //switch to turn on score cutoff
-    bool noCombine;
     bool flexible;
     bool randomize;
     int cpu;
@@ -59,6 +58,7 @@ public:
     std::string key;
     std::string recFile;
     std::string ligFile;
+    std::string comFile;
 };
 
 struct JobOutData{

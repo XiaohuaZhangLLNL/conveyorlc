@@ -87,12 +87,34 @@ void saveLig(std::string& fileName, std::vector<std::string>& ligList){
     relay::io::hdf5_close_file(lig_hid);
 }
 
+void saveCom(std::string& fileName, std::vector<std::string>& comList){
+    std::ifstream inFile;
+    try {
+        inFile.open(fileName.c_str());
+    }
+    catch(...){
+        std::cout << "Cannot open file: " << fileName << std::endl;
+    }
+
+    const std::string comment="#";
+    std::string fileLine;
+    while(inFile){
+        std::getline(inFile, fileLine);
+        if(fileLine.compare(0, 1, comment)==0) continue;
+        std::vector<std::string> tokens;
+        tokenize(fileLine, tokens);
+        if(tokens.size() == 2){
+            comList.push_back(tokens[0]+"/"+tokens[1]);
+        }
+    }
+}
 
 int mpiParser(int argc, char* argv[],
         std::string& ligFile,
         std::string& recFile,
         std::vector<std::string>& ligList,
         std::vector<std::string>& recList,
+        std::vector<std::string>& comList,
         std::vector<std::string>& fleList,
         JobInputData& jobInput){
     using namespace boost::program_options;
@@ -136,6 +158,8 @@ Thank you!\n";
     std::string inputDir;
     std::string dataPath;
 
+    std::string comFile;
+
     if(!initConveyorlcEnv(workDir, inputDir, dataPath)){
         return 1;
     }
@@ -151,7 +175,7 @@ Thank you!\n";
         inputs.add_options()
                 ("recFile", value<std::string > (&recFile)->default_value("scratch/receptor.hdf5"), "receptor HDF5 file")
                 ("ligFile", value<std::string > (&ligFile)->default_value("scratch/ligand.hdf5"), "ligand HDF5 file")
-                ("noCombine", bool_switch(&jobInput.noCombine), "do one ligand to one receptor docking")
+                ("comFile", value<std::string > (&comFile)->default_value(""), "Specify how receptor and ligand combine")
                 ("exhaustiveness", value<int>(&(jobInput.exhaustiveness))->default_value(8), "exhaustiveness (default value 8) of the global search (roughly proportional to time): 1+")
                 ("granularity", value<double>(&(jobInput.granularity))->default_value(0.375), "the granularity of grids (default value 0.375)")
                 ("num_modes", value<int>(&jobInput.num_modes)->default_value(10), "maximum number (default value 10) of binding modes to generate")
@@ -202,6 +226,13 @@ Thank you!\n";
         }else{
             jobInput.ligFile=workDir+"/"+ligFile;
             saveLig(jobInput.ligFile, ligList);
+        }
+
+        if(comFile!=""){
+            jobInput.comFile=workDir+"/"+comFile;
+            saveCom(jobInput.comFile, comList);
+        }else{
+            jobInput.comFile="";
         }
         
         if (jobInput.cpu < 1)
