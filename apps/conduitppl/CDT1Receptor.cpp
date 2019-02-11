@@ -660,23 +660,29 @@ int main(int argc, char** argv) {
     if (world.rank() == 0) {
 
         // if force re-do just delete the receptor.hdf5
-        if(jobInput.forceRedoFlg){
-            std::string cmd="rm -f "+ workDir+"/scratch/receptor.hdf5";
-            std::string errMesg="Remove fails for "+workDir+"/scratch/receptor.hdf5";
+        if (jobInput.forceRedoFlg) {
+            std::string cmd = "rm -f " + workDir + "/scratch/receptor.hdf5";
+            std::string errMesg = "Remove fails for " + workDir + "/scratch/receptor.hdf5";
             command(cmd, errMesg);
         }
         //! Open a Conduit file to track the calculation
-        std::string cmd = "mkdir -p " + workDir+"/scratch";
-        std::string errMesg="mkdir scratch directory fails";
+        std::string cmd = "mkdir -p " + workDir + "/scratch";
+        std::string errMesg = "mkdir scratch directory fails";
         LBIND::command(cmd, errMesg);
-        
+
         Node n;
-        std::string recCdtFile=workDir+"/scratch/receptor.hdf5:/";
-        n["date"]="Create By CDT1Receptor at "+timeStamp();
+        std::string recCdtFile = workDir + "/scratch/receptor.hdf5:/";
+        n["date"] = "Create By CDT1Receptor at " + timeStamp();
         relay::io::hdf5_append(n, recCdtFile);
+
         jobInput.recCdtFile=recCdtFile;
 
         initInputData(jobInput, podata);
+    }
+
+    world.barrier();
+
+    if (world.rank() == 0) {
 
         std::vector<RecData*> dirList;        
         
