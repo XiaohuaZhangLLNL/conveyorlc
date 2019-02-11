@@ -678,11 +678,6 @@ int main(int argc, char** argv) {
         jobInput.recCdtFile=recCdtFile;
 
         initInputData(jobInput, podata);
-    }
-
-    world.barrier();
-
-    if (world.rank() == 0) {
 
         std::vector<RecData*> dirList;        
         

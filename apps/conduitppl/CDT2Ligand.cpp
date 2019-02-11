@@ -393,7 +393,11 @@ int main(int argc, char** argv) {
     JobOutData jobOut;
 
     if (world.rank() == 0) {
-
+        //! Open a Conduit file to track the calculation
+        std::string cmd = "mkdir -p " + workDir + "/scratch";
+        std::string errMesg = "mkdir scratch directory fails";
+        LBIND::command(cmd, errMesg);
+        
         //! Open a Conduit file to track the calculation
         Node n;
         std::string ligCdtFile=workDir+"/scratch/ligand.hdf5:/";
