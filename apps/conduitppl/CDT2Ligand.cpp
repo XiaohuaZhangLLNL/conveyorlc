@@ -342,6 +342,8 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         errMesg="sed to fix Br fails";
         command(cmd, errMesg);
 
+        chdir(workDir.c_str());
+
     } catch (LBindException& e){
         jobOut.message= e.what();
         jobOut.error=false;
@@ -397,7 +399,7 @@ int main(int argc, char** argv) {
         std::string cmd = "mkdir -p " + workDir + "/scratch";
         std::string errMesg = "mkdir scratch directory fails";
         LBIND::command(cmd, errMesg);
-        
+
         //! Open a Conduit file to track the calculation
         Node n;
         std::string ligCdtFile=workDir+"/scratch/ligand.hdf5:/";

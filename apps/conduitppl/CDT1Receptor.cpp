@@ -515,7 +515,9 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             pGrid->writeCutRecPDB(fileName, pComplex.get(), jobInput.cutRadius);
             std::string recType="recCut";
             minimization(jobInput, jobOut, fileName, recType, libDir);           
-        }        
+        }
+
+        chdir(workDir.c_str());
         //delete pElementContainer;
     
     } catch (LBindException& e){
