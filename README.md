@@ -139,9 +139,13 @@ pdb/2y2vA_A.pdb KeyRes:SGB.203|GLU.202.A
 #
 # 4. To specify non-standard residues in receptor start with "NonRes:"
 #    nonstandard residues also separated by '|'
+#    by default it takes off lib files for example SGB (or SBG.O) for SGB.off
+#    If mol2 file is used, Please specify it. For example SGB.M for SBG.mol2
 #
-pdb/2y2vA_A.pdb KeyRes:SGB.203|GLU.202.A NonRes:SGB
 pdb/2y2vA_A.pdb NonRes:SGB
+pdb/2y2vA_A.pdb KeyRes:SGB.203|GLU.202.A NonRes:SGB
+pdb/2y2vA_A.pdb KeyRes:SGB.203|GLU.202.A NonRes:SGB.O
+pdb/2y2vA_A.pdb KeyRes:SGB.203|GLU.202.A NonRes:SGB.O|NAD.M|GTP.M|FMN.O
 #
 # 5. To specify substrate ligand for site identification start with "SubRes:" and follow by the relative
 #    path to ligand file
