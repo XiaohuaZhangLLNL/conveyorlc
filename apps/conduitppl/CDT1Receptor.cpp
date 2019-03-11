@@ -221,7 +221,15 @@ void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& check
         tleapFile << "source leaprc.water.tip3p\n";
 
         for (unsigned int i = 0; i < jobInput.nonRes.size(); ++i) {
-            tleapFile << "loadoff " << libDir << jobInput.nonRes[i] << ".off \n";
+            std::string nonResRaw=jobInput.nonRes[i];
+            std::vector<std::string> nonResStrs;
+            tokenize(nonResRaw, nonResStrs, ".");
+            if(nonResStrs.size()==2 && nonResStrs[1]=="M"){
+                tleapFile << nonResStrs[0] <<" = loadmol2 "<< libDir << nonResStrs[0] << ".mol2 \n";
+            }else{
+                tleapFile << "loadoff " << libDir << nonResStrs[0] << ".off \n";
+            }
+
             tleapFile << "loadamberparams " << libDir << jobInput.nonRes[i] << ".frcmod \n";
         }
 

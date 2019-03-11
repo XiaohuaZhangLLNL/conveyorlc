@@ -154,7 +154,15 @@ void MMGBSA::run(std::string& poseID, bool restart){
         tleapFile << "source leaprc.water.tip3p\n";
         
         for(unsigned int i=0; i<nonRes.size(); ++i){
-            tleapFile << "loadoff "<< libDir << nonRes[i] <<".off \n";
+            std::string nonResRaw=nonRes[i];
+            std::vector<std::string> nonResStrs;
+            tokenize(nonResRaw, nonResStrs, ".");
+            if(nonResStrs.size()==2 && nonResStrs[1]=="M"){
+                tleapFile << nonResStrs[0] <<" = loadmol2 "<< libDir << nonResStrs[0] << ".mol2 \n";
+            }else{
+                tleapFile << "loadoff " << libDir << nonResStrs[0] << ".off \n";
+            }
+
             tleapFile << "loadamberparams "<< libDir << nonRes[i] <<".frcmod \n";
         }        
         
@@ -281,7 +289,15 @@ void MMGBSA::run(std::string& poseID, bool restart){
         tleapFile << "source leaprc.water.tip3p\n";
         
         for(unsigned int i=0; i<nonRes.size(); ++i){
-            tleapFile << "loadoff "<< libDir << nonRes[i] <<".off \n";
+            std::string nonResRaw=nonRes[i];
+            std::vector<std::string> nonResStrs;
+            tokenize(nonResRaw, nonResStrs, ".");
+            if(nonResStrs.size()==2 && nonResStrs[1]=="M"){
+                tleapFile << nonResStrs[0] <<" = loadmol2 "<< libDir << nonResStrs[0] << ".mol2 \n";
+            }else{
+                tleapFile << "loadoff " << libDir << nonResStrs[0] << ".off \n";
+            }
+
             tleapFile << "loadamberparams "<< libDir << nonRes[i] <<".frcmod \n";
         }                   
                 
