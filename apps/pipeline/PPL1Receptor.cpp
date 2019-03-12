@@ -388,14 +388,15 @@ void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& check
         for (unsigned int i = 0; i < jobInput.nonRes.size(); ++i) {
             std::string nonResRaw=jobInput.nonRes[i];
             std::vector<std::string> nonResStrs;
-            tokenize(nonResRaw, nonResStrs, ".");
+            const std::string delimiter=".";
+            tokenize(nonResRaw, nonResStrs, delimiter);
             if(nonResStrs.size()==2 && nonResStrs[1]=="M"){
                 tleapFile << nonResStrs[0] <<" = loadmol2 "<< libDir << nonResStrs[0] << ".mol2 \n";
             }else{
                 tleapFile << "loadoff " << libDir << nonResStrs[0] << ".off \n";
             }
 
-            tleapFile << "loadamberparams " << libDir << jobInput.nonRes[i] << ".frcmod \n";
+            tleapFile << "loadamberparams "<< libDir << nonResStrs[0] <<".frcmod \n";
         }
 
         tleapFile << "REC = loadpdb " + recType + "_std.pdb\n";

@@ -445,7 +445,9 @@ int main(int argc, char** argv) {
                     world.recv(mpi::any_source, outTag, jobOut);
 
                     toConduit(jobOut, ligCdtFile);
-                    rmLigDir(jobOut);
+                    if(jobOut.error) {
+                        rmLigDir(jobOut);
+                    }
                 }
 
                 int freeProc;
