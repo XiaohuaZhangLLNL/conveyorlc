@@ -740,7 +740,9 @@ int main(int argc, char** argv) {
             world.recv(mpi::any_source, outTag, jobOut);
 
             toConduit(jobOut, recCdtFile);
-            rmRecDir(jobOut);
+            if(jobOut.error) {
+                rmRecDir(jobOut);
+            }
         } 
 
         for(int i=1; i < world.size(); ++i){
