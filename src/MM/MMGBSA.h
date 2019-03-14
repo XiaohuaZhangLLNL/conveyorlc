@@ -30,7 +30,7 @@ public:
     
     double getbindGB();
     double getScore();
-  
+    bool getligGB(std::string& checkfile, double& ligGB);
 private:
  
 //    void ligRun(const std::string& ligand);

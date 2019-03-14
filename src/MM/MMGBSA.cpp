@@ -49,6 +49,22 @@ MMGBSA::MMGBSA(const MMGBSA& orig) {
 MMGBSA::~MMGBSA() {
 }
 
+bool MMGBSA::getligGB(std::string& checkfile, double& ligGB){
+    std::ifstream inFile(checkfile.c_str());
+    std::string fileLine="";
+    std::string delimiter=":";
+    while(inFile){
+        std::getline(inFile, fileLine);
+        if(fileLine.substr(0, 4)=="GBSA"){
+            std::vector<std::string> tokens;
+            tokenize(fileLine, tokens, delimiter);
+            ligGB=Sstrm<double, std::string>(tokens[1]);
+            return true;
+        }
+    }
+    return false;
+}
+
 void MMGBSA::run(std::string& poseID, bool restart){
     
     std::string libDir=INPUTDIR+"/lib/";
@@ -60,12 +76,19 @@ void MMGBSA::run(std::string& poseID, bool restart){
     std::string cmd="mkdir -p "+poseDir;
     std::string errMesg="MMGBSA::run mkdir poseDir fails";
     command(cmd, errMesg);
-    chdir(poseDir.c_str());  
-    
-    std::string sanderOut=ligDir+"LIG_minGB.out";
-    boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
-    bool success=pSanderOutput->getEnergy(sanderOut,ligGBen);
-    if(!success) throw LBindException("Cannot get ligand GB energy");
+    chdir(poseDir.c_str());
+
+
+    std::string ligCheckFile=ligDir+"checkpoint.txt";
+    if(fileExist(ligCheckFile)){
+        bool success=this->getligGB(ligCheckFile, ligGBen);
+        if(!success) throw LBindException("Cannot get ligand GB energy from checkpoint.txt");
+    }else{
+        std::string sanderOut=ligDir+"LIG_minGB.out";
+        boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
+        bool success=pSanderOutput->getEnergy(sanderOut,ligGBen);
+        if(!success) throw LBindException("Cannot get ligand GB energy");
+    }
        
     cmd="ln -sf "+recDir+"Rec_min.pdb";
     errMesg="MMGBSA::run ln Rec_min.pdb fails";
@@ -231,7 +254,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
         minFile.close();    
     }          
     
-    sanderOut="Com_min_GB_"+poseID+".out";
+    std::string sanderOut="Com_min_GB_"+poseID+".out";
     if(version==13){
         cmd="sander13  -O -i Com_min.in -o "+sanderOut+" -p Com.prmtop -c Com.inpcrd -ref Com.inpcrd  -x Com_" 
             +poseID+".mdcrd"+" -r Com_min"+poseID+".rst";
@@ -245,7 +268,8 @@ void MMGBSA::run(std::string& poseID, bool restart){
     
 //    boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
     double comEnergy=0;
-    success=pSanderOutput->getEAmber(sanderOut,comEnergy);
+    boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
+    bool success=pSanderOutput->getEAmber(sanderOut,comEnergy);
     if(!success) throw LBindException("Cannot get complex GB energy");
 
     std::cout << "Complex GB Minimization Energy: " << comEnergy <<" kcal/mol."<< std::endl;   
