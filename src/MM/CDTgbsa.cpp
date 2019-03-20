@@ -78,9 +78,15 @@ void CDTgbsa::getRecData(CDTmeta &cdtMeta)
     std::vector<std::string> filenames = {"rec_min.pdb"};
 
     for (std::string &name : filenames) {
-        std::ofstream outfile(name);
-        std::string outLines = nRec["file/" + name].as_string();
-        outfile << outLines;
+
+        try{
+            std::ofstream outfile(name);
+            std::string outLines = nRec["file/" + name].as_string();
+            outfile << outLines;
+        }catch(...){
+            throw LBindException("Receptor "+name+" missing");
+        }
+
     }
 
     relay::io::hdf5_close_file(rec_hid);
@@ -103,7 +109,7 @@ void CDTgbsa::getDockData(LBIND::CDTmeta &cdtMeta)
         std::string outLines = n["dock/"+cdtMeta.recID+"/"+cdtMeta.ligID+"/file/" + name].as_string();
         outfile << outLines;
     }
-
+    relay::io::hdf5_close_file(dock_hid);
     //! Processing poses
 
     std::string ligpdbqt="lig_model.pdbqt";
