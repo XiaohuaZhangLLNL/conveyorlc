@@ -78,13 +78,13 @@ void getDockingKeysHDF5(std::string& fileName, std::vector<std::string>& keysFin
             if(nLig["status"].as_int()==1){
 
                 int numPose=0;
-
-                if (n["meta/numPose"].dtype().is_int32()){
-                    numPose=nLig["meta/numPose"].as_int32();
-                }else if (n["meta/numPose"].dtype().is_int64()) {
-                    numPose= nLig["meta/numPose"].as_int64();
+                Node nNumPose=nLig["meta/numPose"];
+                if (nNumPose.dtype().is_int32()){
+                    numPose=nNumPose.as_int32();
+                }else if (nNumPose.dtype().is_int64()) {
+                    numPose= nNumPose.as_int64();
                 }else{
-                    numPose= nLig["meta/numPose"].as_int();
+                    numPose= nNumPose.as_int();
                 }
 
                 if(numPose>0){
