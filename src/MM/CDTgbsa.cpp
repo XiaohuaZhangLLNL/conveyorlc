@@ -24,12 +24,15 @@ namespace LBIND{
 
 void CDTgbsa::getLigData(CDTmeta &cdtMeta) {
 
-    Node n;
+    Node nLig;
 
-    hid_t lig_hid = relay::io::hdf5_open_file_for_read(cdtMeta.workDir+"/"+cdtMeta.ligFile);
-    relay::io::hdf5_read(lig_hid, n);
+    //hid_t lig_hid = relay::io::hdf5_open_file_for_read(cdtMeta.workDir+"/"+cdtMeta.ligFile);
+    //relay::io::hdf5_read(lig_hid, n);
+    // Partial I/O
+    std::string ligFilePath=cdtMeta.workDir+"/"+cdtMeta.ligFile+":lig/" + cdtMeta.ligID;
+    relay::io::load(ligFilePath, nLig);
 
-    Node nLig = n["lig/" + cdtMeta.ligID];
+    //Node nLig = n["lig/" + cdtMeta.ligID];
     int status = nLig["status"].as_int();
     if (status != 1) {
         throw LBindException("Ligand " + cdtMeta.ligID + " preparation failed");
@@ -46,18 +49,21 @@ void CDTgbsa::getLigData(CDTmeta &cdtMeta) {
         outfile << outLines;
     }
 
-    relay::io::hdf5_close_file(lig_hid);
+    //relay::io::hdf5_close_file(lig_hid);
 
 }
 
 void CDTgbsa::getRecData(CDTmeta &cdtMeta)
 {
-    Node n;
+    Node nRec;
 
-    hid_t rec_hid=relay::io::hdf5_open_file_for_read(cdtMeta.workDir+"/"+cdtMeta.recFile);
-    relay::io::hdf5_read(rec_hid, n);
+    //hid_t rec_hid=relay::io::hdf5_open_file_for_read(cdtMeta.workDir+"/"+cdtMeta.recFile);
+    //relay::io::hdf5_read(rec_hid, n);
+    //Partial I/O
+    std::string recFilePath=cdtMeta.workDir+"/"+cdtMeta.recFile+":rec/" + cdtMeta.recID;
+    relay::io::load(recFilePath, nRec);
 
-    Node nRec = n["rec/" + cdtMeta.recID];
+    //Node nRec = n["rec/" + cdtMeta.recID];
     int status = nRec["status"].as_int();
     if (status != 1) {
         throw LBindException("Receptor " + cdtMeta.recID + " preparation failed");
@@ -89,7 +95,7 @@ void CDTgbsa::getRecData(CDTmeta &cdtMeta)
 
     }
 
-    relay::io::hdf5_close_file(rec_hid);
+    //relay::io::hdf5_close_file(rec_hid);
 
 }
 
@@ -97,19 +103,30 @@ void CDTgbsa::getDockData(LBIND::CDTmeta &cdtMeta)
 {
     Node n;
 
+    std::string name="poses.pdbqt";
     std::string dockHDF5file=cdtMeta.workDir+"/"+cdtMeta.dockInDir+"/dock_proc"+std::to_string(cdtMeta.procID)+".hdf5";
-    hid_t dock_hid=relay::io::hdf5_open_file_for_read(dockHDF5file);
-    relay::io::hdf5_read(dock_hid, n);
+    std::string pdbqtPath="dock/"+cdtMeta.recID+"/"+cdtMeta.ligID+"/file/"+name;
+    std::string pdbqtFilePath=dockHDF5file+":"+pdbqtPath;
 
-    std::string posespdbqt="poses.pdbqt";
-    std::vector<std::string> filenames = {posespdbqt};
+    //Partial I/O
+    relay::io::load(pdbqtFilePath, n);
 
-    for (std::string &name : filenames) {
-        std::ofstream outfile(name);
-        std::string outLines = n["dock/"+cdtMeta.recID+"/"+cdtMeta.ligID+"/file/" + name].as_string();
-        outfile << outLines;
-    }
-    relay::io::hdf5_close_file(dock_hid);
+    std::ofstream outfile(name);
+    std::string outLines = n.as_string();
+    outfile << outLines;
+
+    //hid_t dock_hid=relay::io::hdf5_open_file_for_read(dockHDF5file);
+    //relay::io::hdf5_read(dock_hid, n);
+
+    //std::string posespdbqt="poses.pdbqt";
+    //std::vector<std::string> filenames = {posespdbqt};
+
+    //for (std::string &name : filenames) {
+    //    std::ofstream outfile(name);
+    //    std::string outLines = n["dock/"+cdtMeta.recID+"/"+cdtMeta.ligID+"/file/" + name].as_string();
+    //    outfile << outLines;
+    //}
+    //relay::io::hdf5_close_file(dock_hid);
     //! Processing poses
 
     std::string ligpdbqt="lig_model.pdbqt";
@@ -117,7 +134,7 @@ void CDTgbsa::getDockData(LBIND::CDTmeta &cdtMeta)
     std::string pIDstr=cdtMeta.poseID.substr(1, cdtMeta.poseID.size()-1);
     int pID=std::stoi(pIDstr);
 
-    pPdb->readByModel(posespdbqt, ligpdbqt, pID, cdtMeta.dockscore);
+    pPdb->readByModel(name, ligpdbqt, pID, cdtMeta.dockscore);
 
     std::string posePDB="lig_model.pdb";
     std::string cmd="obabel -ipdbqt "+ligpdbqt+" -opdb -O "+posePDB;
