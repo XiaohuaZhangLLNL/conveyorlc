@@ -454,7 +454,6 @@ void CDTgbsa::run(CDTmeta &cdtMeta){
 
     cdtMeta.gbbind=cdtMeta.comGB-cdtMeta.recGB-cdtMeta.ligGB;
 
-    chdir(cdtMeta.workDir.c_str());
 
 }
 

@@ -380,7 +380,7 @@ int main(int argc, char** argv) {
             mmgbsa(cdtMeta);
 
             toConduit(cdtMeta, gbsaHDF5File);
-
+            chdir(cdtMeta.workDir.c_str());
             // Remove the working dire
             if(cdtMeta.error) { // if calculation successful
                 std::string cmd = "rm -rf " + cdtMeta.poseDir;
