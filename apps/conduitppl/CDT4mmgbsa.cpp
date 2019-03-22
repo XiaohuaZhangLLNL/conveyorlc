@@ -154,7 +154,6 @@ void toConduit(CDTmeta &cdtMeta, std::string& gbsaHDF5File){
 
         std::vector<std::string> filenames={"Com.prmtop", "Com.inpcrd", "Com_min.rst",
                                             "Com_min.pdb", "Com_min_GB.out", "Rec_minGB.out",
-                                            "Com_leap.log", "Lig_leap.log", "rec_leap.log",
                                             "Rec_min.rst"};
 
         for(std::string& name : filenames)
