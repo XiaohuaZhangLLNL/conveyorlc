@@ -382,9 +382,11 @@ int main(int argc, char** argv) {
             toConduit(cdtMeta, gbsaHDF5File);
 
             // Remove the working dire
-            std::string cmd = "rm -rf " + cdtMeta.poseDir;
-            std::string errMesg="remove poseDir fails";
-            LBIND::command(cmd, errMesg);
+            if(cdtMeta.error) { // if calculation successful
+                std::string cmd = "rm -rf " + cdtMeta.poseDir;
+                std::string errMesg = "remove poseDir fails";
+                LBIND::command(cmd, errMesg);
+            }
             
         }
     }
