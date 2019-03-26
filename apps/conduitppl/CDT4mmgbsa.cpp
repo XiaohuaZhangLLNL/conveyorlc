@@ -200,7 +200,7 @@ void getKeysHDF5pIO(std::string& fileName, std::vector<std::string>& keysFinish)
             std::vector<std::string> pose_names;
             relay::io::hdf5_group_list_child_names(gbsa_hid,"/gbsa/"+curr_rec+"/"+curr_lig+"/", pose_names);
 
-            for(int k=0; k<lig_names.size(); k++)
+            for(int k=0; k<pose_names.size(); k++)
             {
                 const std::string &curr_pose = pose_names[k];
                 std::string key = curr_rec + "/" + curr_lig + "/" + curr_pose;
