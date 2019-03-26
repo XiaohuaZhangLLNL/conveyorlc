@@ -406,7 +406,7 @@ int main(int argc, char** argv) {
         n["date"]="Create By CDT2Ligand at "+timeStamp();
         relay::io::hdf5_append(n, ligCdtFile);
 
-        hid_t lig_hid = relay::io::hdf5_open_file_for_read(workDir+"/scratch/ligand.hdf5");
+        hid_t lig_hid = relay::io::hdf5_open_file_for_read_write(workDir+"/scratch/ligand.hdf5");
         if(!conduit::relay::io::hdf5_has_path(lig_hid,"SDF")){
             std::ifstream infile(podata.sdfFile);
             if(infile.good())
