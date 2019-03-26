@@ -100,6 +100,53 @@ void getDockingKeysHDF5(std::string& fileName, std::vector<std::string>& keysFin
 
 }
 
+void getDockingKeysHDF5pIO(std::string& fileName, std::vector<std::string>& keysFinish)
+{
+    path p(fileName);
+    std::string fileBase=p.stem().string();
+    // asume filename are dock_proc1.hdf5 dock_proc2.hdf5, ... dock_procN.hdf5
+    int procID=std::stoi(fileBase.substr(9, fileBase.size()-9));
+
+    hid_t dock_hid=relay::io::hdf5_open_file_for_read(fileName);
+
+    std::vector<std::string> rec_names;
+    relay::io::hdf5_group_list_child_names(dock_hid,"/dock/",rec_names);
+
+    for(int i=0;i<rec_names.size();i++)
+    {
+        const std::string &curr_rec = rec_names[i];
+        std::vector<std::string> lig_names;
+        relay::io::hdf5_group_list_child_names(dock_hid,"/dock/"+curr_rec+"/",lig_names);
+
+        for(int j=0; j<lig_names.size(); j++)
+        {
+            const std::string &curr_lig = lig_names[j];
+            Node nLig;
+            relay::io::hdf5_read(dock_hid,"/dock/"+curr_rec+"/"+curr_lig, nLig);
+            if(nLig["status"].as_int()==1){
+                int numPose=0;
+                Node nNumPose=nLig["meta/numPose"];
+                if (nNumPose.dtype().is_int32()){
+                    numPose=nNumPose.as_int32();
+                }else if (nNumPose.dtype().is_int64()) {
+                    numPose= nNumPose.as_int64();
+                }else{
+                    numPose= nNumPose.as_int();
+                }
+
+                if(numPose>0){
+                    std::string key=curr_rec+"/"+curr_lig+"+"+std::to_string(numPose)+"+"+std::to_string(procID);
+                    keysFinish.push_back(key);
+                }
+            }
+        }
+
+    }
+
+    relay::io::hdf5_close_file(dock_hid);
+
+}
+
 void getKeysHDF5(std::string& fileName, std::vector<std::string>& keysFinish)
 {
     Node n;
@@ -130,6 +177,41 @@ void getKeysHDF5(std::string& fileName, std::vector<std::string>& keysFinish)
 
     }
     relay::io::hdf5_close_file(dock_hid);
+
+}
+
+void getKeysHDF5pIO(std::string& fileName, std::vector<std::string>& keysFinish)
+{
+
+    hid_t gbsa_hid=relay::io::hdf5_open_file_for_read(fileName);
+
+    std::vector<std::string> rec_names;
+    relay::io::hdf5_group_list_child_names(gbsa_hid,"/gbsa/",rec_names);
+
+    for(int i=0;i<rec_names.size();i++)
+    {
+        const std::string &curr_rec = rec_names[i];
+        std::vector<std::string> lig_names;
+        relay::io::hdf5_group_list_child_names(gbsa_hid,"/gbsa/"+curr_rec+"/",lig_names);
+
+        for(int j=0; j<lig_names.size(); j++)
+        {
+            const std::string &curr_lig = lig_names[j];
+            std::vector<std::string> pose_names;
+            relay::io::hdf5_group_list_child_names(gbsa_hid,"/gbsa/"+curr_rec+"/"+curr_lig+"/", pose_names);
+
+            for(int k=0; k<lig_names.size(); k++)
+            {
+                const std::string &curr_pose = pose_names[k];
+                std::string key = curr_rec + "/" + curr_lig + "/" + curr_pose;
+                keysFinish.push_back(key);
+            }
+        }
+
+
+    }
+
+    relay::io::hdf5_close_file(gbsa_hid);
 
 }
 
@@ -260,7 +342,7 @@ int main(int argc, char** argv) {
 
         for(int i=start; i<hdf5Files.size(); i=i+stride)
         {
-            getDockingKeysHDF5(hdf5Files[i], dockingKeys);
+            getDockingKeysHDF5pIO(hdf5Files[i], dockingKeys);
         }
 
         gather(world, dockingKeys, 0);
@@ -319,7 +401,8 @@ int main(int argc, char** argv) {
 
         for(int i=start; i<hdf5Files.size(); i=i+stride)
         {
-            getKeysHDF5(hdf5Files[i], keysFinish);
+            //getKeysHDF5(hdf5Files[i], keysFinish);
+            getKeysHDF5pIO(hdf5Files[i], keysFinish);
         }
 
         gather(world, keysFinish, 0);
