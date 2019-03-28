@@ -19,6 +19,8 @@ def getArgs():
                         help='ligand ID')
     parser.add_argument('-n', '--name', action='store', dest='ligname', default=None,
                         help='ligand name')
+    parser.add_argument('-c', '--clist', action='store_true', dest='clist', default=False,
+                        help='ligand name')
     args = parser.parse_args()
 
     return args
@@ -85,6 +87,22 @@ def getDataByligName(args):
     else:
         print("Cannot find ligand name " + args.ligname)
 
+
+def getIdNameList(args):
+
+    hdf5path = os.path.abspath(args.infile)
+
+    n = conduit.Node()
+    relay.io.load(n, hdf5path)
+
+    itr = n['lig'].children()
+
+    with open('idnamelist.txt', 'w') as f:
+        for id in itr:
+            name = n['lig/' + id.name() + "/meta/name"]
+            f.write("{}  {}\n".format(name, id.name() ))
+
+
 def main():
     args=getArgs()
     print("Default inputs: ", args.infile, args.outfile)
@@ -97,6 +115,9 @@ def main():
 
     if args.ligname:
         getDataByligName(args)
+
+    if args.clist:
+        getIdNameList(args)
 
     #n_load = conduit.Node()
     #relay.io.load(n_load, hdf5path)

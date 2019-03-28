@@ -40,6 +40,10 @@ def getArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--scrDir', action='store', dest='scrDir', default='scratch',
                         help='path to scratch directory')
+    parser.add_argument('-s', '--sdf', action='store', dest='sdffile', default=None,
+                        help='path to scratch directory')
+    parser.add_argument('-os', '--outsdf', action='store', dest='outsdf', default=None,
+                        help='path to scratch directory')
     parser.add_argument('-o', '--out', action='store', dest='outfile', default='scratch/ligand.hdf5',
                         help='path to ligand.hdf5 file')
     parser.add_argument('-z', '--isZip', action='store_true', dest='isZip', default=False,
@@ -72,9 +76,36 @@ def extract_files(members):
         if os.path.basename(tarinfo.name) in extractList:
             yield tarinfo
 
+def saveSDFtoHDF(args):
+    if os.path.isfile(args.sdffile):
+        with open(args.sdffile, 'r') as f:
+            nSDF= conduit.Node()
+            nSDF['SDF']=f.read()
+            hdf5path = os.path.abspath(args.outfile)
+            conduit.relay.io.save_merged(nSDF, hdf5path)
+def extracSDF(args):
+    hdf5path = os.path.abspath(args.outfile)
+    n = conduit.Node()
+    conduit.relay.io.load(n, hdf5path)
+    with open(args.outsdf, 'w') as f:
+        filedata = n['SDF']
+        if len(filedata) > 0:
+            f.write(filedata)
+        else:
+            print("Missing SDF data")
+
 def main():
     args=getArgs()
-    print("Default inputs: ", args.scrDir, args.outfile)
+    print("Default inputs: ", args.scrDir, args.outfile, args.sdffile)
+
+    # if read in SDF
+    if args.sdffile:
+        saveSDFtoHDF(args)
+        return
+
+    if args.outsdf:
+        extracSDF(args)
+        return
 
     nHeader = conduit.Node()
     nHeader['date'] ="Created by PPL2toCDT2hdf5.py at " + datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")

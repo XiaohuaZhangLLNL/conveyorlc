@@ -110,10 +110,8 @@ def getID(idStr):
 
     return None
 
-def extract_files(members):
-    extractList = ['Com.inpcrd', 'Com.prmtop', 'Com_leap.log',
-                   'Com_min.pdb', 'Com_min.rst', 'Com_min_GB.out',
-                   'Lig_leap.log', 'Rec_minGB.out', 'rec_leap.log']
+def extract_files(members, extractList):
+
     for tarinfo in members:
         if os.path.basename(tarinfo.name) in extractList:
             yield tarinfo
@@ -145,18 +143,34 @@ def posetohdf5(recid, ligPath, ligid, poseID, hdf5path):
 
         mmgbsafile = os.path.join(posePath, 'mmgbsa_results.tar.gz')
 
+        extractListOld = ['Com.inpcrd', 'Com.prmtop',
+                       'Com_min.pdb', 'Rec_minGB.out']
+
+        extractListOld.append('Com_min'+poseIDReal+'.rst')
+        extractListOld.append('Com_min_GB_' + poseIDReal + '.out')
+        #print(extractListOld)
         if os.path.isfile(mmgbsafile):
             tar = tarfile.open(mmgbsafile)
-            tar.extractall(members=extract_files(tar))
+            tar.extractall(members=extract_files(tar, extractListOld))
             tar.close()
 
-        extractList = ['Com.inpcrd', 'Com.prmtop', 'Com_leap.log',
-                       'Com_min.pdb', 'Com_min.rst', 'Com_min_GB.out',
-                       'Lig_leap.log', 'Rec_minGB.out', 'rec_leap.log']
+        #if os.path.exists('Com_min.rst'):
+        os.system('rm -f Com_min.rst')
+        #if os.path.exists('Com_min_GB.out'):
+        os.system('rm -f Com_min_GB.out')
+        if os.path.isfile('Com_min'+poseIDReal+'.rst'):
+            os.rename('Com_min'+poseIDReal+'.rst', 'Com_min.rst')
+        if os.path.isfile('Com_min_GB_' + poseIDReal + '.out'):
+            os.rename('Com_min_GB_' + poseIDReal + '.out', 'Com_min_GB.out')
+
+        extractList = ['Com.inpcrd', 'Com.prmtop',
+                       'Com_min.pdb', 'Com_min.rst',
+                       'Com_min_GB.out', 'Rec_minGB.out']
 
         filesToHDF(n, entryKey, extractList)
+
         for file in extractList:
-            if os.path.isfile(file):
+            if os.path.exists(file):
                 os.remove(file)
 
         conduit.relay.io.save_merged(n, hdf5path)
@@ -210,7 +224,7 @@ def PPL4toCDT4(args):
     hdf5path=os.path.join(hdf5pathDir, "gbsa_proc1.hdf5")
     print(hdf5path)
 
-    conduit.relay.io.save(nHeader, hdf5path)
+    conduit.relay.io.save_merged(nHeader, hdf5path)
 
     comDirPath = os.path.abspath(args.scrDir + "/com")
     print(comDirPath)

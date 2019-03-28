@@ -19,7 +19,7 @@ Or if you provide inputs:
 
 /usr/gapps/bbs/TOSS-3/spack/bin/cdtPython.sh PPL1toCDT1hdf5.py -d <path_to_scratch> -o <path_to_hdf5_file>
 
-It assume that the scratch/lig has following data strcture
+It assume that the scratch/lig has following data structure
 
 scratch/lig/1
 scratch/lig/2
@@ -35,6 +35,8 @@ def getArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--scrDir', action='store', dest='scrDir', default='scratch',
                         help='path to scratch directory')
+    parser.add_argument('-c', '--checkData', nargs=2, action='store', dest='checkdata', default=None,
+                        help='protein name and checkpoint file name (e.g. sarinXtalnAChE  checkpoint.txt)')
     parser.add_argument('-o', '--out', action='store', dest='outfile', default='scratch/receptor.hdf5',
                         help='path to ligand.hdf5 file')
 
@@ -98,9 +100,68 @@ def findCluster(volume, cx, cy, cz):
                                     return (True, strs[1])
     return (False, None)
 
+def setCheckData(n, checkData, recKey):
+    if 'Mesg' in checkData:
+        if checkData['Mesg'] == 'Finished!':
+            n[recKey + '/status'] = np.int32(1)
+        else:
+            n[recKey + '/status'] = np.int32(0)
+        n[recKey + '/meta/Mesg'] = checkData['Mesg']
+
+    if 'GBEN' in checkData:
+        n[recKey + '/meta/GBEN'] = float(checkData['GBEN'])
+
+    if 'Volume' in checkData:
+        volume = float(checkData['Volume'])
+        n[recKey + '/meta/Site/Volume'] = volume
+
+    if 'Cluster' in checkData:
+        clust = int(checkData['Cluster'])
+        n[recKey + '/meta/Site/Cluster'] = clust
+
+    if 'cx' in checkData:
+        cx = float(checkData['cx'])
+        n[recKey + '/meta/Site/Centroid/X'] = cx
+    if 'cy' in checkData:
+        cy = float(checkData['cy'])
+        n[recKey + '/meta/Site/Centroid/Y'] = cy
+    if 'cz' in checkData:
+        cz = float(checkData['cz'])
+        n[recKey + '/meta/Site/Centroid/Z'] = cz
+    if 'dx' in checkData:
+        n[recKey + '/meta/Site/Dimension/X'] = float(checkData['dx'])
+    if 'dy' in checkData:
+        n[recKey + '/meta/Site/Dimension/Y'] = float(checkData['dy'])
+    if 'dz' in checkData:
+        n[recKey + '/meta/Site/Dimension/Z'] = float(checkData['dz'])
+
+    return (volume, clust, cx, cy, cz)
+
+
+def updateCheckData(args):
+    hdf5path = os.path.abspath(args.outfile)
+    print(hdf5path)
+    print(args.checkdata)
+
+    if os.path.isfile(args.checkdata[1]):
+        n = conduit.Node()
+        checkData = parseCheckpoint(args.checkdata[1])
+        recKey = '/rec/' + args.checkdata[0]
+        print(checkData)
+        (volume, clust, cx, cy, cz) = setCheckData(n, checkData, recKey)
+
+        conduit.relay.io.save_merged(n, hdf5path)
+    else:
+        print("File - "+args.checkdata[1]+" doesn't exist")
+
 def main():
     args = getArgs()
-    print("Default inputs: ", args.scrDir, args.outfile)
+    print("Default inputs: ", args.scrDir, args.outfile, args.checkdata)
+
+    # just update checkpoint.txt file for one protein
+    if args.checkdata:
+        updateCheckData(args)
+        return
 
     nHeader = conduit.Node()
     nHeader['date'] = "Created by PPL1toCDT1hdf5.py at " + datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
@@ -132,43 +193,10 @@ def main():
             checkfile = os.path.join(recPath, "checkpoint.txt")
             if os.path.isfile(checkfile):
                 n = conduit.Node()
-                parseCheckpoint(checkfile)
                 checkData = parseCheckpoint(checkfile)
                 recKey = '/rec/' + recid
                 print(checkData)
-                if 'Mesg' in checkData:
-                    if checkData['Mesg'] == 'Finished!':
-                        n[recKey + '/status'] = np.int32(1)
-                    else:
-                        n[recKey + '/status'] = np.int32(0)
-                    n[recKey + '/meta/Mesg'] = checkData['Mesg']
-
-                if 'GBEN' in checkData:
-                    n[recKey + '/meta/GBEN'] = float(checkData['GBEN'])
-
-                if 'Volume' in checkData:
-                    volume= float(checkData['Volume'])
-                    n[recKey + '/meta/Site/Volume'] = volume
-
-                if 'Cluster' in checkData:
-                    clust=int(checkData['Cluster'])
-                    n[recKey + '/meta/Site/Cluster'] = clust
-
-                if 'cx' in checkData:
-                    cx=float(checkData['cx'])
-                    n[recKey + '/meta/Site/Centroid/X'] = cx
-                if 'cy' in checkData:
-                    cy=float(checkData['cy'])
-                    n[recKey + '/meta/Site/Centroid/Y'] = cy
-                if 'cz' in checkData:
-                    cz=float(checkData['cz'])
-                    n[recKey + '/meta/Site/Centroid/Z'] = cz
-                if 'dx' in checkData:
-                    n[recKey + '/meta/Site/Dimension/X'] = float(checkData['dx'])
-                if 'dy' in checkData:
-                    n[recKey + '/meta/Site/Dimension/Y'] = float(checkData['dy'])
-                if 'dz' in checkData:
-                    n[recKey + '/meta/Site/Dimension/Z'] = float(checkData['dz'])
+                (volume, clust, cx, cy, cz)=setCheckData(n, checkData, recKey)
 
                 noAA=findNonAA()
                 for idx, val in enumerate(noAA):
@@ -203,6 +231,9 @@ def main():
                     if found:
                         clust = int(clustID)
                         n[recKey + '/meta/Site/Cluster'] = clust
+
+                if (not os.path.exists('rec_min.pdb')) and os.path.isfile('Rec_min.pdb'):
+                    os.rename('Rec_min.pdb', 'rec_min.pdb')
 
                 fileList = ['rec.prmtop', 'rec_min.pdb', 'rec_min_orig','rec_min.rst',
                             'recCut.prmtop', 'recCut_min_orig.pdb', 'recCut_min.rst',

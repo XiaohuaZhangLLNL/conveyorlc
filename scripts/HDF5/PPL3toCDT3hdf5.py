@@ -139,7 +139,7 @@ def PPL3toCDT3(args):
                         entryKey = "/dock/" + recid + "/" + ligid
                         scores=getScore(scorefile)
                         numPose=len(scores)
-                        n[entryKey + "/meta/numPose"] = numPose
+                        n[entryKey + "/meta/numPose"] = np.int32(numPose)
                         if numPose>0:
                             n[entryKey + "/status"] = np.int32(1)
                             n[entryKey + "/meta/Mesg"] ="Finished!"
