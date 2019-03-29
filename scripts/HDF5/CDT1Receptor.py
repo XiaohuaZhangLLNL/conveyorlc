@@ -5,6 +5,7 @@ import conduit
 import conduit.relay as relay
 import conduit.relay.io
 import h5py
+import numpy as np
 
 def getArgs():
 
@@ -14,13 +15,15 @@ def getArgs():
     parser.add_argument('-o', '--out', action='store', dest='outfile', default='scratch/receptor_out.hdf5',
                         help='receptor HDF5 output file')
     parser.add_argument('-d', '--del', action='store_true', dest='delete', default=False,
-                        help='receptor HDF5 output file')
+                        help='delete all paths for failed calculations')
     parser.add_argument('-n', '--name', action='store', dest='recname', default=None,
-                        help='receptor name')
+                        help='extract meta data and files by receptor name')
     parser.add_argument('-dn', '--deletename', action='store', dest='delname', default=None,
-                        help='receptor name')
+                        help='delete path by receptor name')
     parser.add_argument('-sn', '--savename', action='store', dest='savename', default=None,
-                        help='receptor name')
+                        help='save data to HDF5 output file by receptor name')
+    parser.add_argument('-c', '--checkData', nargs=2, action='store', dest='checkdata', default=None,
+                        help='update meta data by protein name and checkpoint file name (e.g. sarinXtalnAChE  checkpoint.txt)')
     args = parser.parse_args()
 
     return args
@@ -96,6 +99,69 @@ def saveDataByName(args):
 
     relay.io.save(nOut, hdf5pathOut)
 
+def parseCheckpoint(checkfile):
+    checkData = {}
+    with open(checkfile, "r") as f:
+        for line in f:
+            strs = line.strip().split(':')
+            if len(strs) == 2:
+                checkData[strs[0]] = strs[1]
+
+    return checkData
+
+def setCheckData(n, checkData, recKey):
+    if 'Mesg' in checkData:
+        if checkData['Mesg'] == 'Finished!':
+            n[recKey + '/status'] = np.int32(1)
+        else:
+            n[recKey + '/status'] = np.int32(0)
+        n[recKey + '/meta/Mesg'] = checkData['Mesg']
+
+    if 'GBEN' in checkData:
+        n[recKey + '/meta/GBEN'] = float(checkData['GBEN'])
+
+    if 'Volume' in checkData:
+        volume = float(checkData['Volume'])
+        n[recKey + '/meta/Site/Volume'] = volume
+
+    if 'Cluster' in checkData:
+        clust = int(checkData['Cluster'])
+        n[recKey + '/meta/Site/Cluster'] = clust
+
+    if 'cx' in checkData:
+        cx = float(checkData['cx'])
+        n[recKey + '/meta/Site/Centroid/X'] = cx
+    if 'cy' in checkData:
+        cy = float(checkData['cy'])
+        n[recKey + '/meta/Site/Centroid/Y'] = cy
+    if 'cz' in checkData:
+        cz = float(checkData['cz'])
+        n[recKey + '/meta/Site/Centroid/Z'] = cz
+    if 'dx' in checkData:
+        n[recKey + '/meta/Site/Dimension/X'] = float(checkData['dx'])
+    if 'dy' in checkData:
+        n[recKey + '/meta/Site/Dimension/Y'] = float(checkData['dy'])
+    if 'dz' in checkData:
+        n[recKey + '/meta/Site/Dimension/Z'] = float(checkData['dz'])
+
+    return (volume, clust, cx, cy, cz)
+
+
+def updateCheckData(args):
+    hdf5path = os.path.abspath(args.outfile)
+    print(hdf5path)
+    print(args.checkdata)
+
+    if os.path.isfile(args.checkdata[1]):
+        n = conduit.Node()
+        checkData = parseCheckpoint(args.checkdata[1])
+        recKey = '/rec/' + args.checkdata[0]
+        print(checkData)
+        (volume, clust, cx, cy, cz) = setCheckData(n, checkData, recKey)
+
+        conduit.relay.io.save_merged(n, hdf5path)
+    else:
+        print("File - "+args.checkdata[1]+" doesn't exist")
 
 def main():
     args=getArgs()
@@ -112,6 +178,11 @@ def main():
 
     if args.savename:
         saveDataByName(args)
+
+    # just update checkpoint.txt file for one protein
+    if args.checkdata:
+        updateCheckData(args)
+
 
     #n_load = conduit.Node()
     #relay.io.load(n_load, hdf5path)

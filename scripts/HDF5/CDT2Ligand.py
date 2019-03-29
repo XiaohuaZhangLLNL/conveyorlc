@@ -14,13 +14,13 @@ def getArgs():
     parser.add_argument('-o', '--out', action='store', dest='outfile', default='scratch/ligand_out.hdf5',
                         help='Ligand HDF5 output file')
     parser.add_argument('-d', '--del', action='store_true', dest='delete', default=False,
-                        help='Ligand HDF5 output file')
+                        help='delete all paths for failed calculations')
     parser.add_argument('-l', '--ligid', action='store', dest='ligid', default=None,
-                        help='ligand ID')
+                        help='extract data and files by ligand ID')
     parser.add_argument('-n', '--name', action='store', dest='ligname', default=None,
-                        help='ligand name')
+                        help='extract data and files by ligand name')
     parser.add_argument('-c', '--clist', action='store_true', dest='clist', default=False,
-                        help='ligand name')
+                        help='output ligand name and id map into a file')
     args = parser.parse_args()
 
     return args

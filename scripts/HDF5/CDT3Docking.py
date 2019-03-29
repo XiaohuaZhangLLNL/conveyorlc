@@ -15,11 +15,11 @@ def getArgs():
     parser.add_argument('-o', '--out', action='store', dest='outdir', default='scratch/dockHDF5out',
                         help='receptor HDF5 output file')
     parser.add_argument('-r', '--recname', action='store', dest='recname', default=None,
-                        help='receptor name')
+                        help='receptor name for extracting data and files (also need ligand id)')
     parser.add_argument('-l', '--ligid', action='store', dest='ligid', default=None,
-                        help='ligand id')
+                        help='ligand id for extracting data and files (also need receptor name)')
     parser.add_argument('-p', '--percent', action='store', dest='percent', default=None,
-                        help='select top percent ligands')
+                        help='select top percent ligands into the HDF5 output file')
 
     args = parser.parse_args()
 

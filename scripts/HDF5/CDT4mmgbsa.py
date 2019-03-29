@@ -15,9 +15,9 @@ def getArgs():
     parser.add_argument('-o', '--out', action='store', dest='outdir', default='scratch/gbsaHDF5out',
                         help='receptor HDF5 output file')
     parser.add_argument('-r', '--recname', action='store', dest='recname', default=None,
-                        help='receptor name')
+                        help='receptor name for extracting data and files (also need ligand id)')
     parser.add_argument('-l', '--ligid', action='store', dest='ligid', default=None,
-                        help='ligand id')
+                        help='ligand id for extracting data and files (also need receptor name)')
     parser.add_argument('-m', '--meta', action='store', dest='meta', default=None,
                         help='extract meta data from HDF5 file to CSV file')
     args = parser.parse_args()
