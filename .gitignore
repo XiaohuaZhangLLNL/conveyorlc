@@ -154,3 +154,6 @@ build/
 src/CMakeFiles/
 src/cmake_install.cmake
 src/libLBind.a
+apps/h5tools/H5Receptor
+apps/h5tools/Makefile
+apps/h5tools/cmake_install.cmake

@@ -22,7 +22,7 @@ def getArgs():
                         help='delete path by receptor name')
     parser.add_argument('-sn', '--savename', action='store', dest='savename', default=None,
                         help='save data to HDF5 output file by receptor name')
-    parser.add_argument('-c', '--checkData', nargs=2, action='store', dest='checkdata', default=None,
+    parser.add_argument('-c', '--checkdata', nargs=2, action='store', dest='checkdata', default=None,
                         help='update meta data by protein name and checkpoint file name (e.g. sarinXtalnAChE  checkpoint.txt)')
     args = parser.parse_args()
 
