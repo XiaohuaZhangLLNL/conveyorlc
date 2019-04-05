@@ -330,6 +330,15 @@ int main(int argc, char* argv[]) {
 
             //world.send(0, outTag, jobOut);
             toHDF5File(jobInput, jobOut, dockHDF5File);
+            // Go back the workdir to get rid of following error
+            // shell-init: error retrieving current directory: getcwd: cannot access
+            chdir(workDir.c_str());
+
+            // Remove the working directory
+            std::string cmd = "rm -rf " + jobOut.dockDir;
+            std::string errMesg="remove dockDir fails";
+            LBIND::command(cmd, errMesg);
+
         }
         //relay::io::hdf5_close_file(dock_hid);
     }
