@@ -14,6 +14,8 @@
 #include <vector> // ligand paths
 #include <cmath> // for ceila
 #include <unordered_set>
+#include <chrono>
+#include <ctime>
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -129,6 +131,11 @@ void toHDF5File(JobInputData& jobInput, JobOutData& jobOut, std::string& dockHDF
     }
 }
 
+std::string timestamp(){
+    auto current = std::chrono::system_clock::now();
+    std::time_t cur_time = std::chrono::system_clock::to_time_t(current);
+    return std::ctime(&cur_time)
+}
 
 int main(int argc, char* argv[]) {
 
@@ -148,6 +155,11 @@ int main(int argc, char* argv[]) {
     std::string workDir;
     std::string inputDir;
     std::string dataPath;
+
+    if (world.rank() == 0) {
+
+        std::cout << "CDT3Docking Begin: " << timestamp() << std::endl;
+    }
 
     if(!initConveyorlcEnv(workDir, inputDir, dataPath)){
         world.abort(1);
@@ -252,6 +264,9 @@ int main(int argc, char* argv[]) {
         gather(world, keysFinish, 0);
     }
 
+    if (world.rank() == 0) {
+        std::cout << "CDT3Docking Found All Finished Calculation: " << timestamp() << std::endl;
+    }
 
     if (world.rank() == 0) {
         unsigned num_cpus = boost::thread::hardware_concurrency();
@@ -345,6 +360,10 @@ int main(int argc, char* argv[]) {
 
 
     std::cout << "Rank= " << world.rank() <<" MPI Wall Time= " << runingTime.elapsed() << " Sec."<< std::endl;
+
+    if (world.rank() == 0) {
+        std::cout << "CDT3Docking End Calculation: " << timestamp() << std::endl;
+    }
 
     return (0);
 
