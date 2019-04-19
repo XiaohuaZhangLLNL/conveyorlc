@@ -31,8 +31,8 @@ bool CDT4mmgbsaPO(int argc, char** argv, POdata& podata) {
                 ("recFile", value<std::string > (&podata.recFile)->default_value("scratch/receptor.hdf5"), "receptor HDF5 file")
                 ("ligFile", value<std::string > (&podata.ligFile)->default_value("scratch/ligand.hdf5"), "ligand HDF5 file")
                 ("version", value<int>(&podata.version)->default_value(13), "AMBER Version")
-                ("keep", value<bool>(&podata.keep)->default_value(false), "Flag to restart calculation")
-                ;   
+                ("keep", bool_switch(&podata.keep), "Flag to restart calculation")
+                ;
         options_description info("Optional:");
         info.add_options()
                 ("help", bool_switch(&help), "display usage summary")
