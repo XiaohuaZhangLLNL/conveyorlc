@@ -134,7 +134,7 @@ void toHDF5File(JobInputData& jobInput, JobOutData& jobOut, std::string& dockHDF
 std::string timestamp(){
     auto current = std::chrono::system_clock::now();
     std::time_t cur_time = std::chrono::system_clock::to_time_t(current);
-    return std::ctime(&cur_time)
+    return std::ctime(&cur_time);
 }
 
 int main(int argc, char* argv[]) {
@@ -343,8 +343,16 @@ int main(int argc, char* argv[]) {
 
             dockjob(jobInput, jobOut, workDir);
 
-            //world.send(0, outTag, jobOut);
-            toHDF5File(jobInput, jobOut, dockHDF5File);
+            if(jobInput.useScoreCF){
+                if(jobOut.scores.size()>0){
+                    if(jobOut.scores[0]<jobInput.scoreCF){
+                        toHDF5File(jobInput, jobOut, dockHDF5File);
+                    }
+                }
+            }else{
+                toHDF5File(jobInput, jobOut, dockHDF5File);
+            }
+
             // Go back the workdir to get rid of following error
             // shell-init: error retrieving current directory: getcwd: cannot access
             chdir(workDir.c_str());
