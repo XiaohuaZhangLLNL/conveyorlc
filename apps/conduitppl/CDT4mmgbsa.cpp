@@ -464,10 +464,11 @@ int main(int argc, char** argv) {
             toConduit(cdtMeta, gbsaHDF5File);
             chdir(cdtMeta.workDir.c_str());
             // Remove the working dire
-
-            std::string cmd = "rm -rf " + cdtMeta.poseDir;
-            std::string errMesg = "remove poseDir fails";
-            LBIND::command(cmd, errMesg);
+            if(cdtMeta.error && !podata.keep) {
+                std::string cmd = "rm -rf " + cdtMeta.poseDir;
+                std::string errMesg = "remove poseDir fails";
+                LBIND::command(cmd, errMesg);
+            }
 
             
         }

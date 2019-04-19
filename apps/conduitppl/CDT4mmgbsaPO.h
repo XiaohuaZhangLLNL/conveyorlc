@@ -14,6 +14,7 @@
 struct POdata{
 
     int version;
+    bool keep;
     std::string dockInDir;
     std::string recFile;
     std::string ligFile;
