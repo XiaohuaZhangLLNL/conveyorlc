@@ -31,6 +31,9 @@ public:
         ar & useScoreCF;
         ar & flexible;
         ar & randomize;
+        ar & score_only;
+        ar & local_only;
+        ar & randomize_only;
         ar & cpu;
         ar & exhaustiveness;
         ar & num_modes;
@@ -47,6 +50,9 @@ public:
     bool useScoreCF; //switch to turn on score cutoff
     bool flexible;
     bool randomize;
+    bool score_only;
+    bool local_only;
+    bool randomize_only;
     int cpu;
     int exhaustiveness;
     int num_modes;

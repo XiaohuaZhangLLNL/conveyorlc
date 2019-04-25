@@ -194,7 +194,9 @@ void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
         fl weight_hydrophobic = -0.035069;
         fl weight_hydrogen = -0.587439;
         fl weight_rot = 0.05846;
-        bool score_only = false, local_only = false, randomize_only = false; // FIXME
+        bool score_only = jobInput.score_only;
+        bool local_only = jobInput.local_only;
+        bool randomize_only = jobInput.randomize_only; 
 
         jobOut.dockDir = workDir + "/scratch/dock/" + jobOut.pdbID + "/" + jobOut.ligID;
         std::string cmd = "mkdir -p " + jobOut.dockDir;

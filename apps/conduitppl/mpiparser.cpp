@@ -184,7 +184,10 @@ Thank you!\n";
                 ("energy_range", value<fl> (&jobInput.energy_range)->default_value(2.0), "maximum energy difference (default value 2.0) between the best binding mode and the worst one displayed (kcal/mol)")
                 ("useScoreCF", bool_switch(&jobInput.useScoreCF), "Use score cutoff to save ligand with top score higher than certain critical value")
                 ("scoreCF", value<double>(&jobInput.scoreCF)->default_value(-8.0), "Score cutoff to save ligand with top score higher than certain value (default -8.0)")
-                ;   
+                ("score_only", bool_switch(&jobInput.score_only), "score only and not perform pose search")
+                ("local_only",     bool_switch(&jobInput.local_only), "do local search only")
+                ("randomize_only", bool_switch(&jobInput.randomize_only), "randomize input, attempting to avoid clashes")
+                ;
         options_description info("Information (optional)");
         info.add_options()
                 ("help", bool_switch(&help), "display usage summary")
