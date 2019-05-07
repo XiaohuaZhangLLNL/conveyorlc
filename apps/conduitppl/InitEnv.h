@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <iostream>
 
-inline bool initConveyorlcEnv(std::string& workDir, std::string& inputDir, std::string& dataPath){
+inline bool initConveyorlcEnv(std::string& workDir, std::string& localDir, std::string& inputDir, std::string& dataPath){
     //! get  working directory
     char* WORKDIR=getenv("WORKDIR");
 
@@ -20,6 +20,17 @@ inline bool initConveyorlcEnv(std::string& workDir, std::string& inputDir, std::
         workDir = BUFFER;
     }else{
         workDir=WORKDIR;
+    }
+
+    char* LOCALDIR=getenv("LOCALDIR");
+
+    if(LOCALDIR==0) {
+        // use current working directory for working directory
+        char BUFFER[200];
+        getcwd(BUFFER, sizeof (BUFFER));
+        localDir = BUFFER;
+    }else{
+        localDir=LOCALDIR;
     }
 
     //! get  input directory

@@ -155,13 +155,14 @@ int main(int argc, char* argv[]) {
     std::string workDir;
     std::string inputDir;
     std::string dataPath;
+    std::string localDir;
 
     if (world.rank() == 0) {
 
         std::cout << "CDT3Docking Begin: " << timestamp() << std::endl;
     }
 
-    if(!initConveyorlcEnv(workDir, inputDir, dataPath)){
+    if(!initConveyorlcEnv(workDir, localDir, inputDir, dataPath)){
         world.abort(1);
     }
 

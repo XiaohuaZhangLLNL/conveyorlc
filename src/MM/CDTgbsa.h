@@ -18,6 +18,7 @@ struct CDTmeta{
     std::string ligFile;
 
     std::string workDir;
+    std::string localDir;
     std::string inputDir;
     std::string dataPath;
 

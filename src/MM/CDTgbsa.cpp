@@ -188,7 +188,7 @@ void CDTgbsa::run(CDTmeta &cdtMeta){
     }
 
     std::string libDir=cdtMeta.inputDir+"/lib/";
-    std::string poseDir=cdtMeta.workDir+"/scratch/gbsa/"+cdtMeta.key;
+    std::string poseDir=cdtMeta.localDir+"/scratch/gbsa/"+cdtMeta.key;
     cdtMeta.poseDir=poseDir;
 
     std::string cmd="mkdir -p "+poseDir;

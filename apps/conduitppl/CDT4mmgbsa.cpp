@@ -296,6 +296,9 @@ int main(int argc, char** argv) {
     std::string workDir;
     std::string inputDir;
     std::string dataPath;
+    std::string localDir;
+
+    bool useLocalDir=(localDir!=workDir);
 
     POdata podata;
     bool success = CDT4mmgbsaPO(argc, argv, podata);
@@ -303,7 +306,7 @@ int main(int argc, char** argv) {
         world.abort(1);
     }
 
-    if(!initConveyorlcEnv(workDir, inputDir, dataPath)){
+    if(!initConveyorlcEnv(workDir, localDir, inputDir, dataPath)){
         world.abort(1);
     }
 
@@ -453,6 +456,7 @@ int main(int argc, char** argv) {
             cdtMeta.ligFile=podata.ligFile;
 
             cdtMeta.workDir=workDir;
+            cdtMeta.localDir=localDir;
             cdtMeta.dataPath=dataPath;
             cdtMeta.inputDir=inputDir;
 
@@ -462,11 +466,26 @@ int main(int argc, char** argv) {
             mmgbsa(cdtMeta);
 
             toConduit(cdtMeta, gbsaHDF5File);
-            chdir(cdtMeta.workDir.c_str());
+
             // Remove the working dire
             if(cdtMeta.error && !podata.keep) {
+                chdir(cdtMeta.localDir.c_str());
                 std::string cmd = "rm -rf " + cdtMeta.poseDir;
                 std::string errMesg = "remove poseDir fails";
+                LBIND::command(cmd, errMesg);
+            } else if (useLocalDir && !cdtMeta.error && podata.keep){
+                std::string scrPoseDir = cdtMeta.workDir+"/scratch/gbsa/"+cdtMeta.key;
+                std::string cmd="mkdir -p "+scrPoseDir;
+                std::string errMesg="Run mkdir srcPoseDir fails";
+                LBIND::command(cmd, errMesg);
+
+                cmd="cp * "+scrPoseDir;
+                errMesg="copy file from local to file system fails";
+                LBIND::command(cmd, errMesg);
+
+                chdir(cdtMeta.localDir.c_str());
+                cmd = "rm -rf " + cdtMeta.poseDir;
+                errMesg = "remove poseDir fails";
                 LBIND::command(cmd, errMesg);
             }
 

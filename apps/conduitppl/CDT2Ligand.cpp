@@ -372,8 +372,9 @@ int main(int argc, char** argv) {
     std::string workDir;
     std::string inputDir;
     std::string dataPath;
+    std::string localDir;
 
-    if(!initConveyorlcEnv(workDir, inputDir, dataPath)){
+    if(!initConveyorlcEnv(workDir, localDir, inputDir, dataPath)){
         world.abort(1);
     }
        

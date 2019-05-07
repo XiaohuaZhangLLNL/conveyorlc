@@ -157,10 +157,11 @@ Thank you!\n";
     std::string workDir;
     std::string inputDir;
     std::string dataPath;
+    std::string localDir;
 
     std::string comFile;
 
-    if(!initConveyorlcEnv(workDir, inputDir, dataPath)){
+    if(!initConveyorlcEnv(workDir, localDir, inputDir, dataPath)){
         return 1;
     }
 
