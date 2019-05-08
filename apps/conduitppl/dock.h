@@ -74,6 +74,7 @@ public:
     int numPose;
     std::string pdbID;
     std::string ligID;
+    std::string ligName;
     std::string dockDir;
     std::string mesg;
     std::vector<double> scores;

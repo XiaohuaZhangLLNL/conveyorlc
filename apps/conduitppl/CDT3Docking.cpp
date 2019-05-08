@@ -96,6 +96,7 @@ void toConduit(JobOutData& jobOut, std::string& dockHDF5File){
         n[keyPath+ "/status"]=jobOut.error;
 
         std::string recIDMeta =keyPath+ "/meta/";
+        n[recIDMeta+"ligName"]=jobOut.ligName;
         n[recIDMeta+"numPose"]=jobOut.numPose;
         n[recIDMeta+"Mesg"]=jobOut.mesg;
 

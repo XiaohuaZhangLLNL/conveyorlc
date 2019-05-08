@@ -145,11 +145,19 @@ void getRecData(JobInputData& jobInput, std::string& recKey, grid_dims& gd){
 
 }
 
-void getLigData(std::string& fileName, std::string& ligKey, std::stringstream& ligSS){
+void getLigData(std::string& fileName, std::string& ligKey, std::string& ligName, std::stringstream& ligSS){
     Node n;
 
     hid_t lig_hid=relay::io::hdf5_open_file_for_read(fileName);
     relay::io::hdf5_read(lig_hid, n);
+
+    std::string ligNamePath="lig/"+ligKey+"/meta/name";
+
+    if(n.has_path(ligNamePath)){
+        ligName=n[ligNamePath].as_string();
+    }else{
+        ligName="NoName";
+    }
 
     std::string pdbqtPath="lig/"+ligKey+"/file/LIG_min.pdbqt";
     if(n.has_path(pdbqtPath)){
@@ -216,7 +224,7 @@ void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
 
         std::string ligand_name = jobOut.ligID;
         std::stringstream ligSS;
-        getLigData(jobInput.ligFile, ligand_name, ligSS);
+        getLigData(jobInput.ligFile, ligand_name, jobOut.ligName, ligSS);
 
 
         sz max_modes_sz = static_cast<sz> (num_modes);
