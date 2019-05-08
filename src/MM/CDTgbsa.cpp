@@ -103,25 +103,24 @@ void CDTgbsa::getDockData(LBIND::CDTmeta &cdtMeta)
 {
     Node n;
 
-    std::string name="poses.pdbqt";
+    //
     std::string dockHDF5file=cdtMeta.workDir+"/"+cdtMeta.dockInDir+"/dock_proc"+std::to_string(cdtMeta.procID)+".hdf5";
-    std::string pdbqtPath="dock/"+cdtMeta.recID+"/"+cdtMeta.ligID+"/file/"+name;
-    std::string pdbqtFilePath=dockHDF5file+":"+pdbqtPath;
+    //std::string pdbqtPath="dock/"+cdtMeta.recID+"/"+cdtMeta.ligID+"/file/"+name;
+    std::string dockPath="dock/"+cdtMeta.recID+"/"+cdtMeta.ligID;
+    std::string pdbqtFilePath=dockHDF5file+":"+dockPath;
 
     //Partial I/O
     relay::io::load(pdbqtFilePath, n);
 
-
-    std::string ligNamePath="dock/"+cdtMeta.recID+"/"+cdtMeta.ligID+"/meta/ligName";
-
-    if(n.has_path(ligNamePath)){
-        cdtMeta.ligName=n[ligNamePath].as_string();
+    if(n.has_path("/meta/ligName")){
+        cdtMeta.ligName=n["/meta/ligName"].as_string();
     }else{
         cdtMeta.ligName="NoName";
     }
 
+    std::string name="poses.pdbqt";
     std::ofstream outfile(name);
-    std::string outLines = n.as_string();
+    std::string outLines = n["/file/"+name].as_string();
     outfile << outLines;
 
     //hid_t dock_hid=relay::io::hdf5_open_file_for_read(dockHDF5file);
