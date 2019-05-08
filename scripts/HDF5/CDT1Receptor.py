@@ -24,6 +24,8 @@ def getArgs():
                         help='save data to HDF5 output file by receptor name')
     parser.add_argument('-c', '--checkdata', nargs=2, action='store', dest='checkdata', default=None,
                         help='update meta data by protein name and checkpoint file name (e.g. sarinXtalnAChE  checkpoint.txt)')
+    parser.add_argument('-m', '--meta', action='store', dest='meta', default=None,
+                        help='extract meta data from HDF5 file to CSV file')
     args = parser.parse_args()
 
     return args
@@ -75,6 +77,30 @@ def getDataByName(args):
     for fileItr in itr:
         with open(fileItr.name(), 'w') as f:
             f.write(fileItr.node().value())
+
+def getMetaData(args):
+    hdf5path = os.path.abspath(args.infile)
+
+    n = conduit.Node()
+    relay.io.load(n, hdf5path)
+    recItr = n['rec'].children()
+
+    outfh = open(args.meta, "w")
+    outfh.write("Rec_Name, Status, GBSA, Volume, Cent_x, Cent_y, Cent_z, Dim_x, Dim_y, Dim_Z\n")
+
+    for rec in recItr:
+        nrec = rec.node()
+        recName=rec.name()
+        status=nrec['status']
+        gbsa=nrec['meta/GBEN']
+        vol = nrec['meta/Site/Volume']
+        cent_x = nrec['meta/Site/Centroid/X']
+        cent_y = nrec['meta/Site/Centroid/Y']
+        cent_z = nrec['meta/Site/Centroid/Z']
+        dim_x = nrec['meta/Site/Dimension/X']
+        dim_y = nrec['meta/Site/Dimension/Y']
+        dim_z = nrec['meta/Site/Dimension/Z']
+        outfh.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(recName, status, gbsa, vol, cent_x, cent_y, cent_z, dim_x, dim_y,dim_z))
 
 def rmCalcByName(args):
     hdf5path = os.path.abspath(args.infile)
@@ -183,6 +209,8 @@ def main():
     if args.checkdata:
         updateCheckData(args)
 
+    if args.meta:
+        getMetaData(args)
 
     #n_load = conduit.Node()
     #relay.io.load(n_load, hdf5path)

@@ -107,9 +107,23 @@ def main():
         extracSDF(args)
         return
 
+    hdf5path = os.path.abspath(args.outfile)
+    finishedList = []
+    if os.path.isfile(hdf5path):
+        n = conduit.Node()
+        conduit.relay.io.load(n, hdf5path)
+
+        itr = n['lig'].children()
+
+        for id in itr:
+            finishedList.append(id.name())
+
+        print("Finished ligand list")
+        print(finishedList)
+
     nHeader = conduit.Node()
     nHeader['date'] ="Created by PPL2toCDT2hdf5.py at " + datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
-    hdf5path = os.path.abspath(args.outfile)
+
     conduit.relay.io.save_merged(nHeader, hdf5path)
 
     print("Created by PPL2toCDT2hdf5.py at "+datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S"))
@@ -120,7 +134,7 @@ def main():
     os.chdir(ligDirPath)
     dirs = os.listdir(".")
     for cmpd in dirs:
-        if cmpd.isdigit():
+        if cmpd.isdigit() and cmpd not in finishedList:
             n = conduit.Node()
             cmpdPath = os.path.join(ligDirPath, cmpd)
             #print(cmpdPath)
@@ -159,13 +173,13 @@ def main():
 
                 filesToHDF(n, cmpdKey, fileList)
 
-            conduit.relay.io.save_merged(n, hdf5path)
+                conduit.relay.io.save_merged(n, hdf5path)
 
-            if args.isZip:
-                extractList = ['checkpoint.txt', 'ligand.frcmod', 'LIG_minGB.out']
-                for file in extractList:
-                    if os.path.isfile(file):
-                        os.remove(file)
+                if args.isZip:
+                    extractList = ['checkpoint.txt', 'ligand.frcmod', 'LIG_minGB.out']
+                    for file in extractList:
+                        if os.path.isfile(file):
+                            os.remove(file)
 
 
 if __name__ == '__main__':

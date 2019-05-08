@@ -4,7 +4,7 @@ import datetime
 import conduit
 import conduit.relay as relay
 import conduit.relay.io
-#import h5py
+import h5py
 import glob
 
 def getArgs():
@@ -20,6 +20,8 @@ def getArgs():
                         help='ligand id for extracting data and files (also need receptor name)')
     parser.add_argument('-m', '--meta', action='store', dest='meta', default=None,
                         help='extract meta data from HDF5 file to CSV file')
+    parser.add_argument('-d', '--del', action='store_true', dest='delete', default=False,
+                        help='delete all paths for failed calculations')
     args = parser.parse_args()
 
     return args
@@ -142,6 +144,59 @@ def getMetaCSV(args):
                     line=line+', '+str(posedata[key])
                 outfh.write(line+"\n")
 
+def rmFailCalc(args):
+
+    dockDir = os.path.abspath(args.indir)
+
+    if os.path.isdir(dockDir):
+        os.chdir(dockDir)
+
+        print("Remove pose path if the pose calculation is fail")
+        for h5f in glob.glob('gbsa_proc*.hdf5'):
+            with h5py.File(h5f, "a") as f:
+                print("     Working on "+h5f)
+                recGroup = f['/gbsa']
+                for rec in recGroup:
+                    ligGroup=recGroup[rec]
+                    for lig in ligGroup:
+                        poseGroup=ligGroup[lig]
+                        for pose in poseGroup:
+                            pnode=poseGroup[pose]
+                            #print(rec, lig, pose)
+                            if pnode['status'][0]==0:
+                                #print(rec, lig, pose, "DELETE!!!")
+                                del poseGroup[pose]
+
+        print("Remove ligand path if it is empty")
+        for h5f in glob.glob('gbsa_proc*.hdf5'):
+            with h5py.File(h5f, "a") as f:
+                print("     Working on " + h5f)
+                recGroup = f['/gbsa']
+                for rec in recGroup:
+                    ligGroup=recGroup[rec]
+                    for lig in ligGroup:
+                        poseGroup=ligGroup[lig]
+                        if len(poseGroup) ==0:
+                            del ligGroup[lig]
+
+        print("Remove recepotr path if it is empty")
+        for h5f in glob.glob('gbsa_proc*.hdf5'):
+            with h5py.File(h5f, "a") as f:
+                print("     Working on " + h5f)
+                recGroup = f['/gbsa']
+                for rec in recGroup:
+                    ligGroup=recGroup[rec]
+                    if len(ligGroup) == 0:
+                        del recGroup[rec]
+
+        print("Remove the HDF5 file if it is empty")
+        for h5f in glob.glob('gbsa_proc*.hdf5'):
+            with h5py.File(h5f, "a") as f:
+                print("     Working on " + h5f)
+                recGroup = f['/gbsa']
+                if len(recGroup)==0:
+                    os.remove(h5f)
+                    print("     remove HDF5 file - "+h5f)
 
 
 def main():
@@ -153,6 +208,9 @@ def main():
 
     if args.meta:
         getMetaCSV(args)
+
+    if args.delete:
+        rmFailCalc(args)
 
 if __name__ == '__main__':
     main()

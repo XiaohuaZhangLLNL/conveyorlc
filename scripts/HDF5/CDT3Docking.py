@@ -7,6 +7,8 @@ import conduit.relay.io
 import h5py
 import glob
 
+from mpi4py import MPI
+
 def getArgs():
 
     parser = argparse.ArgumentParser()
@@ -20,7 +22,8 @@ def getArgs():
                         help='ligand id for extracting data and files (also need receptor name)')
     parser.add_argument('-p', '--percent', action='store', dest='percent', default=None,
                         help='select top percent ligands into the HDF5 output file')
-
+    parser.add_argument('-s', '--scoreonly', action='store', dest='scoreonly', default=None,
+                        help='extract score-only data from HDF5 file to CSV file')
     args = parser.parse_args()
 
     return args
@@ -46,6 +49,7 @@ def getDataByName(args):
                 print("data has been written to scratch/"+entryKey)
                 print(ndata["status"])
                 print(ndata["meta/Mesg"])
+                print(ndata["meta/ligName"])
                 numPose=ndata["meta/numPose"]
                 print("number of poses ", numPose)
                 for pose in range(numPose):
@@ -109,6 +113,61 @@ def getTopPercent(args):
                         ndata=n["dock/" + args.recname + "/" + ligid]
                         relay.io.save(ndata, h5fout)
 
+def extractScore_MPI(args):
+    comm = MPI.COMM_WORLD
+    rank = comm.rank
+    size = comm.size
+
+    hdf5pathDir = os.path.abspath(args.outfile)
+
+    os.chdir(hdf5pathDir)
+    h5files=glob.glob('dock_proc*.hdf5')
+    h5KeyList=[]
+    for i in xrange(rank, len(h5files), size):
+        h5f=h5files[i]
+        n = conduit.Node()
+        conduit.relay.io.load(n, h5f)
+        itrRec = n["dock"].children()
+        for rec in itrRec:
+            recid=rec.name()
+            nrec=rec.node()
+            itrLig=nrec.children()
+            for lig in itrLig:
+                ligid = lig.name()
+
+    allh5KeyList = comm.gather(h5KeyList, root=0)
+    finishKeyList=[]
+
+def extractScoreOnly(args):
+    outfh = open(args.scoreonly, "w")
+    outfh.write("rec, lig, Scoreonly\n")
+
+    dirpath = os.path.abspath("scratch")
+    hdf5pathDir = os.path.abspath(args.indir)
+
+    os.chdir(hdf5pathDir)
+    h5files=glob.glob('dock_proc*.hdf5')
+    h5KeyList=[]
+
+    for h5f in h5files:
+        n = conduit.Node()
+        conduit.relay.io.load(n, h5f)
+        itrRec = n["dock"].children()
+        for rec in itrRec:
+            recid=rec.name()
+            nrec=rec.node()
+            itrLig=nrec.children()
+            for lig in itrLig:
+                ligid = lig.name()
+                entryKey = "dock/" + recid + "/" + ligid
+                ndata = n[entryKey]
+                if ndata.has_path("file/scores.log"):
+                    scoreslog=ndata["file/scores.log"]
+                    strs=scoreslog.split()
+                    if strs[0]=="Affinity:":
+                        outfh.write(recid+", "+ligid+", "+strs[1]+"\n")
+
+
 def main():
     args=getArgs()
     print("Default inputs: ", args.indir, args.outdir)
@@ -119,6 +178,8 @@ def main():
     if args.percent and args.recname :
         getTopPercent(args)
 
+    if args.scoreonly:
+        extractScoreOnly(args)
 
 if __name__ == '__main__':
     main()

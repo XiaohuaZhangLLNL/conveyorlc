@@ -19,8 +19,8 @@ def getArgs():
                         help='extract data and files by ligand ID')
     parser.add_argument('-n', '--name', action='store', dest='ligname', default=None,
                         help='extract data and files by ligand name')
-    parser.add_argument('-c', '--clist', action='store_true', dest='clist', default=False,
-                        help='output ligand name and id map into a file')
+    parser.add_argument('-c', '--clist', nargs=2, action='store', dest='clist', default=None,
+                        help='output ligand name and id map into a file and choose only successful one or not (e.g. idnameList.txt T[A])')
     args = parser.parse_args()
 
     return args
@@ -92,16 +92,26 @@ def getIdNameList(args):
 
     hdf5path = os.path.abspath(args.infile)
 
+    filename=args.clist[0]
+    flag=(args.clist[1]=='T')
+
     n = conduit.Node()
     relay.io.load(n, hdf5path)
 
     itr = n['lig'].children()
 
-    with open('idnamelist.txt', 'w') as f:
-        for id in itr:
-            name = n['lig/' + id.name() + "/meta/name"]
-            f.write("{}  {}\n".format(name, id.name() ))
 
+    with open(filename, 'w') as f:
+        if flag:
+            for id in itr:
+                status= n['lig/' + id.name() + "/status"]
+                if status == 1:
+                    name = n['lig/' + id.name() + "/meta/name"]
+                    f.write("{}  {}\n".format(name, id.name() ))
+        else:
+            for id in itr:
+                name = n['lig/' + id.name() + "/meta/name"]
+                f.write("{}  {}\n".format(name, id.name() ))
 
 def main():
     args=getArgs()
