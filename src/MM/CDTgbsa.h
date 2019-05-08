@@ -16,6 +16,7 @@ struct CDTmeta{
     std::string dockInDir;
     std::string recFile;
     std::string ligFile;
+    std::string ligName;
 
     std::string workDir;
     std::string localDir;

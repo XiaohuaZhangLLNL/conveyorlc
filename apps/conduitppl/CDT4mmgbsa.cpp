@@ -225,6 +225,7 @@ void toConduit(CDTmeta &cdtMeta, std::string& gbsaHDF5File){
         n[keyPath+ "/status"]=cdtMeta.error;
 
         std::string recIDMeta =keyPath+ "/meta/";
+        n[recIDMeta+"ligName"]=cdtMeta.ligName;
         n[recIDMeta+"comGB"]=cdtMeta.comGB;
         n[recIDMeta+"ligGB"]=cdtMeta.ligGB;
         n[recIDMeta+"recGB"]=cdtMeta.recGB;

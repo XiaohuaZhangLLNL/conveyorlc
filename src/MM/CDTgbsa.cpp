@@ -111,6 +111,15 @@ void CDTgbsa::getDockData(LBIND::CDTmeta &cdtMeta)
     //Partial I/O
     relay::io::load(pdbqtFilePath, n);
 
+
+    std::string ligNamePath="dock/"+cdtMeta.recID+"/"+cdtMeta.ligID+"/meta/ligName";
+
+    if(n.has_path(ligNamePath)){
+        cdtMeta.ligName=n[ligNamePath].as_string();
+    }else{
+        cdtMeta.ligName="NoName";
+    }
+
     std::ofstream outfile(name);
     std::string outLines = n.as_string();
     outfile << outLines;
