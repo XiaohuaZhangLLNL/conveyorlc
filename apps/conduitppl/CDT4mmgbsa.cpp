@@ -437,7 +437,11 @@ int main(int argc, char** argv) {
         }        
         
     }else {
-
+        if(useLocalDir){
+            std::string cmd = "rm -rf " + useLocalDir+"/scratch";
+            std::string errMesg = "Clean up local disk fails before calculation";
+            LBIND::command(cmd, errMesg);
+        }
         std::string gbsaHDF5File=workDir+"/scratch/gbsaHDF5/gbsa_proc"+std::to_string(world.rank())+".hdf5:/";
         while (1) {
             world.send(0, rankTag, world.rank());
@@ -491,6 +495,13 @@ int main(int argc, char** argv) {
 
             
         }
+
+        if(useLocalDir){
+            std::string cmd = "rm -rf " + useLocalDir+"/scratch";
+            std::string errMesg = "Clean up local disk fails after calculation";
+            LBIND::command(cmd, errMesg);
+        }
+
     }
 
     std::cout << "Rank= " << world.rank() <<" MPI Wall Time= " << runingTime.elapsed() << " Sec."<< std::endl;
