@@ -249,7 +249,6 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
             }
         }
 
-        std::string pdb4pdbqtFileName;
         if(jobInput.minimizeFlg) {
             //! GB energy minimization
             std::string minFName = "LIG_minGB.in";
@@ -305,25 +304,26 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
                 cmd = "ambpdb -p LIG.prmtop < LIG_min.rst > LIG_minTmp.pdb ";
             }
 
-            //std::cout <<cmd <<std::endl;
-            errMesg = "ambpdb converting rst to pdb fails";
-            command(cmd, errMesg);
-
-            checkFName = "LIG_minTmp.pdb";
-            if (!fileExist(checkFName)) {
-                std::string message = "LIG_min.pdb minimization PDB file does not exist.";
-                throw LBindException(message);
-            }
-
-            pPdb->fixElement("LIG_minTmp.pdb", "LIG_min.pdb");
-            pdb4pdbqtFileName="LIG_min.pdb";
         }else{
-            pdb4pdbqtFileName=tmpFile;
+
+            cmd="ambpdb -p LIG.prmtop < LIG.inpcrd > LIG_minTmp.pdb";
+
         }
 
+        //std::cout <<cmd <<std::endl;
+        errMesg = "ambpdb converting rst/inp to pdb fails";
+        command(cmd, errMesg);
+
+        checkFName = "LIG_minTmp.pdb";
+        if (!fileExist(checkFName)) {
+            std::string message = "LIG_min.pdb minimization PDB file does not exist.";
+            throw LBindException(message);
+        }
+
+        pPdb->fixElement("LIG_minTmp.pdb", "LIG_min.pdb");
 
         //! Get DPBQT file for ligand from minimized structure.
-        cmd="prepare_ligand4.py -l "+pdb4pdbqtFileName+"  >> log";
+        cmd="prepare_ligand4.py -l  LIG_min.pdb >> log";
         //std::cout << cmd << std::endl;   
         errMesg="prepare_ligand4.py fails";
         command(cmd, errMesg);
