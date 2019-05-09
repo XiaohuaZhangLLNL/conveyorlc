@@ -18,6 +18,7 @@ public:
     void serialize(Archive & ar, const unsigned int version)
     {
         ar & ambVersion;
+        ar & minimizeFlg;
         ar & dirBuffer;
         ar & sdfBuffer;
         ar & cmpName;
@@ -25,6 +26,7 @@ public:
     }
 
     int ambVersion;
+    bool minimizeFlg;
     std::string dirBuffer;
     std::string sdfBuffer;
     std::string cmpName;
