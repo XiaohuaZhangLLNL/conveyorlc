@@ -76,9 +76,12 @@ std::string Sdf::getInfo(const std::string& fileName, const std::string& keyword
         if(boost::regex_search(fileLine,what,terRegex)){
             count=0;
         }
-        if(count==1){            
-            info=fileLine;
-            return info;
+        if(count==1){
+            std::vector<std::string> tokens;
+            tokenize(fileLine, tokens, "\n" );
+            if(tokens.size() > 0){
+                return tokens[0];
+            }
         }
         count=count+1;
     }
@@ -102,9 +105,9 @@ std::string Sdf::getTitle(const std::string& fileName){
     std::string info="";
     std::getline(inFile, fileLine);
     std::vector<std::string> tokens;
-    tokenize(fileLine, tokens); 
+    tokenize(fileLine, tokens, "\n" );
     if(tokens.size() > 0){
-        info=tokens[0];
+        return tokens[0];
     }    
     return info;
 }
