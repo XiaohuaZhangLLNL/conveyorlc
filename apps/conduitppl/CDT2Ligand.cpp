@@ -443,10 +443,10 @@ int main(int argc, char** argv) {
         jobInput.ambVersion=podata.version;
 
         // Start to read in the SDF file
-        std::string sdfFileName=inputDir+"/"+podata.sdfFile;
+        //std::string sdfFileName=inputDir+"/"+podata.sdfFile;
         std::ifstream inFile;
         try {
-            inFile.open(sdfFileName.c_str());
+            inFile.open(podata.sdfFile.c_str());
         } catch (...) {
             std::cout << "CDT2Ligand >> Cannot open file" << podata.sdfFile << std::endl;
             world.abort(1);
