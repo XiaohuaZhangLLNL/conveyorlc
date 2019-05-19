@@ -342,7 +342,13 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
 
     try{
         chdir(workDir.c_str());
-        jobOut.pdbFilePath=inputDir+"/"+jobInput.dirBuffer;
+        
+        if(jobInput.dirBuffer.find('/')==0){
+            jobOut.pdbFilePath=jobInput.dirBuffer;
+        } else{
+            jobOut.pdbFilePath=inputDir+"/"+jobInput.dirBuffer;
+        }
+
         if(jobInput.subRes.size()!=0){
             jobOut.subRes=inputDir+"/"+jobInput.subRes;
         }else{
