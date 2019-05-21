@@ -102,7 +102,7 @@ void saveCom(std::string& fileName, std::vector<std::string>& comList){
         std::getline(inFile, fileLine);
         if(fileLine.compare(0, 1, comment)==0) continue;
         std::vector<std::string> tokens;
-        tokenize(fileLine, tokens);
+        tokenize(fileLine, tokens, " \n");
         if(tokens.size() == 2){
             comList.push_back(tokens[0]+"/"+tokens[1]);
         }
