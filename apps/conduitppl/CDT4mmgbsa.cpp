@@ -297,7 +297,7 @@ int main(int argc, char** argv) {
     std::string workDir;
     std::string inputDir;
     std::string dataPath;
-    std::string localDir
+    std::string localDir;
 
     POdata podata;
     bool success = CDT4mmgbsaPO(argc, argv, podata);
