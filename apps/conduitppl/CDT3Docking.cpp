@@ -373,6 +373,12 @@ int main(int argc, char* argv[]) {
             LBIND::command(cmd, errMesg);
 
         }
+
+        if(useLocalDir){
+            std::string cmd = "rm -rf " + localDir+"/scratch";
+            std::string errMesg = "Clean up local disk fails before calculation";
+            LBIND::command(cmd, errMesg);
+        }
         //relay::io::hdf5_close_file(dock_hid);
     }
 
