@@ -297,9 +297,7 @@ int main(int argc, char** argv) {
     std::string workDir;
     std::string inputDir;
     std::string dataPath;
-    std::string localDir;
-
-    bool useLocalDir=(localDir!=workDir);
+    std::string localDir
 
     POdata podata;
     bool success = CDT4mmgbsaPO(argc, argv, podata);
@@ -310,6 +308,8 @@ int main(int argc, char** argv) {
     if(!initConveyorlcEnv(workDir, localDir, inputDir, dataPath)){
         world.abort(1);
     }
+
+    bool useLocalDir=(localDir!=workDir);
 
     if (world.size() < 2) {
         std::cerr << "Error: Total process less than 2" << std::endl;

@@ -172,7 +172,7 @@ void getLigData(std::string& fileName, std::string& ligKey, std::string& ligName
 }
 
 
-void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
+void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& localDir){
     try{
         jobOut.error= true;
 //        std::string flex_name, config_name, out_name, log_name;
@@ -206,7 +206,7 @@ void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir){
         bool local_only = jobInput.local_only;
         bool randomize_only = jobInput.randomize_only;
 
-        jobOut.dockDir = workDir + "/scratch/dock/" + jobOut.pdbID + "/" + jobOut.ligID;
+        jobOut.dockDir = localDir + "/scratch/dock/" + jobOut.pdbID + "/" + jobOut.ligID;
         std::string cmd = "mkdir -p " + jobOut.dockDir;
         std::string errMesg="mkdir dockDir fails";
         LBIND::command(cmd, errMesg);

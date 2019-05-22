@@ -167,6 +167,8 @@ int main(int argc, char* argv[]) {
         world.abort(1);
     }
 
+    bool useLocalDir=(localDir!=workDir);
+
     std::cout << "Number of tasks= " << world.size() << " My rank= " << world.rank() << std::endl;
 
     JobInputData jobInput;
@@ -329,6 +331,12 @@ int main(int argc, char* argv[]) {
         }
 
     } else {
+        if(useLocalDir){
+            std::string cmd = "rm -rf " + localDir+"/scratch";
+            std::string errMesg = "Clean up local disk fails before calculation";
+            LBIND::command(cmd, errMesg);
+        }
+
         std::string dockHDF5File=workDir+"/scratch/dockHDF5/dock_proc"+std::to_string(world.rank())+".hdf5:/";
         //hid_t dock_hid=relay::io::hdf5_open_file_for_read_write(dockHDF5File);
         while (1) {
@@ -343,7 +351,7 @@ int main(int argc, char* argv[]) {
 
             world.recv(0, inpTag, jobInput);
 
-            dockjob(jobInput, jobOut, workDir);
+            dockjob(jobInput, jobOut, localDir);
 
             if(jobInput.useScoreCF){
                 if(jobOut.scores.size()>0){
@@ -355,9 +363,9 @@ int main(int argc, char* argv[]) {
                 toHDF5File(jobInput, jobOut, dockHDF5File);
             }
 
-            // Go back the workdir to get rid of following error
+            // Go back the localDir to get rid of following error
             // shell-init: error retrieving current directory: getcwd: cannot access
-            chdir(workDir.c_str());
+            chdir(localDir.c_str());
 
             // Remove the working directory
             std::string cmd = "rm -rf " + jobOut.dockDir;
