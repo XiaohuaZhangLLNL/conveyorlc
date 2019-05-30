@@ -185,7 +185,10 @@ def updateCheckData(args):
         print(checkData)
         (volume, clust, cx, cy, cz) = setCheckData(n, checkData, recKey)
 
-        conduit.relay.io.save_merged(n, hdf5path)
+        try:
+            conduit.relay.io.save_merged(n, hdf5path)
+        except:
+            print(args.checkdata[0]+" cannot be saved into HDF5")
     else:
         print("File - "+args.checkdata[1]+" doesn't exist")
 

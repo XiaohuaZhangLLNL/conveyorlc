@@ -173,7 +173,10 @@ def posetohdf5(recid, ligPath, ligid, poseID, hdf5path):
             if os.path.exists(file):
                 os.remove(file)
 
-        conduit.relay.io.save_merged(n, hdf5path)
+        try:
+            conduit.relay.io.save_merged(n, hdf5path)
+        except:
+            print(entryKey+ " cannot be saved into HDF5")
 
 
 def ligWorkFlow(recPath, recid, hdf5path):

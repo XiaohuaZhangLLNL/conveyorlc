@@ -149,8 +149,10 @@ def updateCheckData(args):
         recKey = '/rec/' + args.checkdata[0]
         print(checkData)
         (volume, clust, cx, cy, cz) = setCheckData(n, checkData, recKey)
-
-        conduit.relay.io.save_merged(n, hdf5path)
+        try:
+            conduit.relay.io.save_merged(n, hdf5path)
+        except:
+            print(args.checkdata[0] + " cannot be saved in HDF5")
     else:
         print("File - "+args.checkdata[1]+" doesn't exist")
 
@@ -243,8 +245,10 @@ def main():
                     fileList.append(gridfile)
 
                 filesToHDF(n, recKey, fileList)
-
-                conduit.relay.io.save_merged(n, hdf5path)
+                try:
+                    conduit.relay.io.save_merged(n, hdf5path)
+                except:
+                    print(recid+ " cannot be saved in HDF5")
 
 
 if __name__ == '__main__':

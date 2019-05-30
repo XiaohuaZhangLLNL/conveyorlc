@@ -153,8 +153,10 @@ def PPL3toCDT3(args):
                         fileList = ['poses.pdbqt', 'scores.log']
 
                         filesToHDF(n, entryKey, fileList)
-
-            conduit.relay.io.save_merged(n, hdf5path)
+            try:
+                conduit.relay.io.save_merged(n, hdf5path)
+            except:
+                print(recid+ " cannot be saved into HDF5")
 
 def PPL3toCDT3_MPI(args):
     comm=MPI.COMM_WORLD
@@ -278,8 +280,10 @@ def PPL3toCDT3_MPI(args):
                         fileList = ['poses.pdbqt', 'scores.log']
 
                         filesToHDF(n, entryKey, fileList)
-
-                        conduit.relay.io.save_merged(n, hdf5path)
+                        try:
+                            conduit.relay.io.save_merged(n, hdf5path)
+                        except:
+                            print(entryKey+" cannot be saved into HDF5")
 
 
 def main():
