@@ -61,14 +61,12 @@ def getDataByligID(args, id=None):
     print("Ligand data path", os.getcwd())
 
 
-    fileList = ['LIG.inpcrd', 'LIG.lib', 'LIG.prmtop', 'LIG_min.rst', 'LIG_minGB.out', 'ligand.frcmod', 'LIG_min.pdbqt']
-    for file in fileList:
-        with open(file, 'w') as f:
-            filedata=n[cmpdKey + "/file/" + file]
-            if len(filedata)>0:
-                f.write(filedata)
-            else:
-                print("Missing file "+file)
+    #fileList = ['LIG.inpcrd', 'LIG.lib', 'LIG.prmtop', 'LIG_min.rst', 'LIG_minGB.out', 'ligand.frcmod', 'LIG_min.pdbqt']
+    itr = n[cmpdKey +"/file"].children()
+
+    for fileItr in itr:
+        with open(fileItr.name(), 'w') as f:
+            f.write(fileItr.node().value())
 
 def getDataByligName(args):
     hdf5path = os.path.abspath(args.infile)

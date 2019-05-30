@@ -172,8 +172,10 @@ def main():
                 fileList=['LIG.inpcrd', 'LIG.lib', 'LIG.prmtop', 'LIG_min.rst', 'LIG_minGB.out', 'ligand.frcmod', 'LIG_min.pdbqt']
 
                 filesToHDF(n, cmpdKey, fileList)
-
-                conduit.relay.io.save_merged(n, hdf5path)
+                try:
+                    conduit.relay.io.save_merged(n, hdf5path)
+                except:
+                    print(cmpd+" cannot save to HDF5 file")
 
                 if args.isZip:
                     extractList = ['checkpoint.txt', 'ligand.frcmod', 'LIG_minGB.out']
