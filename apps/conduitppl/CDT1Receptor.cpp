@@ -212,6 +212,7 @@ void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& check
 
         if (jobInput.ambVersion == 16 || jobInput.ambVersion == 13) {
             tleapFile << "source leaprc.ff14SB\n";
+            tleapFile << "source leaprc.phosaa10\n";
         } else {
             tleapFile << "source leaprc.ff99SB\n";
         }

@@ -36,6 +36,9 @@ endif()
 
 
 if(APPLE)
+    set(CMAKE_BUILD_TYPE Debug)
+    set(MPI_C_COMPILER "/Users/zhang30/inst/macports/bin/mpicc")
+    set(MPI_CXX_COMPILER "/Users/zhang30/inst/macports/bin/mpicxx")
     set(CONDUIT_DIR "/Users/zhang30/inst/conveyorlc_contrib/conduit/")
     set(HDF5_ROOT "/Users/zhang30/inst/macports/")
 endif()

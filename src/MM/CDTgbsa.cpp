@@ -162,6 +162,7 @@ void CDTgbsa::getDockData(LBIND::CDTmeta &cdtMeta)
         }
         if(cdtMeta.version==16 || cdtMeta.version==13){
             tleapFile << "source leaprc.ff14SB" << std::endl;
+            tleapFile << "source leaprc.phosaa10\n";
         }else{
             tleapFile << "source leaprc.ff99SB" << std::endl;
         }
@@ -232,6 +233,7 @@ void CDTgbsa::run(CDTmeta &cdtMeta){
 
         if(cdtMeta.version==16 || cdtMeta.version==13){
             tleapFile << "source leaprc.ff14SB" << std::endl;
+            tleapFile << "source leaprc.phosaa10\n";
         }else{
             tleapFile << "source leaprc.ff99SB" << std::endl;
         }
@@ -361,6 +363,7 @@ void CDTgbsa::run(CDTmeta &cdtMeta){
 
         if (cdtMeta.version == 16 || cdtMeta.version==13) {
             tleapFile << "source leaprc.ff14SB\n";
+            tleapFile << "source leaprc.phosaa10\n";
         } else {
             tleapFile << "source leaprc.ff99SB\n";
         }
