@@ -8,13 +8,13 @@
 ConveyorLC depends on two external libraries to complete the compilation: MPI (https://www.open-mpi.org or https://www.mpich.org) and boost (https://www.boost.org).
 
 Please install the MPI first. Users can use open-mpi or mpich. Either one is OK. Then install the boost. You need to enable the boost-mpi build. In the project-config.jam add one line to the end of the file:
-```
+```asm
 using mpi : <path_to_your_MPI_installation_directory>/bin/mpicxx ;
 ```
 
 to install Boost library please follow the step in the Boost document.
 
-```
+```asm
 ./bootstrap.sh --prefix=path/to/installation/prefix
 ./b2 install
 ```
@@ -22,7 +22,7 @@ to install Boost library please follow the step in the Boost document.
 On the LC machines, the MPI and Boost are installed. Users can source the environment and then compile the code.
 
 On quartz:
-```
+```asm
 module load boost/1.62.0
 ```
 
@@ -33,7 +33,7 @@ The code can be download from:
 https://github.com/XiaohuaZhangLLNL/conveyorlc
 
 by git:
-```
+```asm
 git clone git@github.com:XiaohuaZhangLLNL/conveyorlc.git
 ```
 
@@ -42,7 +42,7 @@ git clone git@github.com:XiaohuaZhangLLNL/conveyorlc.git
 
 Installing it by using cmake is straight forward:
 
-```
+```asm
 cd conveyorlc
 cmake . -DCMAKE_INSTALL_PREFIX:PATH=/usr/gapps/bbs/conveyorlc
 make
@@ -53,17 +53,17 @@ make install
 
 Use git clone to download spack4atom
 
-```
+```asm
 git clone ssh://git@cz-bitbucket.llnl.gov:7999/xzr/spack4atom.git
 ```
 Add the spack4atom repo to spack
 
-```
+```asm
 spack repo add <path to spack4atom repo root>
 ```
 
 Double check if the repo has been added correctly.
-```
+```asm
 [zhang30@quartz2306 spack4atom]$ spack repo list
 ==> 2 package repositories.
 atom       /g/g17/fdinatal/repos/spack4atom
@@ -71,12 +71,12 @@ builtin    /g/g17/fdinatal/repos/spack/var/spack/repos/builtin
 ```
 
 Install the ConveyorLC by spack
-```
+```asm
 spack install conveyorlc
 ```
 
 To clean up the installation and re-install
-```
+```asm
 spack uninstall conveyorlc
 spack clean --all conveyorlc
 spack install conveyorlc
@@ -87,13 +87,13 @@ spack install conveyorlc
 ### 2.1 Executables in the pipeline
 There will be executables in the ${conveyorlc_install_dir}/bin
 
-```
+```asm
 PPL1Receptor  PPL2Ligand  PPL3Docking  PPL4mmgbsa  PPL4PostProcess  PPL4parseXML
 ```
 
 For the help information of executables
 
-```
+```asm
 PPL1Receptor -h
 ```
 
@@ -101,7 +101,7 @@ PPL1Receptor -h
 
 #### 2.2.1 running the receptor preparation
 
-```
+```asm
 #!/bin/bash 
 #msub -A bmc
 #msub -l nodes=2:ppn=16
@@ -124,7 +124,7 @@ srun -N 2 -n 24 PPL1Receptor --input pdb.list --output out
 
 The pdb.list can take many different input formats
 
-```
+```asm
 # 1. Comments start with '#'
 #
 # 2. The first column of the input always is the path/pdb_file
@@ -159,7 +159,7 @@ pdb/1a50_protein.pdb SubRes:pdb/1a50_ligand.mol2
 
 #### 2.2.2 running the ligand preparation
 
-```
+```asm
 #!/bin/bash 
 #msub -A bmc
 #msub -l nodes=10:ppn=16
@@ -181,7 +181,7 @@ srun -N 10 -n 160 PPL1Receptor --sdf ligand.sdf
 ```
 
 Requirement for the SDF file:
-```
+```asm
 1. Convert you ligand coordinates into SDF file
 2. Add total charge fields for each ligand in SDF file, for example:
 
@@ -200,7 +200,7 @@ scratch/lig/2/LIG.lib, LIG.prmtop,  LIG.inpcrd
 
 #### 2.2.3 running the docking calculation
 
-```
+```asm
 #!/bin/bash 
 #msub -A bmc
 #msub -l nodes=64:ppn=16
@@ -222,7 +222,7 @@ srun -N 64 -n 64 -c 16 PPL3Docking --recXML PPL1Track.xml --ligXML PPL2Track.xml
 ```
 
 #### 2.2.4 running the single-point MM/GBSA calculation
-```
+```asm
 #!/bin/bash 
 #msub -A bmc
 #msub -l nodes=32:ppn=16
@@ -245,7 +245,7 @@ srun -N 32 -n 512  PPL4mmgbsa --comXML PPL3Track.xml
 
 #### 2.2.5 zip up the MM/GBSA results by ligand to save space and reduce number of files
 The pipeline will generate a lot of files and can cause problem for the file system. PPL4PostProcess tar-zip all mmgbsa poses for the same ligand into one file.
-```
+```asm
 #!/bin/bash 
 #msub -A bmc
 #msub -l nodes=32:ppn=16
@@ -271,7 +271,7 @@ Summray of outputs are in the XML format.
 
 
 The protein target preparation output.
-```
+```asm
 <?xml version="1.0" ?>
 <Receptors>
     <!-- Tracking calculation error using XML file -->
@@ -301,7 +301,7 @@ The protein target preparation output.
 ```
 
 The ligand preparation output.
-```
+```asm
 <?xml version="1.0" ?>
 <Ligands>
     <!-- Tracking calculation error using XML file -->
@@ -318,7 +318,7 @@ The ligand preparation output.
 ```
 
 The docking calculation output
-```
+```asm
 <?xml version="1.0" ?>
 <Complexes>
     <!-- Tracking calculation error using XML file -->
@@ -345,7 +345,7 @@ The docking calculation output
 
 The MM/GSBA calcualtion output
 
-```
+```asm
 <?xml version="1.0" ?>
 <Complexes>
     <!-- Tracking calculation error using XML file -->
@@ -362,13 +362,13 @@ The MM/GSBA calcualtion output
 ```
 
 To convert the MM/GBSA output to a better format:
-```
+```asm
 PPL4parseXML --inXML PPL4Track.xml --outXML PPL4Parse.xml
 ```
 
 The "pretty" version the MM/GBSA output
 
-```
+```asm
 <?xml version="1.0" ?>
 <Complex>
     <!-- Tracking calculation error using XML file -->
@@ -386,7 +386,7 @@ The "pretty" version the MM/GBSA output
 ```
 
 The calculated data are stored under the scratch directory. The directory structure is:
-```
+```asm
 scratch/     
 
     com/                        --- directory for all complexes
@@ -422,7 +422,7 @@ For the rescoring comlex : scratch/com/receptor/gbsa/lig_1/pose_1/mmgbsa_results
 ```
 
 PostProcess MM/GBSA results
-```
+```asm
 <?xml version="1.0" ?>
 <Complexes>
     <!-- Tracking calculation error using XML file -->
@@ -445,12 +445,12 @@ PostProcess MM/GBSA results
 ```
 
 Under the scratch/com/<receptor_name>/gbsa, you will find:
-```
+```asm
 lig_1.tar.gz  lig_1_checkpoint.txt  lig_2  lig_3.tar.gz  lig_3_checkpoint.txt
 ```
 lig_1 and lig_3 are completed so they are tar-zip. The lig_1 and lig_3 are deleted. Lig_2 has not finished so the folder is unchanged.
 
-```
+```asm
 Note:
   1. try to use small number of nodes so that the system is not overwhelming by I/O.
   2. Original files under the lig_1, etc will be deleted.
@@ -464,7 +464,7 @@ The following set up works on Cab/Syrah. For other machines, change the commands
 
 ### 3.1 Set up python virtual environment
 
-```
+```asm
   use -l python
   use python-2.7.10
   which pip
@@ -480,20 +480,20 @@ The following set up works on Cab/Syrah. For other machines, change the commands
 
 put the following two command into your .bashrc or .cshrc
 
-```
+```asm
   export WORKON_HOME=~/.venvs
   source /g/g92/zhang30/.local/bin/virtualenvwrapper.sh
 ```
 
 ### 3.2 Create a virtual environment for conveyorLC
 
-```
+```asm
   mkvirtualenv conveyorlc
 ```
 
 ### 3.3 Install maestro workflow
 
-```
+```asm
   git clone git@github.com:LLNL/maestrowf.git
   cd maestrowf/
   git fetch --all
@@ -503,7 +503,7 @@ put the following two command into your .bashrc or .cshrc
 
 ### 3.4 Run the workflow to launch the conveyorlc pipeline
 
-```
+```asm
   workon conveyorlc
   mv run_converyorlc.yaml ~/W/ConveyorLC/workflow
   cd ~/W/ConveyorLC/workflow
@@ -515,7 +515,7 @@ put the following two command into your .bashrc or .cshrc
 The "maestro run" will crearte a subdirectory using time stamp (i.e. run_converyorlc_20180504-155630)
 To check the job status, run "maestro status"
 
-```
+```asm
 (conveyorlc)[zhang30@syrah256 workflow]$  maestro status run_converyorlc_20180504-155630
 
 Step Name     Workspace                        State              Run Time        Elapsed Time    Start Time                  Submit Time                 End Time                      Number Restarts
@@ -532,7 +532,7 @@ All the results are under the run_converyorlc_20180504-155630 subdirectory.
 
 ### 3.4 run_converyorlc.yaml sample file
 
-```
+```asm
 description:
     name: run_converyorlc
     description: |
@@ -729,7 +729,7 @@ srun -N 1 -n 16  -ppdebug CDT4mmgbsa --version 13
 
 Both docking and rescoring support LOCALDIR on quartz. The only thing you need to do is add the following environment variable to you submitting script:
 ```asm 
-export LOCALDIR=/dev/shm/zhang30/
+export LOCALDIR=/dev/shm/<Your_OUN>/
 ```
 
 ### 4.4 Output data structures
@@ -799,11 +799,103 @@ The python command to manipulate the HDF5 files:
 ```asm 
 export spack=/usr/gapps/bbs/TOSS-3/spack/bin/
 export cdtpy=/usr/gapps/aha/quartz/conveyorlc_10/scripts/
- 
+```
+
+CDT1Receptor.py has following options
+```asm 
 $spack/cdtPython.sh $cdtpy/CDT1Receptor.py -h
+python /usr/gapps/aha/quartz/conveyorlc_10/scripts//CDT1Receptor.py -h
+usage: CDT1Receptor.py [-h] [-i INFILE] [-o OUTFILE] [-d] [-n RECNAME]
+                       [-dn DELNAME] [-sn SAVENAME] [-c CHECKDATA CHECKDATA]
+                       [-m META]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INFILE, --in INFILE
+                        receptor HDF5 input file
+  -o OUTFILE, --out OUTFILE
+                        receptor HDF5 output file
+  -d, --del             delete all paths for failed calculations
+  -n RECNAME, --name RECNAME
+                        extract meta data and files by receptor name
+  -dn DELNAME, --deletename DELNAME
+                        delete path by receptor name
+  -sn SAVENAME, --savename SAVENAME
+                        save data to HDF5 output file by receptor name
+  -c CHECKDATA CHECKDATA, --checkdata CHECKDATA CHECKDATA
+                        update meta data by protein name and checkpoint file
+                        name (e.g. sarinXtalnAChE checkpoint.txt)
+  -m META, --meta META  extract meta data from HDF5 file to CSV file
+```
+
+CDT2Ligand.py has following options
+```asm
 $spack/cdtPython.sh $cdtpy/CDT2Ligand.py -h
+python /usr/gapps/aha/quartz/conveyorlc_10/scripts//CDT2Ligand.py -h
+usage: CDT2Ligand.py [-h] [-i INFILE] [-o OUTFILE] [-d] [-l LIGID]
+                     [-n LIGNAME] [-c CLIST CLIST]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INFILE, --in INFILE
+                        Ligand HDF5 input file
+  -o OUTFILE, --out OUTFILE
+                        Ligand HDF5 output file
+  -d, --del             delete all paths for failed calculations
+  -l LIGID, --ligid LIGID
+                        extract data and files by ligand ID
+  -n LIGNAME, --name LIGNAME
+                        extract data and files by ligand name
+  -c CLIST CLIST, --clist CLIST CLIST
+                        output ligand name and id map into a file and choose
+                        only successful one or not (e.g. idnameList.txt T[A])
+```
+
+CDT3Docking.py has following options
+```asm
 $spack/cdtPython.sh $cdtpy/CDT3Docking.py -h
+python /usr/gapps/aha/quartz/conveyorlc_10/scripts//CDT3Docking.py -h
+usage: CDT3Docking.py [-h] [-i INDIR] [-o OUTDIR] [-r RECNAME] [-l LIGID]
+                      [-p PERCENT] [-s SCOREONLY]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INDIR, --in INDIR  receptor HDF5 input file
+  -o OUTDIR, --out OUTDIR
+                        receptor HDF5 output file
+  -r RECNAME, --recname RECNAME
+                        receptor name for extracting data and files (also need
+                        ligand id)
+  -l LIGID, --ligid LIGID
+                        ligand id for extracting data and files (also need
+                        receptor name)
+  -p PERCENT, --percent PERCENT
+                        select top percent ligands into the HDF5 output file
+  -s SCOREONLY, --scoreonly SCOREONLY
+                        extract score-only data from HDF5 file to CSV file
+```
+
+
+CDT4mmgbsa.py has following options
+```asm
 $spack/cdtPython.sh $cdtpy/CDT4mmgbsa.py -h
+python /usr/gapps/aha/quartz/conveyorlc_10/scripts//CDT4mmgbsa.py -h
+usage: CDT4mmgbsa.py [-h] [-i INDIR] [-o OUTDIR] [-r RECNAME] [-l LIGID]
+                     [-m META] [-d]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INDIR, --in INDIR  receptor HDF5 input file
+  -o OUTDIR, --out OUTDIR
+                        receptor HDF5 output file
+  -r RECNAME, --recname RECNAME
+                        receptor name for extracting data and files (also need
+                        ligand id)
+  -l LIGID, --ligid LIGID
+                        ligand id for extracting data and files (also need
+                        receptor name)
+  -m META, --meta META  extract meta data from HDF5 file to CSV file
+  -d, --del             delete all paths for failed calculations
 ``` 
  
 The scripts to convert the old pipeline data to HDF5 files:
