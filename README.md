@@ -725,6 +725,13 @@ export PATH=$AMBERHOME/bin/:$AMBERHOME10/bin/:$PATH
 srun -N 1 -n 16  -ppdebug CDT4mmgbsa --version 13
 ```
 
+#### 4.3.4 To use the local disk on Quartz to avoid I/O impact on file system
+
+Both docking and rescoring support LOCALDIR on quartz. The only thing you need to do is add the following environment variable to you submitting script:
+```asm 
+export LOCALDIR=/dev/shm/zhang30/
+```
+
 ### 4.4 Output data structures
 
 The output data structure is different from XML version. 
@@ -779,4 +786,30 @@ https://www.hdfgroup.org/downloads/hdfview/
 
 ### 4.5 Python scripts 
 
-TODO
+The conveyorLC has been installed:
+```asm 
+/usr/gapps/aha/quartz/conveyorlc_10/
+``` 
+The python scripts are in:
+```asm 
+/usr/gapps/aha/quartz/conveyorlc_10/scripts
+``` 
+ 
+The python command to manipulate the HDF5 files:
+```asm 
+export spack=/usr/gapps/bbs/TOSS-3/spack/bin/
+export cdtpy=/usr/gapps/aha/quartz/conveyorlc_10/scripts/
+ 
+$spack/cdtPython.sh $cdtpy/CDT1Receptor.py -h
+$spack/cdtPython.sh $cdtpy/CDT2Ligand.py -h
+$spack/cdtPython.sh $cdtpy/CDT3Docking.py -h
+$spack/cdtPython.sh $cdtpy/CDT4mmgbsa.py -h
+``` 
+ 
+The scripts to convert the old pipeline data to HDF5 files:
+```asm 
+$spack/cdtPython.sh $cdtpy/PPL1toCDT1hdf5.py
+$spack/cdtPython.sh $cdtpy/PPL2toCDT2hdf5.py
+$spack/cdtPython.sh $cdtpy/PPL3toCDT3hdf5.py
+$spack/cdtPython.sh $cdtpy/PPL4toCDT4hdf5.py
+`` 
