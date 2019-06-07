@@ -55,8 +55,13 @@ void saveRec(std::string& fileName, std::vector<std::string>& recList){
     while(itrRec.has_next())
     {
         Node &nRec=itrRec.next();
-        int status = nRec["status"].as_int();
-        //std::cout << status << " " << nRec.name() << std::endl;
+        int status = 0;
+        try {
+            status = nRec["status"].as_int();
+        }catch(...){
+            std::cout << "Error in reading status of receptor ID " << nRec.name() << std::endl;
+            continue;
+        }        //std::cout << status << " " << nRec.name() << std::endl;
         if (status == 1)
         {
             recList.push_back(nRec.name());
@@ -77,7 +82,13 @@ void saveLig(std::string& fileName, std::vector<std::string>& ligList){
     while(itrLig.has_next())
     {
         Node &nLig=itrLig.next();
-        int status = nLig["status"].as_int();
+        int status = 0;
+        try {
+            status =nLig["status"].as_int();
+        }catch(...){
+            std::cout << "Error in reading status of ligand ID " << nLig.name() << std::endl;
+            continue;
+        }
         if (status == 1)
         {
             ligList.push_back(nLig.name());
