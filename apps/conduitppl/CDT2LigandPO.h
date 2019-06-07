@@ -16,6 +16,7 @@ struct POdata{
     std::string xmlOut;
     std::string cmpName;
     std::string minimizeFlg;
+    std::string saveSDF;
     int firstLigID;
     bool restart;
     int version;

@@ -412,21 +412,20 @@ int main(int argc, char** argv) {
         n["date"]="Create By CDT2Ligand at "+timeStamp();
         relay::io::hdf5_append(n, ligCdtFile);
 
-        hid_t lig_hid = relay::io::hdf5_open_file_for_read_write(workDir+"/scratch/ligand.hdf5");
-        if(!conduit::relay::io::hdf5_has_path(lig_hid,"SDF")){
-            std::ifstream infile(podata.sdfFile);
-            if(infile.good())
-            {
-                std::string buffer((std::istreambuf_iterator<char>(infile)),
-                                   std::istreambuf_iterator<char>());
-                infile.close();
-                Node nSDF;
-                nSDF["SDF"] = buffer;
-                relay::io::hdf5_write(nSDF,lig_hid);
-            }
-            else
-            {
-                std::cout << "SDF input file - " << podata.sdfFile << " is not there." << std::endl;
+        if(podata.saveSDF=="on") {
+            hid_t lig_hid = relay::io::hdf5_open_file_for_read_write(workDir + "/scratch/ligand.hdf5");
+            if (!conduit::relay::io::hdf5_has_path(lig_hid, "SDF")) {
+                std::ifstream infile(podata.sdfFile);
+                if (infile.good()) {
+                    std::string buffer((std::istreambuf_iterator<char>(infile)),
+                                       std::istreambuf_iterator<char>());
+                    infile.close();
+                    Node nSDF;
+                    nSDF["SDF"] = buffer;
+                    relay::io::hdf5_write(nSDF, lig_hid);
+                } else {
+                    std::cout << "SDF input file - " << podata.sdfFile << " is not there." << std::endl;
+                }
             }
         }
 
