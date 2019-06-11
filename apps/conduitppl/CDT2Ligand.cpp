@@ -414,15 +414,19 @@ int main(int argc, char** argv) {
 
         if(podata.saveSDF=="on") {
             hid_t lig_hid = relay::io::hdf5_open_file_for_read_write(workDir + "/scratch/ligand.hdf5");
-            if (!conduit::relay::io::hdf5_has_path(lig_hid, "SDF")) {
+            std::string ligSdfFile = ligCdtFile + "sdf/";
+            bool hasSaveSDF=conduit::relay::io::hdf5_has_path(lig_hid, "SDF");
+            relay::io::hdf5_close_file(lig_hid);
+            if (!hasSaveSDF) {
                 std::ifstream infile(podata.sdfFile);
                 if (infile.good()) {
                     std::string buffer((std::istreambuf_iterator<char>(infile)),
                                        std::istreambuf_iterator<char>());
                     infile.close();
                     Node nSDF;
-                    nSDF["SDF"] = buffer;
-                    relay::io::hdf5_write(nSDF, lig_hid);
+                    nSDF['path'] = podata.sdfFile;
+                    nSDF["file"] = buffer;
+                    relay::io::hdf5_append(nSDF, ligSdfFile);
                 } else {
                     std::cout << "SDF input file - " << podata.sdfFile << " is not there." << std::endl;
                 }
