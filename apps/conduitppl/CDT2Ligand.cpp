@@ -463,7 +463,7 @@ int main(int argc, char** argv) {
         if(podata.saveSDF=="on") {
             hid_t lig_hid = relay::io::hdf5_open_file_for_read_write(workDir + "/scratch/ligand.hdf5");
             //std::string ligSdfFile = ligCdtFile + "sdf/";
-            bool hasSaveSDF=conduit::relay::io::hdf5_has_path(lig_hid, "SDF");
+            bool hasSaveSDF=conduit::relay::io::hdf5_has_path(lig_hid, "sdf");
             relay::io::hdf5_close_file(lig_hid);
             if (!hasSaveSDF) {
                 std::ifstream infile(podata.sdfFile);

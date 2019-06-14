@@ -353,15 +353,7 @@ int main(int argc, char* argv[]) {
 
             dockjob(jobInput, jobOut, localDir);
 
-            if(jobInput.useScoreCF){
-                if(jobOut.scores.size()>0){
-                    if(jobOut.scores[0]<jobInput.scoreCF){
-                        toHDF5File(jobInput, jobOut, dockHDF5File);
-                    }
-                }
-            }else{
-                toHDF5File(jobInput, jobOut, dockHDF5File);
-            }
+            toHDF5File(jobInput, jobOut, dockHDF5File);
 
             // Go back the localDir to get rid of following error
             // shell-init: error retrieving current directory: getcwd: cannot access
