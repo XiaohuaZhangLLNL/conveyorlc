@@ -134,6 +134,45 @@ bool isRun(JobInputData& jobInput){
     return false;
 }
 
+void getCalcHDF5(std::string& fileName, std::vector<bool>& calcList){
+    Node n;
+
+    hid_t lig_hid=relay::io::hdf5_open_file_for_read(fileName);
+    relay::io::hdf5_read(lig_hid, n);
+
+    NodeIterator itrLig = n["lig"].children();
+
+    while(itrLig.has_next())
+    {
+        Node &nLig=itrLig.next();
+        std::string ligStr=nLig.name();
+        int ligID=std::atoi(ligStr.c_str());
+        calcList[ligID]=true;
+    }
+    relay::io::hdf5_close_file(lig_hid);
+}
+
+int getNumLigand(POdata& podata){
+    std::ifstream inFile;
+    inFile.open(podata.sdfFile);
+
+    int count =0;
+    std::string fileLine;
+    while (inFile) {
+        std::getline(inFile, fileLine);
+
+        if (fileLine[0]=='$') count++;
+
+    }
+    return count;
+}
+
+void getCalcList(std::vector<bool>& calcList, std::string& fileName, POdata& podata){
+    int numLigand=getNumLigand(podata);
+    calcList.resize(numLigand+1, false);
+    getCalcHDF5(fileName, calcList);
+}
+
 void rmLigDir(JobOutData& jobOut)
 {
     std::string cmd="rm -rf " + jobOut.ligPath;
@@ -401,6 +440,15 @@ int main(int argc, char** argv) {
     JobOutData jobOut;
 
     if (world.rank() == 0) {
+        // Check if these is ligand.hdf5
+        bool isNew=true;
+        std::string ligOutfile=workDir+"/scratch/ligand.hdf5";
+        std::vector<bool> calcList;
+        if(fileExist(ligOutfile)){
+            isNew=false;
+            getCalcList(calcList, ligOutfile, podata);
+        }
+
         //! Open a Conduit file to track the calculation
         std::string cmd = "mkdir -p " + workDir + "/scratch";
         std::string errMesg = "mkdir scratch directory fails";
@@ -424,7 +472,7 @@ int main(int argc, char** argv) {
                                        std::istreambuf_iterator<char>());
                     infile.close();
                     Node nSDF;
-                    nSDF['sdf/path'] = podata.sdfFile;
+                    nSDF["sdf/path"] = podata.sdfFile;
                     nSDF["sdf/file"] = buffer;
                     relay::io::hdf5_append(nSDF, ligCdtFile);
                 } else {
@@ -469,8 +517,10 @@ int main(int argc, char** argv) {
                 dirCnt++;
                 jobInput.dirBuffer=std::to_string(dirCnt);
                 //For restart
-                if(isRun(jobInput)){
-                    continue;
+                if(!isNew) {
+                    if (calcList[dirCnt]) {
+                        continue;
+                    }
                 }
 
                 count++;
