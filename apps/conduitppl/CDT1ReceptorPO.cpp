@@ -28,7 +28,7 @@ bool CDT1ReceptorPO(int argc, char** argv, POdata& podata) {
         inputs.add_options()
                 ("input", value<std::string > (&podata.inputFile), "PDB file list for input")
                 ("output", value<std::string > (&podata.outputFile), "output filename")
-                ("version", value<int>(&podata.version)->default_value(10), "AMBER Version")
+                ("version", value<int>(&podata.version)->default_value(13), "AMBER Version")
                 ("radius", value<double>(&podata.radius)->default_value(1.40), "probe sphere radius")
                 ("surfSphNum", value<int>(&podata.surfSphNum)->default_value(960), "number of sphere vectors for surface")
                 ("gridSphNum", value<int>(&podata.gridSphNum)->default_value(100), "number of sphere vectors for grid")        

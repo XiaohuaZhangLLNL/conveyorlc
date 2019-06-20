@@ -130,7 +130,7 @@ output_container remove_redundant(const output_container& in, fl min_rmsd) {
 void do_search(model& m, const boost::optional<model>& ref, const scoring_function& sf, const precalculate& prec, const igrid& ig, const precalculate& prec_widened, const igrid& ig_widened, non_cache& nc, // nc.slope is changed
         std::stringstream& out_name,
         const vec& corner1, const vec& corner2,
-        const parallel_mc& par, fl energy_range, sz num_modes,
+        const parallel_mc& par, fl energy_range, fl in_min_rmsd, sz num_modes,
         int seed, int verbosity, bool score_only, bool local_only, std::stringstream& log, const terms& t, const flv& weights, sz& how_many) {
     conf_size s = m.get_size();
     conf c = m.get_initial_conf();
@@ -203,7 +203,7 @@ void do_search(model& m, const boost::optional<model>& ref, const scoring_functi
             out_cont.sort();
         }
 
-        const fl out_min_rmsd = 1;
+        const fl out_min_rmsd = in_min_rmsd;
         out_cont = remove_redundant(out_cont, out_min_rmsd);
 
         done(verbosity, log);
@@ -254,7 +254,7 @@ void main_procedure(model& m, const boost::optional<model>& ref, // m is non-con
         bool score_only, bool local_only, bool randomize_only, bool no_cache,
         const grid_dims& gd, int exhaustiveness,
         const flv& weights,
-        int cpu, int seed, int verbosity, sz num_modes, fl energy_range, std::stringstream& log, sz& how_many) {
+        int cpu, int seed, int verbosity, sz num_modes, fl energy_range, fl in_min_rmsd, std::stringstream& log, sz& how_many) {
 
     doing(verbosity, "Setting up the scoring function", log);
 
@@ -277,7 +277,8 @@ void main_procedure(model& m, const boost::optional<model>& ref, // m is non-con
     sz heuristic = m.num_movable_atoms() + 10 * m.get_size().num_degrees_of_freedom();
     par.mc.num_steps = unsigned(70 * 3 * (50 + heuristic) / 2); // 2 * 70 -> 8 * 20 // FIXME
     par.mc.ssd_par.evals = unsigned((25 + m.num_movable_atoms()) / 3);
-    par.mc.min_rmsd = 1.0;
+    //par.mc.min_rmsd = 1.0;
+    par.mc.min_rmsd = in_min_rmsd;
     par.mc.num_saved_mins = 20;
     par.mc.hunt_cap = vec(10, 10, 10);
     par.num_tasks = exhaustiveness;
@@ -295,7 +296,7 @@ void main_procedure(model& m, const boost::optional<model>& ref, // m is non-con
             do_search(m, ref, wt, prec, nc, prec_widened, nc_widened, nc,
                     out_name,
                     corner1, corner2,
-                    par, energy_range, num_modes,
+                    par, energy_range, in_min_rmsd, num_modes,
                     seed, verbosity, score_only, local_only, log, t, weights, how_many);
         } else {
             bool cache_needed = !(score_only || randomize_only || local_only);
@@ -306,7 +307,7 @@ void main_procedure(model& m, const boost::optional<model>& ref, // m is non-con
             do_search(m, ref, wt, prec, c, prec, c, nc,
                     out_name,
                     corner1, corner2,
-                    par, energy_range, num_modes,
+                    par, energy_range, in_min_rmsd, num_modes,
                     seed, verbosity, score_only, local_only, log, t, weights, how_many);
         }
     }

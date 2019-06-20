@@ -40,6 +40,7 @@ public:
         ar & seed;
         ar & scoreCF; 
         ar & energy_range;
+        ar & min_rmsd;
         ar & granularity;
         ar & key;
         ar & recFile;
@@ -60,6 +61,7 @@ public:
     int seed;
     double scoreCF;  // value for score cutoff     
     double energy_range;
+    double min_rmsd;
     double granularity;
     std::string key;
     std::string recFile;

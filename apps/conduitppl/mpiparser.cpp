@@ -194,6 +194,7 @@ Thank you!\n";
                 ("seed", value<int>(&jobInput.seed), "explicit random seed")
                 ("randomize", bool_switch(&jobInput.randomize), "Use different random seeds for complex")
                 ("energy_range", value<fl> (&jobInput.energy_range)->default_value(2.0), "maximum energy difference (default value 2.0) between the best binding mode and the worst one displayed (kcal/mol)")
+                ("min_rmsd", value<fl> (&jobInput.min_rmsd)->default_value(1.0), "maximum energy difference (default value 2.0) between the best binding mode and the worst one displayed (kcal/mol)")
                 ("useScoreCF", bool_switch(&jobInput.useScoreCF), "Use score cutoff to save ligand with top score higher than certain critical value")
                 ("scoreCF", value<double>(&jobInput.scoreCF)->default_value(-8.0), "Score cutoff to save ligand with top score higher than certain value (default -8.0)")
                 ("score_only", bool_switch(&jobInput.score_only), "score only and not perform pose search")
