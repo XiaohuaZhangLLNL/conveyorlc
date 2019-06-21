@@ -149,7 +149,7 @@ void Amber::comLeapInput(std::string pdbid, std::string ligName, std::string tle
     tleapFile.close();
 }
 
-void Amber::tleapInput(std::string& mol2FName, std::string& ligName, std::string& tleapFName){
+void Amber::tleapInput(std::string& mol2FName, std::string& ligName, std::string& tleapFName, std::string& subDir){
     std::ofstream tleapFile;
     try {
         tleapFile.open(tleapFName.c_str());
@@ -174,7 +174,7 @@ void Amber::tleapInput(std::string& mol2FName, std::string& ligName, std::string
     tleapFile << "loadamberparams " << mol2FBase << ".frcmod" << std::endl;    
     tleapFile << ligName <<" = loadmol2 " << mol2FName << std::endl;
     tleapFile << "check " << ligName << std::endl;
-    tleapFile << "saveoff " << ligName <<" " << ligName <<".lib " << std::endl;
+    tleapFile << "saveoff " << ligName <<" " << subDir+"/"+ligName <<".lib " << std::endl;
     tleapFile << "set default PBRadii mbondi2" << std::endl;
     tleapFile << "saveamberparm " << ligName <<" " << ligName <<".prmtop " << ligName <<".inpcrd" << std::endl;
     tleapFile << "quit " << std::endl;

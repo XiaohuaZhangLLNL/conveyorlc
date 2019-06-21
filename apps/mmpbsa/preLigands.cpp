@@ -106,9 +106,10 @@ bool preLigands(std::string& dir) {
     //! leap to obtain forcefield for ligand
     std::string ligName="LIG";
     std::string tleapFile="leap.in";
-    
-    pAmber->tleapInput(output,ligName,tleapFile);
-    pAmber->tleap(tleapFile); 
+
+    //WIP
+    //pAmber->tleapInput(output,ligName,tleapFile);
+    //pAmber->tleap(tleapFile);
     
     std::string checkFName="LIG.prmtop";
     if(!fileExist(checkFName)){

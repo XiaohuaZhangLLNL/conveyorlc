@@ -272,7 +272,7 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         std::string ligName="LIG";
         std::string tleapFile="leap.in";
 
-        pAmber->tleapInput(output,ligName,tleapFile);
+        pAmber->tleapInput(output,ligName,tleapFile, subDir);
         pAmber->tleap(tleapFile); 
 
         std::string checkFName="LIG.prmtop";
