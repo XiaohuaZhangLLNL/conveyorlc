@@ -138,8 +138,15 @@ void getCalcHDF5(std::string& fileName, std::vector<bool>& calcList){
     Node n;
 
     hid_t lig_hid=relay::io::hdf5_open_file_for_read(fileName);
-    relay::io::hdf5_read(lig_hid, n);
 
+    std::vector<std::string> lig_names;
+    relay::io::hdf5_group_list_child_names(lig_hid,"/lig/",lig_names);
+    for(int i=0; i<lig_names.size(); i++){
+        int ligID=std::atoi(lig_names[i].c_str());
+        calcList[ligID]=true;
+    }
+
+    /*
     NodeIterator itrLig = n["lig"].children();
 
     while(itrLig.has_next())
@@ -150,6 +157,7 @@ void getCalcHDF5(std::string& fileName, std::vector<bool>& calcList){
         calcList[ligID]=true;
     }
     relay::io::hdf5_close_file(lig_hid);
+     */
 }
 
 int getNumLigand(POdata& podata){
@@ -164,6 +172,7 @@ int getNumLigand(POdata& podata){
         if (fileLine[0]=='$') count++;
 
     }
+    std::cout << "There are total " << count << " ligands in SDF file" << std::endl;
     return count;
 }
 
