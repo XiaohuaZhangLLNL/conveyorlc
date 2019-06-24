@@ -140,7 +140,14 @@ void getCalcHDF5(std::string& fileName, std::vector<bool>& calcList){
     hid_t lig_hid=relay::io::hdf5_open_file_for_read(fileName);
 
     std::vector<std::string> lig_names;
-    relay::io::hdf5_group_list_child_names(lig_hid,"/lig/",lig_names);
+    try {
+        relay::io::hdf5_group_list_child_names(lig_hid, "/lig/", lig_names);
+    }catch (...){
+        std::cout << "Warning some error in ligand.hdf5" << std::endl;
+    }
+
+    std::cout << "Previous complete ligand " <<  lig_names.size() << std::endl;
+
     for(int i=0; i<lig_names.size(); i++){
         int ligID=std::atoi(lig_names[i].c_str());
         calcList[ligID]=true;
