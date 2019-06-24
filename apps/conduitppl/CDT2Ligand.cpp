@@ -163,8 +163,10 @@ void getCalcHDF5(std::string& fileName, std::vector<bool>& calcList){
         int ligID=std::atoi(ligStr.c_str());
         calcList[ligID]=true;
     }
-    relay::io::hdf5_close_file(lig_hid);
+
      */
+
+    relay::io::hdf5_close_file(lig_hid);
 }
 
 int getNumLigand(POdata& podata){
