@@ -86,7 +86,7 @@ bool getScores(JobOutData& jobOut){
 
 
 void getRecData(JobInputData& jobInput, std::string& recKey, grid_dims& gd){
-    Node n;
+    Node nRec;
 
     hid_t rec_hid = relay::io::hdf5_open_file_for_read(jobInput.recFile);
 
@@ -94,12 +94,13 @@ void getRecData(JobInputData& jobInput, std::string& recKey, grid_dims& gd){
         throw LBIND::LBindException("Conduit HDF5 cannot read "+jobInput.recFile);
     }
 
-    relay::io::hdf5_read(rec_hid, n);
+    relay::io::hdf5_read(rec_hid, "rec/" + recKey, nRec);
+    //relay::io::hdf5_read(rec_hid, n);
 
-    std::string pdbqtPath="rec/"+recKey+"/file/rec_min.pdbqt";
+    std::string pdbqtPath="file/rec_min.pdbqt";
     //std::cout << pdbqtPath << std::endl;
-    if(n.has_path(pdbqtPath)){
-        std::string outLines=n[pdbqtPath].as_string();
+    if(nRec.has_path(pdbqtPath)){
+        std::string outLines=nRec[pdbqtPath].as_string();
 
         std::ofstream outFile("rec_min.pdbqt");
         outFile << outLines;
@@ -116,9 +117,9 @@ void getRecData(JobInputData& jobInput, std::string& recKey, grid_dims& gd){
     {
         for(std::string& a : axis)
         {
-            std::string keyPath="rec/"+recKey+"/meta/Site/"+k+"/"+a;
-            if(n.has_path(keyPath)){
-                double val=n[keyPath].as_double();
+            std::string keyPath="meta/Site/"+k+"/"+a;
+            if(nRec.has_path(keyPath)){
+                double val=nRec[keyPath].as_double();
                 geo.push_back(val);
             }else{
                 throw LBIND::LBindException("Cannot retrieve "+k+" "+a);
@@ -145,7 +146,7 @@ void getRecData(JobInputData& jobInput, std::string& recKey, grid_dims& gd){
 
 }
 
-void getLigData(std::string& fileName, std::string& ligKey, std::string& ligName, std::stringstream& ligSS){
+void getLigDataOLD(std::string& fileName, std::string& ligKey, std::string& ligName, std::stringstream& ligSS){
     Node n;
 
     hid_t lig_hid=relay::io::hdf5_open_file_for_read(fileName);
@@ -165,6 +166,28 @@ void getLigData(std::string& fileName, std::string& ligKey, std::string& ligName
 
         ligSS << outLines;
     }else{
+        throw LBIND::LBindException("Cannot retrieve pdbqt file for "+ligKey);
+    }
+
+    relay::io::hdf5_close_file(lig_hid);
+}
+
+void getLigData(std::string& fileName, std::string& ligKey, std::string& ligName, std::stringstream& ligSS){
+
+    hid_t lig_hid=relay::io::hdf5_open_file_for_read(fileName);
+
+    Node nLig;
+    try {
+        relay::io::hdf5_read(lig_hid, "lig/" + ligKey, nLig);
+        if(nLig.has_path("meta/name")){
+            ligName=nLig["meta/name"].as_string();
+        }else{
+            ligName="NoName";
+        }
+        std::string outLines=nLig["file/LIG_min.pdbqt"].as_string();
+        ligSS << outLines;
+
+    }catch (...){
         throw LBIND::LBindException("Cannot retrieve pdbqt file for "+ligKey);
     }
 

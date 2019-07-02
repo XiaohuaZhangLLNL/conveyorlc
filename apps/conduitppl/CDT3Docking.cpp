@@ -61,6 +61,33 @@ using namespace LBIND;
 
 void getKeysHDF5(std::string& fileName, std::vector<std::string>& keysFinish)
 {
+
+    Node n;
+
+    hid_t dock_hid=relay::io::hdf5_open_file_for_read(fileName);
+
+    std::vector<std::string> rec_names;
+    relay::io::hdf5_group_list_child_names(dock_hid,"/dock/",rec_names);
+
+    for(int i=0;i<rec_names.size();i++)
+    {
+        const std::string &curr_rec = rec_names[i];
+        std::vector<std::string> lig_names;
+        relay::io::hdf5_group_list_child_names(dock_hid,"/dock/"+curr_rec+"/",lig_names);
+
+        for(int j=0; j<lig_names.size(); j++)
+        {
+            std::string key=curr_rec+"/"+lig_names[j];
+            keysFinish.push_back(key);
+        }
+    }
+
+    relay::io::hdf5_close_file(dock_hid);
+
+}
+
+void getKeysHDF5OLD(std::string& fileName, std::vector<std::string>& keysFinish)
+{
     Node n;
 
     hid_t dock_hid=relay::io::hdf5_open_file_for_read(fileName);
