@@ -86,15 +86,17 @@ void saveLig(std::string& fileName, std::vector<std::string>& ligList){
 
     Node n_test;
     for(int i=0; i<lig_names.size(); i++){
-        relay::io::hdf5_read(lig_hid, "lig/" + lig_names[i] + "/status", n_test);
+        try {
+            relay::io::hdf5_read(lig_hid, "lig/" + lig_names[i] + "/status", n_test);
 
-        if(n_test.dtype().is_int())
-        {
-            int status = n_test.as_int();
-            if(status == 1)
-            {
-                ligList.push_back(lig_names[i]);
+            if (n_test.dtype().is_int()) {
+                int status = n_test.as_int();
+                if (status == 1) {
+                    ligList.push_back(lig_names[i]);
+                }
             }
+        }catch (...){
+            std::cout << "Ligand " << lig_names[i] << " has status corrupted" << std::endl;
         }
     }
 
