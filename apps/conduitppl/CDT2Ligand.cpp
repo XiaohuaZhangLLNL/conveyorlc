@@ -250,63 +250,63 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
 
         pPdb->strip(pdbFile, tmpFile);
 
-        //! Get ligand charge from SDF file.
-        std::string keyword="TOTAL_CHARGE";
-
-        boost::scoped_ptr<Sdf> pSdf(new Sdf());
-        std::string info=pSdf->getInfo(sdfFile, keyword);
-        if(jobInput.cmpName=="NoName"){
-            jobOut.ligName=pSdf->getTitle(sdfFile);
-        }else{
-            jobOut.ligName=pSdf->getInfo(sdfFile, jobInput.cmpName);
-        }
-
-        std::cout << "Charge:" << info << std::endl;
-        int charge=Sstrm<int, std::string>(info);
-        std::string chargeStr=Sstrm<std::string,int>(charge);
-
-        //! Start antechamber calculation
-        std::string output="ligand.mol2";
-        std::string options=" -c bcc -nc "+ chargeStr;
-
-        boost::scoped_ptr<Amber> pAmber(new Amber(jobInput.ambVersion));
-        pAmber->antechamber(tmpFile, output, options);
-
-        {
-            if(!fileExist(output)){
-                std::string message="ligand.mol2 does not exist.";
-                throw LBindException(message);        
-            }
-
-            if(fileEmpty(output)){
-                std::string message="ligand.mol2 is empty.";
-                throw LBindException(message);              
-            }
-        }        
-        
-        pAmber->parmchk(output);
-
-        //! leap to obtain forcefield for ligand
-        std::string ligName="LIG";
-        std::string tleapFile="leap.in";
-
-        pAmber->tleapInput(output,ligName,tleapFile, subDir);
-        pAmber->tleap(tleapFile); 
-
-        std::string checkFName="LIG.prmtop";
-        {
-            if(!fileExist(checkFName)){
-                std::string message="LIG.prmtop does not exist.";
-                throw LBindException(message);        
-            }
-
-            if(fileEmpty(checkFName)){
-                std::string message="LIG.prmtop is empty.";
-                throw LBindException(message);              
-            }
-        }
-
         if(jobInput.minimizeFlg) {
+            //! Get ligand charge from SDF file.
+            std::string keyword="TOTAL_CHARGE";
+
+            boost::scoped_ptr<Sdf> pSdf(new Sdf());
+            std::string info=pSdf->getInfo(sdfFile, keyword);
+            if(jobInput.cmpName=="NoName"){
+                jobOut.ligName=pSdf->getTitle(sdfFile);
+            }else{
+                jobOut.ligName=pSdf->getInfo(sdfFile, jobInput.cmpName);
+            }
+
+            std::cout << "Charge:" << info << std::endl;
+            int charge=Sstrm<int, std::string>(info);
+            std::string chargeStr=Sstrm<std::string,int>(charge);
+
+            //! Start antechamber calculation
+            std::string output="ligand.mol2";
+            std::string options=" -c bcc -nc "+ chargeStr;
+
+            boost::scoped_ptr<Amber> pAmber(new Amber(jobInput.ambVersion));
+            pAmber->antechamber(tmpFile, output, options);
+
+            {
+                if(!fileExist(output)){
+                    std::string message="ligand.mol2 does not exist.";
+                    throw LBindException(message);
+                }
+
+                if(fileEmpty(output)){
+                    std::string message="ligand.mol2 is empty.";
+                    throw LBindException(message);
+                }
+            }
+
+            pAmber->parmchk(output);
+
+            //! leap to obtain forcefield for ligand
+            std::string ligName="LIG";
+            std::string tleapFile="leap.in";
+
+            pAmber->tleapInput(output,ligName,tleapFile, subDir);
+            pAmber->tleap(tleapFile);
+
+            std::string checkFName="LIG.prmtop";
+            {
+                if(!fileExist(checkFName)){
+                    std::string message="LIG.prmtop does not exist.";
+                    throw LBindException(message);
+                }
+
+                if(fileEmpty(checkFName)){
+                    std::string message="LIG.prmtop is empty.";
+                    throw LBindException(message);
+                }
+            }
+
             //! GB energy minimization
             std::string minFName = "LIG_minGB.in";
             {
@@ -363,7 +363,8 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
 
         }else{
 
-            cmd="ambpdb -p LIG.prmtop < LIG.inpcrd > LIG_minTmp.pdb";
+            //cmd="ambpdb -p LIG.prmtop < LIG.inpcrd > LIG_minTmp.pdb";
+            cmd="ln -s ligstrp.pdb LIG_minTmp.pdb";
 
         }
 
@@ -371,7 +372,7 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         errMesg = "ambpdb converting rst/inp to pdb fails";
         command(cmd, errMesg);
 
-        checkFName = "LIG_minTmp.pdb";
+        std::string checkFName = "LIG_minTmp.pdb";
         if (!fileExist(checkFName)) {
             std::string message = "LIG_min.pdb minimization PDB file does not exist.";
             throw LBindException(message);

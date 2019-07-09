@@ -26,6 +26,7 @@ struct POdata{
     double minVol;
     double cutRadius;
     int version;
+    bool keep;
 };
 
 bool CDT1ReceptorPO(int argc, char** argv, POdata& podata);
