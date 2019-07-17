@@ -79,6 +79,7 @@ int main(int argc, char** argv) {
         boost::scoped_ptr<Grid> pGrid(new Grid(pComplex.get()));
         pGrid->setSpacing(podata.spacing);
         pGrid->setCutoffCoef(podata.cutoffCoef);
+        pGrid->setBoxExtend(podata.boxExtend);
         
         pGrid->run(podata.radius, podata.gridSphNum, podata.minVol);
 

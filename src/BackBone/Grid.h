@@ -36,6 +36,7 @@ public:
     //void setNumSphere(int numSphere);
     void setSpacing(double spacing);
     void setCutoffCoef(double cutoffCoeff);
+    void setBoxExtend(double boxExtend);
     void writeCutRecPDB(std::string& fileName, Complex* pComplex, double cutRadius);
         
 private:
@@ -62,6 +63,7 @@ private:
     double probe;
     double spacing;
     double cutoffCoef;
+    double boxExtend;
     bool outputPDB;
     
     int siteIndex;

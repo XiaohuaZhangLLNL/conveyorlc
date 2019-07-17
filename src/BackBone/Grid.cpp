@@ -31,6 +31,7 @@ Grid::Grid(Complex *pCom)  :
     probe(1.4),
     spacing(1.4),
     cutoffCoef(1.1),
+    boxExtend(2.0),
     outputPDB(true)
 {
 }
@@ -42,6 +43,7 @@ Grid::Grid(Complex *pCom, bool outPDB)  :
     probe(1.4),
     spacing(1.4),
     cutoffCoef(1.1),
+    boxExtend(2.0),
     outputPDB(outPDB)
 {
 }
@@ -70,6 +72,10 @@ void Grid::setSpacing(double spacing){
 
 void Grid::setCutoffCoef(double cutoffCoeff){
     this->cutoffCoef=cutoffCoeff;
+}
+
+void Grid::setBoxExtend(double boxExtend) {
+    this->boxExtend=boxExtend;
 }
 
 void Grid::run(double probeRadius, int numberSphere, double minVolume){
@@ -611,10 +617,11 @@ void Grid::siteCentroid(std::vector<Coor3d*>& clust) {
     double xDim=xMax-xMin;
     double yDim=yMax-yMin;
     double zDim=zMax-zMin;
-    
-    double xDock=xDim+4;
-    double yDock=yDim+4;
-    double zDock=zDim+4;
+
+    double boxExtend2=boxExtend*2;
+    double xDock=xDim+boxExtend2;
+    double yDock=yDim+boxExtend2;
+    double zDock=zDim+boxExtend2;
     
     //if(xDock<22) xDock=22;
     //if(yDock<22) yDock=22;
@@ -625,7 +632,7 @@ void Grid::siteCentroid(std::vector<Coor3d*>& clust) {
     ss << "          MIN         x= " << xMin << "     y= " << yMin << "     z= " << zMin << std::endl;
     ss << "          MAX         x= " << xMax << "     y= " << yMax << "     z= " << zMax << std::endl; 
     ss << "          Dimension   X= " << xDim << "     Y= " << yDim << "     Z= " << zDim << std::endl;
-    ss << "      Docking Box dimension Recommended (+/- 5 Angstroms):" << std::endl;
+    ss << "      Docking Box dimension Recommended (+/- "<< boxExtend <<" Angstroms):" << std::endl;
     ss << "          Dimension   X= " << xDock << "     Y= " << yDock << "     Z= " << zDock << std::endl;
     
     double peudoVol=xDim*yDim*zDim;
@@ -732,10 +739,11 @@ void Grid::siteCentroid(std::vector<Coor3d*>& clust, Coor3d& dockDim, Coor3d& ce
     double xDim=xMax-xMin;
     double yDim=yMax-yMin;
     double zDim=zMax-zMin;
-    
-    double xDock=xDim+4;
-    double yDock=yDim+4;
-    double zDock=zDim+4;
+
+    double boxExtend2=boxExtend*2;
+    double xDock=xDim+boxExtend2;
+    double yDock=yDim+boxExtend2;
+    double zDock=zDim+boxExtend2;
     
     //if(xDock<22) xDock=22;
     //if(yDock<22) yDock=22;

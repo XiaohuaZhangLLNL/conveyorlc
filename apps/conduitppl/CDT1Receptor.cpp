@@ -476,6 +476,7 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         boost::scoped_ptr<Grid> pGrid(new Grid(pComplex.get(), true));
         pGrid->setSpacing(jobInput.spacing);
         pGrid->setCutoffCoef(jobInput.cutoffCoef);
+        pGrid->setBoxExtend(jobInput.boxExtend);
         pGrid->run(jobInput.radius, jobInput.gridSphNum, jobInput.minVol);
 
 
@@ -629,6 +630,7 @@ void initInputData(JobInputData& jobInput, POdata& podata){
     jobInput.radius=podata.radius;
     jobInput.spacing=podata.spacing;
     jobInput.cutoffCoef=podata.cutoffCoef;
+    jobInput.boxExtend=podata.boxExtend;
     jobInput.minVol=podata.minVol;
     jobInput.cutRadius=podata.cutRadius;
 }

@@ -30,6 +30,7 @@ public:
         ar & radius;
         ar & spacing;
         ar & cutoffCoef;
+        ar & boxExtend;
         ar & minVol;
         ar & cutRadius;
         ar & dirBuffer;
@@ -51,6 +52,7 @@ public:
     double radius;
     double spacing;
     double cutoffCoef;
+    double boxExtend;
     double minVol;
     double cutRadius;
     std::string dirBuffer;

@@ -34,6 +34,7 @@ bool CDT1ReceptorPO(int argc, char** argv, POdata& podata) {
                 ("gridSphNum", value<int>(&podata.gridSphNum)->default_value(100), "number of sphere vectors for grid")        
                 ("spacing", value<double>(&podata.spacing)->default_value(1.4), "Grid spacing")
                 ("cutoffCoef", value<double>(&podata.cutoffCoef)->default_value(1.1), "Cutoff Coefficient")
+                ("boxExtend", value<double>(&podata.boxExtend)->default_value(2.0), "Extend box from grid dimension")
                 ("minVolume", value<double>(&podata.minVol)->default_value(50), "minimum volume for a site")
                 ("protonate", value<std::string> (&podata.protonateFlg)->default_value("on"), "Protonate protein by default")
                 ("minimize", value<std::string> (&podata.minimizeFlg)->default_value("on"), "Run minimization by default")

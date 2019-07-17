@@ -23,6 +23,7 @@ struct POdata{
     int gridSphNum;
     double spacing;
     double cutoffCoef;
+    double boxExtend;
     double minVol;
     double cutRadius;
     int version;

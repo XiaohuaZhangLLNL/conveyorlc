@@ -38,6 +38,7 @@ bool calcSitePO(int argc, char** argv, POdata& podata) {
                 ("minVolume", value<int>(&podata.minVol)->default_value(50), "minimum volume for a site")
                 ("spacing", value<double>(&podata.spacing)->default_value(1.4), "Grid spacing")
                 ("cutoffCoef", value<double>(&podata.cutoffCoef)->default_value(1.1), "Cutoff Coefficient")
+                ("boxExtend", value<double>(&podata.boxExtend)->default_value(2.0), "Extend box from grid dimension")
                 ("help", bool_switch(&help), "display usage summary")
                 ;
         options_description desc; 

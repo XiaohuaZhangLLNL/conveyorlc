@@ -16,6 +16,7 @@ struct POdata{
     double radius;
     double spacing;
     double cutoffCoef;
+    double boxExtend;
     int surfSphNum;
     int gridSphNum;
     int minVol;
