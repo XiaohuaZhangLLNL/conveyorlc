@@ -462,7 +462,7 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
 
             for(int i=0; i<jobInput.dockBX.size(); i++){
                 std::vector<std::string> tokens;
-                tokenize(jobInput.dockBX[i], tokens, ";");
+                tokenize(jobInput.dockBX[i], tokens, ",");
                 std::vector<double> xyz;
                 for(int j=0; j<tokens.size(); j++){
                     xyz.push_back(Sstrm<double, std::string>(tokens[j]));
