@@ -156,6 +156,29 @@ pdb/1a50_protein.pdb SubRes:pdb/1a50_ligand.mol2
 
 ```
 
+Sometimes docking box is not accurate or not you want.
+For example, the Aurora kinase binding site is a wide groove but we may want to docking ligand just part of binding site. 
+There are two ways to change the docking box.
+
+1.	Use ‘--boxExtend’ to extend the box
+
+srun -N 1 -n 4 -ppdebug CDT1Receptor --input  pdb.list. --boxExtend 5
+
+by default, program adds 2 angstroms to six directions of bounding box of cavity. 
+The command above adds 5 angstroms (it has effect on all receptors in pdb.list)
+
+2.	You can define the docking box for individual protein in pdb.list by using “DockBx” keyword
+In pdb.list
+```asm
+pdb/2y2vA_A.pdb KeyRes:SGB.203|GLU.202.A NonRes:SGB
+pdb/sarinXtalnAChE_A.pdb KeyRes:SGB.203  NonRes:SGB  DockBX:1.034,-2.453,-3.123|22,25,36
+```
+“DockBX:1.034,-2.453,-3.123|22,25,36” 
+1.034,-2.453,-3.123 is docking box centroid coordinates separated by comma
+22,25,36  is docking box dimension separated by comma
+
+If DockBX is defined for a receptor, the grid calculation will be skipped for that receptor and use the user defined docking box.
+
 
 #### 2.2.2 running the ligand preparation
 
