@@ -38,6 +38,7 @@ public:
         ar & recCdtFile;
         ar & keyRes;
         ar & nonRes;
+        ar & dockBX;
     }
 
     bool protonateFlg;
@@ -60,6 +61,7 @@ public:
     std::string recCdtFile;
     std::vector<std::string> keyRes;
     std::vector<std::string> nonRes;
+    std::vector<std::string> dockBX; // User defined box info
 };
 
 //struct JobInputData{
@@ -115,6 +117,7 @@ struct RecData{
     std::string subRes;
     std::vector<std::string> keyRes; // key residues to help locate binding site
     std::vector<std::string> nonRes; //non-standard residue list
+    std::vector<std::string> dockBX; // User defined box info
 };
 
 

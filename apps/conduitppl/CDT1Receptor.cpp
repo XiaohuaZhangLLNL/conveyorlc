@@ -452,6 +452,37 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         // Skip the site calculation
         if(!jobInput.siteFlg){
             jobOut.error=true;
+            jobOut.clust=-1; // -1 indidate skipping site calc
+            jobOut.centroid=Coor3d(0,0,0);
+            jobOut.dimension=Coor3d(0,0,0);
+            return;
+        }
+
+        if(jobInput.dockBX.size()==2){
+
+            for(int i=0; i<jobInput.dockBX.size(); i++){
+                std::vector<std::string> tokens;
+                tokenize(jobInput.dockBX[i], tokens, ";");
+                std::vector<double> xyz;
+                for(int j=0; j<tokens.size(); j++){
+                    xyz.push_back(Sstrm<double, std::string>(tokens[j]));
+                }
+                if(xyz.size()==3) {
+                    if (i == 0) {
+                        jobOut.centroid=Coor3d(xyz[0], xyz[1], xyz[2]);
+                    }
+                    if (i == 1) {
+                        jobOut.dimension=Coor3d(xyz[0], xyz[1], xyz[2]);
+                    }
+                }else{
+                    jobOut.error=false;
+                    return;
+                }
+
+            }
+
+            jobOut.clust=0; // 0 indicate user define box
+            jobOut.error=true;
             return;
         }
 
@@ -584,6 +615,8 @@ void saveStrList(std::string& fileName, std::vector<RecData*>& strList){
                     pRecData->nonRes=strTokens;
                 }else if(flg=="SubRes"){
                     pRecData->subRes=strTokens[0];
+                }else if(flg=="DockBX"){
+                    pRecData->dockBX=strTokens;
                 }
             }
             strList.push_back(pRecData);
@@ -740,6 +773,7 @@ int main(int argc, char** argv) {
             jobInput.keyRes=dirList[i]->keyRes;
             jobInput.nonRes=dirList[i]->nonRes;
             jobInput.subRes=dirList[i]->subRes;
+            jobInput.dockBX=dirList[i]->dockBX;
 
             world.send(freeProc, inpTag, jobInput);            
         }
