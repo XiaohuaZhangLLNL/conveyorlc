@@ -48,7 +48,9 @@ private:
     void clustGrids();
     // Merge two groups of grids and store in clustI if nearest points <=1 angstom.
     bool mergeGrids(std::vector<Coor3d*>& clustI, std::vector<Coor3d*>& clustJ);
-    
+
+    double getVolume(std::vector<Coor3d*>& clust);
+
     void siteSurface(std::vector<Coor3d*>& clust);
     void siteCentroid(std::vector<Coor3d*>& clust);
     void siteCentroid(std::vector<Coor3d*>& clust, Coor3d& dockDim, Coor3d& centroid);

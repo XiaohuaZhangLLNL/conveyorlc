@@ -385,6 +385,29 @@ struct great_than_key
     }
 };
 
+double Grid::getVolume(std::vector<LBIND::Coor3d *> &clust) {
+    double spacing2=spacing*spacing;
+    double spacing2d=spacing2*1.1;
+    double spacing3=spacing2*spacing;
+
+    int surfCount=0;
+    for(int i=0; i<clust.size(); i++){
+        int neighCount=0;
+        for(int j=0; j<clust.size(); j++){
+            if(i!=j) {
+                if(clust[i]->dist2(clust[j])<spacing2d){
+                    neighCount++;
+                }
+                if(neighCount==6) break;
+            }
+        }
+        surfCount+=(6-neighCount);
+    }
+
+    return clust.size()*spacing3+surfCount*spacing2*(probe-spacing/2);
+
+}
+
 void Grid::clustGrids(){
     //Using bottom-up hierarchical clustering approach.
       
@@ -442,11 +465,11 @@ void Grid::clustGrids(){
 //    clusters=tmpClusters2; 
     
 
-    double spacing3=spacing*spacing*spacing;   
+
     
     for (unsigned i = 0; i < clusters.size(); ++i) {
         
-        double volume=clusters[i].size()*spacing3;
+        double volume=getVolume(clusters[i]);
         if(i!=0 && volume<minVol) break; 
         // always print out first one. if volume less than minVol don't print out.
         
