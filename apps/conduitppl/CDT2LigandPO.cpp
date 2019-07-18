@@ -34,6 +34,7 @@ bool CDT2LigandPO(int argc, char** argv, POdata& podata) {
                 ("minimize", value<std::string> (&podata.minimizeFlg)->default_value("on"), "Run minimization by default")
                 ("restart", value<bool>(&podata.restart)->default_value(false), "To restart the calculation")
                 ("saveSDF", value<std::string> (&podata.saveSDF)->default_value("on"), "Save SDF to HDF5")
+                ("backup", value<std::string> (&podata.backup)->default_value("off"), "Backup HDF5 file every 1000 ligands")
                 ("firstLigID", value<int> (&podata.firstLigID)->default_value(1), "First ligID default from 1")
                 ;   
         options_description info("Optional:");

@@ -198,6 +198,13 @@ void rmLigDir(JobOutData& jobOut)
     command(cmd, errMesg);
 }
 
+void backupHDF5File(std::string& hdf5file)
+{
+    std::string cmd="cp " + hdf5file + " " + hdf5file+"-backup";
+    std::string errMesg="Backup fails for "+hdf5file;
+    command(cmd, errMesg);
+}
+
 void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir) {
 
     try{
@@ -476,6 +483,7 @@ int main(int argc, char** argv) {
         //! Open a Conduit file to track the calculation
         Node n;
         std::string ligCdtFile=workDir+"/scratch/ligand.hdf5:/";
+        std::string ligHDF5Backup=workDir+"/scratch/ligand.hdf5";
         n["date"]="Create By CDT2Ligand at "+timeStamp();
         relay::io::hdf5_append(n, ligCdtFile);
 
@@ -504,6 +512,11 @@ int main(int argc, char** argv) {
             jobInput.minimizeFlg=true;
         }else{
             jobInput.minimizeFlg=false;
+        }
+
+        bool backupHDF5=false;
+        if(podata.backup=="on"){
+            backupHDF5=true;
         }
 
         jobInput.ligCdtFile=ligCdtFile;
@@ -548,6 +561,9 @@ int main(int argc, char** argv) {
                     world.recv(mpi::any_source, outTag, jobOut);
 
                     toConduit(jobOut, ligCdtFile);
+                    if(backupHDF5 && count%1000==0){
+                        backupHDF5File(ligHDF5Backup);
+                    }
                     if(jobOut.error) {
                         rmLigDir(jobOut);
                     }
@@ -577,6 +593,9 @@ int main(int argc, char** argv) {
             world.recv(mpi::any_source, outTag, jobOut);
 
             toConduit(jobOut, ligCdtFile);
+            if(backupHDF5 && i%1000==0){
+                backupHDF5File(ligHDF5Backup);
+            }
             if(jobOut.error) {
             	rmLigDir(jobOut);
             }
