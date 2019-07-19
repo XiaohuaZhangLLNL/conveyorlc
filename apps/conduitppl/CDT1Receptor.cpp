@@ -185,7 +185,7 @@ void rmRecDir(JobOutData& jobOut)
 
 bool getSiteFromLigand(JobOutData& jobOut, Coor3d& centriod, Coor3d& boxDim){
     bool hasSubResCoor=false;
-    boost::scoped_ptr<Pdb> pPdb(new Pdb());
+
     std::cout << "jobOut.subRes=" << jobOut.subRes << std::endl;
     std::string subResFileName=jobOut.subRes;
     std::string fileExtension=subResFileName.substr(subResFileName.find_last_of(".") + 1);
@@ -195,6 +195,7 @@ bool getSiteFromLigand(JobOutData& jobOut, Coor3d& centriod, Coor3d& boxDim){
         hasSubResCoor=pMol2->calcBoundBox(subResFileName, centriod, boxDim);
         std::cout << "Average coordinates of sbustrate: " << centriod << std::endl;
     }else if(fileExtension == "pdb"){
+        boost::scoped_ptr<Pdb> pPdb(new Pdb());
         hasSubResCoor=pPdb->calcBoundBox(subResFileName, centriod, boxDim);
         std::cout << "Average coordinates of sbustrate: " << centriod << std::endl;
     }
@@ -504,6 +505,11 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             return;
         }
 
+        if(true) {
+            Coor3d centroid;
+            Coor3d boxDim;
+            getSiteFromLigand(jobOut, centroid, boxDim);
+        }
         // Get geometry
         std::string stdPDBfile="rec_std.pdb"; 
         if(!jobInput.minimizeFlg){
