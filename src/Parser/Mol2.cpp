@@ -103,4 +103,12 @@ bool Mol2::calcAverageCoor(const std::string& fileName, Coor3d& aveCoor){
     return true;
 }
 
+bool Mol2::calcBoundBox(const std::string& fileName, Coor3d& centroid, Coor3d& boxDim){
+    Molecule* pMolecule=new Molecule();
+    read(fileName, pMolecule);
+    bool success=pMolecule->boundBox(centroid, boxDim);
+    delete pMolecule;
+    return success;
+}
+
 } //namespace LBIND

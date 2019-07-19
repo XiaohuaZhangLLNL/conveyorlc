@@ -849,6 +849,18 @@ bool Pdb::calcAverageCoor(const std::string& fileName, Coor3d& aveCoor){
     return true;    
 }
 
+bool Pdb::calcBoundBox(const std::string& fileName, Coor3d& centroid, Coor3d& boxDim){
+    boost::shared_ptr<Complex> pComplex;
+    this->parse(fileName, pComplex.get());
+    std::vector<Molecule*> molecules=pComplex->getChildren();
+    if(molecules.size()==1){
+        bool success=molecules[0]->boundBox(centroid, boxDim);
+        return success;
+    }
+
+    return false;
+}
+
 bool Pdb::readByModel(const std::string& inFileName, const std::string& outFileName, int modelID, double& score){
 
     std::ifstream inFile;

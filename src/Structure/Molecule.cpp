@@ -125,4 +125,49 @@ void Molecule::center(Coor3d& coor){
     coor.set(xSum,ySum,zSum);
 }
 
+bool Molecule::boundBox(Coor3d& center, Coor3d& dim){
+
+    if(itsGrdChildren.size()>0) {
+        double xSum=0;
+        double ySum=0;
+        double zSum=0;
+
+        Coor3d *pFirstCoor = itsGrdChildren[0]->getCoords();
+        double xmin=pFirstCoor->getX();
+        double xmax=xmin;
+        double ymin=pFirstCoor->getY();
+        double ymax=ymin;
+        double zmin=pFirstCoor->getZ();
+        double zmax=zmin;
+
+        for (unsigned i = 0; i < itsGrdChildren.size(); i++) {
+            Coor3d *pACoor = itsGrdChildren[i]->getCoords();
+//        std::cout << "pCoor "<< pACoor->getX() << " " <<  pACoor->getY() << " " <<  pACoor->getZ() << std::endl;
+            double x=pACoor->getX();
+            double y=pACoor->getY();
+            double z=pACoor->getZ();
+            xSum = xSum + z;
+            ySum = ySum + y;
+            zSum = zSum + z;
+
+            if(xmin>x) xmin=x;
+            if(xmax<x) xmax=x;
+            if(ymin>y) ymin=y;
+            if(ymax<y) ymax=y;
+            if(zmin>z) zmin=z;
+            if(zmax<z) zmax=z;
+        }
+        xSum /= itsGrdChildren.size();
+        ySum /= itsGrdChildren.size();
+        zSum /= itsGrdChildren.size();
+
+        center.set(xSum,ySum,zSum);
+        dim.set((xmax-xmin), (ymax-ymin), (zmax-zmin));
+        return true;
+    }
+
+    return false;
+
+}
+
 } //namespace LBIND

@@ -53,6 +53,7 @@ public:
     double getCharge();
 
     void center(Coor3d& coor);
+    bool boundBox(Coor3d& center, Coor3d& dim);
 
 private:
 

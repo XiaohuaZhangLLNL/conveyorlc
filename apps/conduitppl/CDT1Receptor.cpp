@@ -183,6 +183,24 @@ void rmRecDir(JobOutData& jobOut)
     command(cmd, errMesg);
 }
 
+bool getSiteFromLigand(JobOutData& jobOut, Coor3d& centriod, Coor3d& boxDim){
+    bool hasSubResCoor=false;
+    boost::scoped_ptr<Pdb> pPdb(new Pdb());
+    std::cout << "jobOut.subRes=" << jobOut.subRes << std::endl;
+    std::string subResFileName=jobOut.subRes;
+    std::string fileExtension=subResFileName.substr(subResFileName.find_last_of(".") + 1);
+    std::cout << "fileExtension=" << fileExtension << std::endl;
+    if( fileExtension == "mol2") {
+        boost::scoped_ptr<Mol2> pMol2(new Mol2());
+        hasSubResCoor=pMol2->calcBoundBox(subResFileName, centriod, boxDim);
+        std::cout << "Average coordinates of sbustrate: " << centriod << std::endl;
+    }else if(fileExtension == "pdb"){
+        hasSubResCoor=pPdb->calcBoundBox(subResFileName, centriod, boxDim);
+        std::cout << "Average coordinates of sbustrate: " << centriod << std::endl;
+    }
+    return hasSubResCoor;
+}
+
 
 void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& checkFName, std::string& recType, std::string& libDir) {
     std::string tleapFName = recType + "_leap.in";
@@ -514,21 +532,11 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         // Calculate the average coordinates for identify active site cavity
         // Priority 1. Crystal substrate 2. Key residues 3. Top volume
         Coor3d aveKeyResCoor;
+        Coor3d boxDim;
 
         bool hasSubResCoor=false;
         if(fileExist(jobOut.subRes)){
-            std::cout << "jobOut.subRes=" << jobOut.subRes << std::endl;
-            std::string subResFileName=jobOut.subRes;
-            std::string fileExtension=subResFileName.substr(subResFileName.find_last_of(".") + 1);
-            std::cout << "fileExtension=" << fileExtension << std::endl;
-            if( fileExtension == "mol2") {
-                boost::scoped_ptr<Mol2> pMol2(new Mol2());
-                hasSubResCoor=pMol2->calcAverageCoor(subResFileName, aveKeyResCoor);
-                std::cout << "Average coordinates of sbustrate: " << aveKeyResCoor << std::endl;
-            }else if(fileExtension == "pdb"){
-                hasSubResCoor=pPdb->calcAverageCoor(subResFileName, aveKeyResCoor);
-                std::cout << "Average coordinates of sbustrate: " << aveKeyResCoor << std::endl;
-            }
+            hasSubResCoor=getSiteFromLigand(jobOut, aveKeyResCoor, boxDim);
         }
 
         bool hasKeyResCoor=false;

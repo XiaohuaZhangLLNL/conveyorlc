@@ -23,6 +23,7 @@ public:
     
     void read(const std::string& fileName, Molecule* pMolecule);
     bool calcAverageCoor(const std::string& fileName, Coor3d& aveCoor);
+    bool calcBoundBox(const std::string& fileName, Coor3d& centroid, Coor3d& boxDim);
     
 private:
 
