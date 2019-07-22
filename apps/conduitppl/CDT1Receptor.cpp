@@ -194,15 +194,15 @@ bool getSiteFromLigand(JobOutData& jobOut, Coor3d& centroid, Coor3d& boxDim){
     if( fileExtension == "mol2") {
         boost::scoped_ptr<Mol2> pMol2(new Mol2());
         hasSubResCoor=pMol2->calcBoundBox(subResFileName, centroid, boxDim);
-        std::cout << "Average coordinates of sbustrate: " << centroid << std::endl;
+        std::cout << "Average coordinates of sbustrate in mol2: " << centroid << std::endl;
     }else if(fileExtension == "pdb"){
         boost::scoped_ptr<Pdb> pPdb(new Pdb());
         hasSubResCoor=pPdb->calcBoundBox(subResFileName, centroid, boxDim);
-        std::cout << "Average coordinates of sbustrate: " << centroid << std::endl;
+        std::cout << "Average coordinates of sbustrate in pdb: " << centroid << std::endl;
     }else if(fileExtension == "sdf"){
         boost::scoped_ptr<Sdf> pSdf(new Sdf());
         hasSubResCoor=pSdf->calcBoundBox(subResFileName, centroid, boxDim);
-        std::cout << "Average coordinates of sbustrate: " << centroid << std::endl;
+        std::cout << "Average coordinates of sbustrate in sdf: " << centroid << std::endl;
     }
     return hasSubResCoor;
 }

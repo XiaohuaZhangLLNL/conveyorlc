@@ -432,6 +432,90 @@ void Pdb::parse(const std::string& fileName, Complex* pComplex){
     
 }
 
+void Pdb::read(const std::string& fileName, Molecule* pMolecule){
+    std::ifstream inFile;
+    try {
+        inFile.open(fileName.c_str());
+    }
+    catch(...){
+        std::string message= "PDB::parse >> Cannot open file" + fileName;
+        throw LBindException(message);
+    }
+
+    std::string fileLine="";
+
+    Atom* pAtom=0;
+//    Element* pElement=0;
+
+    int MoleculeID=0;
+//    int resID=0;
+    int atomID=0;
+
+    const std::string atomStr="ATOM";
+    const std::string hetatmStr="HETATM";
+
+    while(std::getline(inFile, fileLine)){
+
+        if(fileLine.compare(0,4, atomStr)==0 || fileLine.compare(0,6, hetatmStr)==0){
+
+            std::string fileIDstr=fileLine.substr(6,5);
+            int fileID = atoi(fileIDstr.c_str());
+
+            // 	tmp.id           = convert_substring<unsigned>   (str,  7, 11);
+            //	tmp.name         = convert_substring<std::string>(str, 13, 16);
+            //	tmp.residue_id   = convert_substring<int>        (str, 23, 26);
+            //	tmp.residue_name = convert_substring<std::string>(str, 17, 19);
+            //	tmp.coords[0]    = convert_substring<fl>         (str, 31, 38);
+            //	tmp.coords[1]    = convert_substring<fl>         (str, 39, 46);
+            //	tmp.coords[2]    = convert_substring<fl>         (str, 47, 54);
+            //	tmp.b_factor     = convert_substring<fl>         (str, 61, 66);
+            //	tmp.element      = convert_substring<std::string>(str, 77, 78);
+
+
+            std::string atomName= fileLine.substr(12,4);
+            std::string resName= fileLine.substr(17,3);
+
+            std::string MoleculeName=fileLine.substr(21,1);
+//            std::cout << MoleculeName << std::endl;
+
+            std::string rIDstr= fileLine.substr(22,4);
+            int rID=atoi(rIDstr.c_str());
+            std::string xstr= fileLine.substr(30,8);
+            double x=atof(xstr.c_str());
+            std::string ystr= fileLine.substr(38,8);
+            double y=atof(ystr.c_str());
+            std::string zstr= fileLine.substr(46,8);
+            double z=atof(zstr.c_str());
+
+//            std::cout << rID << " " << x << " " << y << " " << z << std::endl;
+            std::string typeName="  ";
+            if(fileLine.size()>77){
+                typeName=fileLine.substr(76,2);
+                if(typeName=="  "){
+                    guessElement(typeName, resName, atomName);
+                }
+            }else{
+                guessElement(typeName, resName, atomName);
+            }
+
+            pAtom=pMolecule->addAtom();
+            atomID++;
+            pAtom->setID(atomID);
+            pAtom->setFileID(fileID);
+            pAtom->setName(atomName);
+            pAtom->setCoords(x,y,z);
+            pAtom->setSymbol(typeName);
+
+        }
+
+    }
+
+    inFile.close();
+//    std::vector<Atom*> atomList2=pComplex->getAtomList();
+//    std::cout << "Atom number in PDB2: " << atomList2.size() << std::endl;
+
+}
+
 void Pdb::parseOut(const std::string& fileName, Complex* pComplex){
     std::ofstream outFile;
     try {
@@ -850,15 +934,10 @@ bool Pdb::calcAverageCoor(const std::string& fileName, Coor3d& aveCoor){
 }
 
 bool Pdb::calcBoundBox(const std::string& fileName, Coor3d& centroid, Coor3d& boxDim){
-    boost::shared_ptr<Complex> pComplex(new Complex());
-    this->parse(fileName, pComplex.get());
-    std::vector<Molecule*> molecules=pComplex->getChildren();
-    if(molecules.size()==1){
-        bool success=molecules[0]->boundBox(centroid, boxDim);
-        return success;
-    }
-
-    return false;
+    boost::shared_ptr<Molecule> pMolecule(new Molecule());
+    this->read(fileName, pMolecule.get());
+    bool success=pMolecule->boundBox(centroid, boxDim);
+    return success;
 }
 
 bool Pdb::readByModel(const std::string& inFileName, const std::string& outFileName, int modelID, double& score){

@@ -33,6 +33,7 @@ public:
     
     void read(const std::string& fileName, Complex* pComplex);
     void read(const std::string& fileName, boost::shared_ptr<Complex> pComplex);
+    void read(const std::string& fileName, Molecule* pMolecule);
     void write(const std::string& fileName, Complex* pComplex);
     void write(const std::string& fileName, boost::shared_ptr<Complex> pComplex);
     void write(const std::string& fileName, Molecule* pMol);    
