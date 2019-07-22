@@ -51,6 +51,7 @@
 /apps/mmpbsa/preLigands
 /apps/mmpbsa/preReceptors
 /tests/StdResContainerSplTest
+/apps/tools/testGround
 /apps/tools/jobTracking
 /apps/tools/Makefile
 /apps/tools/Makefile.in

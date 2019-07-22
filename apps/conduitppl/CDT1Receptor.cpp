@@ -32,6 +32,7 @@
 
 #include "Parser/Pdb.h"
 #include "Parser/Mol2.h"
+#include "Parser/Sdf.h"
 #include "Parser/SanderOutput.h"
 #include "Structure/Sstrm.hpp"
 #include "Structure/Coor3d.h"
@@ -183,7 +184,7 @@ void rmRecDir(JobOutData& jobOut)
     command(cmd, errMesg);
 }
 
-bool getSiteFromLigand(JobOutData& jobOut, Coor3d& centriod, Coor3d& boxDim){
+bool getSiteFromLigand(JobOutData& jobOut, Coor3d& centroid, Coor3d& boxDim){
     bool hasSubResCoor=false;
 
     std::cout << "jobOut.subRes=" << jobOut.subRes << std::endl;
@@ -192,12 +193,16 @@ bool getSiteFromLigand(JobOutData& jobOut, Coor3d& centriod, Coor3d& boxDim){
     std::cout << "fileExtension=" << fileExtension << std::endl;
     if( fileExtension == "mol2") {
         boost::scoped_ptr<Mol2> pMol2(new Mol2());
-        hasSubResCoor=pMol2->calcBoundBox(subResFileName, centriod, boxDim);
-        std::cout << "Average coordinates of sbustrate: " << centriod << std::endl;
+        hasSubResCoor=pMol2->calcBoundBox(subResFileName, centroid, boxDim);
+        std::cout << "Average coordinates of sbustrate: " << centroid << std::endl;
     }else if(fileExtension == "pdb"){
         boost::scoped_ptr<Pdb> pPdb(new Pdb());
-        hasSubResCoor=pPdb->calcBoundBox(subResFileName, centriod, boxDim);
-        std::cout << "Average coordinates of sbustrate: " << centriod << std::endl;
+        hasSubResCoor=pPdb->calcBoundBox(subResFileName, centroid, boxDim);
+        std::cout << "Average coordinates of sbustrate: " << centroid << std::endl;
+    }else if(fileExtension == "sdf"){
+        boost::scoped_ptr<Sdf> pSdf(new Sdf());
+        hasSubResCoor=pSdf->calcBoundBox(subResFileName, centroid, boxDim);
+        std::cout << "Average coordinates of sbustrate: " << centroid << std::endl;
     }
     return hasSubResCoor;
 }
@@ -505,10 +510,11 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             return;
         }
 
-        if(true) {
-            Coor3d centroid;
-            Coor3d boxDim;
-            getSiteFromLigand(jobOut, centroid, boxDim);
+        if(jobInput.sitebylig) {
+            getSiteFromLigand(jobOut, jobOut.centroid, jobOut.dimension);
+            jobOut.clust=0; // 0 indicate user define box
+            jobOut.error=true;
+            return;
         }
         // Get geometry
         std::string stdPDBfile="rec_std.pdb"; 
@@ -657,6 +663,12 @@ void initInputData(JobInputData& jobInput, POdata& podata){
         jobInput.siteFlg=true;
     }else{
         jobInput.siteFlg=false;
+    }
+
+    if(podata.sitebylig=="on"){
+        jobInput.sitebylig=true;
+    }else{
+        jobInput.sitebylig=false;
     }
 
     if(podata.forceRedoFlg=="on"){

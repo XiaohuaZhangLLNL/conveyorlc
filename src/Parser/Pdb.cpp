@@ -850,7 +850,7 @@ bool Pdb::calcAverageCoor(const std::string& fileName, Coor3d& aveCoor){
 }
 
 bool Pdb::calcBoundBox(const std::string& fileName, Coor3d& centroid, Coor3d& boxDim){
-    boost::shared_ptr<Complex> pComplex;
+    boost::shared_ptr<Complex> pComplex(new Complex());
     this->parse(fileName, pComplex.get());
     std::vector<Molecule*> molecules=pComplex->getChildren();
     if(molecules.size()==1){

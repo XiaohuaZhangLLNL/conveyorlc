@@ -16,6 +16,7 @@ struct POdata{
     std::string protonateFlg;
     std::string minimizeFlg;
     std::string siteFlg;
+    std::string sitebylig;
     std::string forceRedoFlg;
     std::string cutProt;
     double radius;

@@ -21,6 +21,7 @@ public:
         ar & protonateFlg;
         ar & minimizeFlg;
         ar & siteFlg;
+        ar & sitebylig;
         ar & forceRedoFlg;
         ar & getPDBflg;
         ar & cutProt;
@@ -44,6 +45,7 @@ public:
     bool protonateFlg;
     bool minimizeFlg;
     bool siteFlg;
+    bool sitebylig;
     bool forceRedoFlg;
     bool getPDBflg;
     bool cutProt;

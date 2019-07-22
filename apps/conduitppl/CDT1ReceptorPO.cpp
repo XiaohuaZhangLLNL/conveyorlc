@@ -39,7 +39,7 @@ bool CDT1ReceptorPO(int argc, char** argv, POdata& podata) {
                 ("protonate", value<std::string> (&podata.protonateFlg)->default_value("on"), "Protonate protein by default")
                 ("minimize", value<std::string> (&podata.minimizeFlg)->default_value("on"), "Run minimization by default")
                 ("site", value<std::string> (&podata.siteFlg)->default_value("on"), "Run site calculation by default")
-                ("sitebylig", value<std::string> (&podata.siteFlg)->default_value("on"), "Estimate site by ligand")
+                ("sitebylig", value<std::string> (&podata.sitebylig)->default_value("off"), "Estimate site by ligand")
                 ("cutProt", value<std::string> (&podata.cutProt)->default_value("off"), "Turn off cut protein by default")
                 ("cutRadius", value<double>(&podata.cutRadius)->default_value(5.0), "Radius to cut the protein")
                 ("forceRedo", value<std::string> (&podata.forceRedoFlg)->default_value("off"), "Not to redo calculation by default")

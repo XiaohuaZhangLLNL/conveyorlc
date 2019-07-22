@@ -146,7 +146,7 @@ bool Molecule::boundBox(Coor3d& center, Coor3d& dim){
             double x=pACoor->getX();
             double y=pACoor->getY();
             double z=pACoor->getZ();
-            xSum = xSum + z;
+            xSum = xSum + x;
             ySum = ySum + y;
             zSum = zSum + z;
 
