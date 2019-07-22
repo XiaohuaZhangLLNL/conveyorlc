@@ -184,7 +184,7 @@ void rmRecDir(JobOutData& jobOut)
     command(cmd, errMesg);
 }
 
-bool getSiteFromLigand(JobOutData& jobOut, Coor3d& centroid, Coor3d& boxDim){
+bool getSiteFromLigand(JobInputData& jobInput, JobOutData& jobOut, Coor3d& centroid, Coor3d& boxDim){
     bool hasSubResCoor=false;
 
     std::cout << "jobOut.subRes=" << jobOut.subRes << std::endl;
@@ -204,6 +204,8 @@ bool getSiteFromLigand(JobOutData& jobOut, Coor3d& centroid, Coor3d& boxDim){
         hasSubResCoor=pSdf->calcBoundBox(subResFileName, centroid, boxDim);
         std::cout << "Average coordinates of sbustrate in sdf: " << centroid << std::endl;
     }
+
+    boxDim +=jobInput.boxExtend*2;
     return hasSubResCoor;
 }
 
@@ -511,7 +513,7 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         }
 
         if(jobInput.sitebylig) {
-            getSiteFromLigand(jobOut, jobOut.centroid, jobOut.dimension);
+            getSiteFromLigand(jobInput, jobOut, jobOut.centroid, jobOut.dimension);
             jobOut.clust=0; // 0 indicate user define box
             jobOut.error=true;
             return;
@@ -548,7 +550,7 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
 
         bool hasSubResCoor=false;
         if(fileExist(jobOut.subRes)){
-            hasSubResCoor=getSiteFromLigand(jobOut, aveKeyResCoor, boxDim);
+            hasSubResCoor=getSiteFromLigand(jobInput, jobOut, aveKeyResCoor, boxDim);
         }
 
         bool hasKeyResCoor=false;

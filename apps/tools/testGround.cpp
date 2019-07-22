@@ -48,6 +48,8 @@ void testBoundBox(){
         hasSubResCoor = pSdf->calcBoundBox("1a50_ligand.sdf", centroid, boxDim);
         std::cout << "Average coordinates of sdf: " << centroid << std::endl;
         std::cout << "Box of sdf:                 " << boxDim << std::endl;
+        boxDim +=10;
+        std::cout << "Box +10 of sdf:             " << boxDim << std::endl;
     }
 }
 

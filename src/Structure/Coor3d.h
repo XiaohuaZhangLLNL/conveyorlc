@@ -46,6 +46,10 @@ public:
             x += rhs.z;
             y += rhs.y;
             z += rhs.z; }
+    inline void operator+=(const double &value) {
+        x += value;
+        y += value;
+        z += value; }
    inline void operator-=(const Coor3d &rhs) {
             x -= rhs.x;
             y -= rhs.y;
