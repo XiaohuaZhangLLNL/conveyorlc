@@ -218,6 +218,7 @@ void do_search(model& m, const boost::optional<model>& ref, const scoring_functi
         model best_mode_model = m;
         if (!out_cont.empty())
             best_mode_model.set(out_cont.front().c);
+        std::cout << "DEBUG: number of all possible models = " << out_cont.size() << std::endl;
 
         how_many = 0;
         std::vector<std::string> remarks;
