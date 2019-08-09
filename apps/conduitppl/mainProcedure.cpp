@@ -203,6 +203,7 @@ void do_search(model& m, const boost::optional<model>& ref, const scoring_functi
             out_cont.sort();
         }
 
+        std::cout << "DEBUG: number of all possible models with redundant = " << out_cont.size() << std::endl;
         const fl out_min_rmsd = in_min_rmsd;
         out_cont = remove_redundant(out_cont, out_min_rmsd);
 
