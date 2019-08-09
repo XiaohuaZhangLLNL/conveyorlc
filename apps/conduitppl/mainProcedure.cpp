@@ -203,7 +203,7 @@ void do_search(model& m, const boost::optional<model>& ref, const scoring_functi
             out_cont.sort();
         }
 
-        std::cout << "DEBUG: number of all possible models with redundant = " << out_cont.size() << std::endl;
+        //std::cout << "DEBUG: number of all possible models with redundant = " << out_cont.size() << std::endl;
         const fl out_min_rmsd = in_min_rmsd;
         out_cont = remove_redundant(out_cont, out_min_rmsd);
 
@@ -219,7 +219,7 @@ void do_search(model& m, const boost::optional<model>& ref, const scoring_functi
         model best_mode_model = m;
         if (!out_cont.empty())
             best_mode_model.set(out_cont.front().c);
-        std::cout << "DEBUG: number of all possible models = " << out_cont.size() << std::endl;
+        //std::cout << "DEBUG: number of all possible models = " << out_cont.size() << std::endl;
 
         how_many = 0;
         std::vector<std::string> remarks;
@@ -282,10 +282,10 @@ void main_procedure(model& m, const boost::optional<model>& ref, // m is non-con
     //par.mc.min_rmsd = 1.0;
     par.mc.min_rmsd = in_min_rmsd;
     //par.mc.num_saved_mins = 20;
-    if(num_modes<5){
+    if(num_modes<4){
         par.mc.num_saved_mins = 20;
     } else {
-        par.mc.num_saved_mins = num_modes * 4;
+        par.mc.num_saved_mins = num_modes * 5;
     }
     par.mc.hunt_cap = vec(10, 10, 10);
     par.num_tasks = exhaustiveness;
