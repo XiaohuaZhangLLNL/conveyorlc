@@ -571,13 +571,14 @@ int main(int argc, char** argv) {
             contents = contents + fileLine + "\n";
             if (fileLine.size() >= 4 && fileLine.compare(0, 4, delimter) == 0) {
                 dirCnt++;
-                jobInput.dirBuffer=std::to_string(dirCnt);
                 //For restart
                 if(!isNew) {
                     if (calcList[dirCnt]) {
+                        contents = ""; //! clean up the contents for the next structure.
                         continue;
                     }
                 }
+                jobInput.dirBuffer=std::to_string(dirCnt);
 
                 count++;
 
