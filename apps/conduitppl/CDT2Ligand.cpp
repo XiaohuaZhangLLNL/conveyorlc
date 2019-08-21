@@ -134,7 +134,7 @@ bool isRun(JobInputData& jobInput){
     return false;
 }
 
-void getCalcHDF5(std::string& fileName, std::vector<bool>& calcList){
+void getCalcHDF5(std::string& fileName, std::vector<bool>& calcList, std::vector<int>& skipList){
     Node n;
 
     hid_t lig_hid=relay::io::hdf5_open_file_for_read(fileName);
@@ -146,10 +146,16 @@ void getCalcHDF5(std::string& fileName, std::vector<bool>& calcList){
         std::cout << "Warning some error in ligand.hdf5" << std::endl;
     }
 
-    std::cout << "Previous complete ligand " <<  lig_names.size() << std::endl;
+    std::cout << "Previous complete ligands " <<  lig_names.size() << std::endl;
 
     for(int i=0; i<lig_names.size(); i++){
         int ligID=std::atoi(lig_names[i].c_str());
+        calcList[ligID]=true;
+    }
+
+    std::cout << "Skip ligands " <<  skipList.size() << std::endl;
+    for(int i=0; i<skipList.size(); i++){
+        int ligID=skipList[i];
         calcList[ligID]=true;
     }
 
@@ -185,10 +191,28 @@ int getNumLigand(POdata& podata){
     return count;
 }
 
+void getSkipList(POdata& podata, std::vector<int>& skipList){
+    if(fileExist(podata.skipFile)){
+        std::ifstream inFile;
+        inFile.open(podata.skipFile);
+        std::string fileLine;
+        while (inFile) {
+            std::getline(inFile, fileLine);
+            std::vector<std::string> tokens;
+            tokenize(fileLine, tokens, "\n");
+            if(tokens.size()==1) {
+                skipList.push_back(std::stoi(tokens[0].c_str()));
+            }
+        }
+    }
+}
+
 void getCalcList(std::vector<bool>& calcList, std::string& fileName, POdata& podata){
     int numLigand=getNumLigand(podata);
     calcList.resize(numLigand+1, false);
-    getCalcHDF5(fileName, calcList);
+    std::vector<int> skipList;
+    getSkipList(podata, skipList);
+    getCalcHDF5(fileName, calcList, skipList);
 }
 
 void rmLigDir(JobOutData& jobOut)

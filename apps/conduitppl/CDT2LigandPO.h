@@ -18,6 +18,7 @@ struct POdata{
     std::string minimizeFlg;
     std::string saveSDF;
     std::string backup;
+    std::string skipFile;
     int firstLigID;
     bool restart;
     int version;
