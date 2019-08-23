@@ -6,6 +6,7 @@ import conduit.relay as relay
 import conduit.relay.io
 import h5py
 import glob
+import errno
 
 from mpi4py import MPI
 
@@ -24,9 +25,22 @@ def getArgs():
                         help='select top percent ligands into the HDF5 output file')
     parser.add_argument('-s', '--scoreonly', action='store', dest='scoreonly', default=None,
                         help='extract score-only data from HDF5 file to CSV file')
+    parser.add_argument('-e', '--extract', action='store', dest='extract', default=None,
+                        help='extract all data from HDF5 file to CSV file')
     args = parser.parse_args()
 
     return args
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            print(path+" create failed")
+            raise
+
 
 def getDataByName(args):
 
@@ -147,7 +161,6 @@ def extractScoreOnly(args):
 
     os.chdir(hdf5pathDir)
     h5files=glob.glob('dock_proc*.hdf5')
-    h5KeyList=[]
 
     for h5f in h5files:
         n = conduit.Node()
@@ -167,6 +180,45 @@ def extractScoreOnly(args):
                     if strs[0]=="Affinity:":
                         outfh.write(recid+", "+ligid+", "+strs[1]+"\n")
 
+def extractAll(args):
+    outfh = open(args.extract, "w")
+    outfh.write("rec, lig, status, numPose, score\n")
+
+    dirpath = os.path.abspath("scratch")
+    hdf5pathDir = os.path.abspath(args.indir)
+
+    os.chdir(hdf5pathDir)
+    h5files=glob.glob('dock_proc*.hdf5')
+
+    for h5f in h5files:
+        os.chdir(hdf5pathDir)
+        n = conduit.Node()
+        conduit.relay.io.load(n, h5f)
+        itrRec = n["dock"].children()
+        for rec in itrRec:
+            recid=rec.name()
+            nrec=rec.node()
+            itrLig=nrec.children()
+            for lig in itrLig:
+                ligid = lig.name()
+                entryKey = "dock/" + recid + "/" + ligid
+                dir=dirpath+"/"+entryKey
+                mkdir_p(dir)
+                os.chdir(dir)
+                ndata = n[entryKey]
+                status=ndata['status']
+                #mesg=ndata['meta/Mesg']
+                numPose=ndata['meta/numPose']
+                if numPose>0:
+                    score=ndata['meta/scores/1']
+                else:
+                    score=0
+
+                outfh.write(recid+", "+ligid+", "+str(status)+", "+str(numPose)+", "+str(score)+"\n")
+                itr = ndata["file"].children()
+                for fileItr in itr:
+                    with open(fileItr.name(), 'w') as f:
+                        f.write(fileItr.node().value())
 
 def main():
     args=getArgs()
@@ -180,6 +232,9 @@ def main():
 
     if args.scoreonly:
         extractScoreOnly(args)
+
+    if args.extract:
+        extractAll(args)
 
 if __name__ == '__main__':
     main()

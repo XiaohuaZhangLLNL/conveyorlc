@@ -5,6 +5,7 @@ import conduit
 import conduit.relay as relay
 import conduit.relay.io
 import h5py
+import errno
 
 def getArgs():
 
@@ -21,6 +22,8 @@ def getArgs():
                         help='extract data and files by ligand name')
     parser.add_argument('-c', '--clist', nargs=2, action='store', dest='clist', default=None,
                         help='output ligand name and id map into a file and choose only successful one or not (e.g. idnameList.txt T[A])')
+    parser.add_argument('-e', '--extract', action='store', dest='extract', default=None,
+                        help='extract all data from HDF5 file to CSV file')
     args = parser.parse_args()
 
     return args
@@ -111,6 +114,38 @@ def getIdNameList(args):
                 name = n['lig/' + id.name() + "/meta/name"]
                 f.write("{}  {}\n".format(name, id.name() ))
 
+def extractAll(args):
+
+    hdf5path = os.path.abspath(args.infile)
+    dirpath = os.path.dirname(hdf5path)
+
+    n = conduit.Node()
+    conduit.relay.io.load(n, hdf5path)
+    itrLig = n["lig"].children()
+    for lig in itrLig:
+        id=lig.name()
+        ligpath = os.path.join(dirpath, 'lig/' + id)
+        if not os.path.exists(ligpath):
+            os.makedirs(ligpath)
+        os.chdir(ligpath)
+
+        cmpdKey = "lig/" + id
+        print("Ligand ID", id)
+        print("Ligand Name", n[cmpdKey + '/meta/name'])
+        print("status", n[cmpdKey + '/status'])
+        print("Mesg", n[cmpdKey + '/meta/Mesg'])
+        print("GBSA", n[cmpdKey + '/meta/GBEN'])
+        print("Ligand Old path", n[cmpdKey + '/meta/LigPath'])
+        print("Ligand data path", os.getcwd())
+
+        # fileList = ['LIG.inpcrd', 'LIG.lib', 'LIG.prmtop', 'LIG_min.rst', 'LIG_minGB.out', 'ligand.frcmod', 'LIG_min.pdbqt']
+        itr = n[cmpdKey + "/file"].children()
+
+        for fileItr in itr:
+            with open(fileItr.name(), 'w') as f:
+                f.write(fileItr.node().value())
+
+
 def main():
     args=getArgs()
     print("Default inputs: ", args.infile, args.outfile)
@@ -127,6 +162,8 @@ def main():
     if args.clist:
         getIdNameList(args)
 
+    if args.extract:
+        extractAll(args)
     #n_load = conduit.Node()
     #relay.io.load(n_load, hdf5path)
 
