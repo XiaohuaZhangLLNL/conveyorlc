@@ -80,7 +80,7 @@ def numpyIsNumber(obj):
 def getMetaCSV(args):
 
     #keys = ["status", "meta/Mesg", "meta/bindGB", "meta/comGB", "meta/recGB", "meta/ligGB", "meta/dockScore"]
-    keys = ["status", "meta/bindGB", "meta/comGB", "meta/recGB", "meta/ligGB", "meta/dockScore"]
+    keys = ["meta/ligName", "status", "meta/bindGB", "meta/comGB", "meta/recGB", "meta/ligGB", "meta/dockScore"]
     dockDir = os.path.abspath(args.indir)
 
     outfh=open(args.meta, "w")
@@ -132,7 +132,7 @@ def getMetaCSV(args):
                                 posedata[key] = None
 
     print(metadata)
-    outfh.write("rec, lig, pose, status, bindGB, comGB, recGB, ligGB, dockScore\n")
+    outfh.write("rec, lig, pose, lig_name, status, bindGB, comGB, recGB, ligGB, dockScore\n")
     for recKey in metadata:
         recdata=metadata[recKey]
         for ligKey in recdata:
