@@ -182,7 +182,7 @@ def extractScoreOnly(args):
 
 def extractAll(args):
     outfh = open(args.extract, "w")
-    outfh.write("rec, lig, status, numPose, score\n")
+    outfh.write("rec, lig, lig_name,  status, numPose, score\n")
 
     dirpath = os.path.abspath("scratch")
     hdf5pathDir = os.path.abspath(args.indir)
@@ -209,12 +209,13 @@ def extractAll(args):
                 status=ndata['status']
                 #mesg=ndata['meta/Mesg']
                 numPose=ndata['meta/numPose']
+                ligName=ndata["meta/ligName"]
                 if numPose>0:
                     score=ndata['meta/scores/1']
                 else:
                     score=0
 
-                outfh.write(recid+", "+ligid+", "+str(status)+", "+str(numPose)+", "+str(score)+"\n")
+                outfh.write(recid+", "+ligid+", "+ligName+", "+str(status)+", "+str(numPose)+", "+str(score)+"\n")
                 itr = ndata["file"].children()
                 for fileItr in itr:
                     with open(fileItr.name(), 'w') as f:
