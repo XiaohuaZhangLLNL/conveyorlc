@@ -328,10 +328,6 @@ void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& localDir){
         //std::cerr << "\n\nError: insufficient memory!\n";
         jobOut.mesg="Insufficient memory!";
         jobOut.error= false;
-    } catch (std::exception& e) { // Errors that shouldn't happen:
-        //std::cerr << "\n\nAn error occurred: " << e.what() << ". " << std::endl;
-        jobOut.mesg="An error occurred: " + std::string(e.what());
-        jobOut.error= false;
     } catch (internal_error& e) {
         //std::cerr << "\n\nAn internal error occurred in " << e.file << "(" << e.line << "). " << std::endl;
         jobOut.mesg = "An internal error occurred in " + e.file + " line: " + Sstrm<std::string, unsigned>(e.line);
@@ -342,8 +338,9 @@ void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& localDir){
     } catch (conduit::Error& e){
         jobOut.mesg= e.what();
         jobOut.error=false;
-    } catch(conduit::Error &error){
-        jobOut.mesg= error.message();
+    } catch (std::exception& e) { // Errors that shouldn't happen:
+        //std::cerr << "\n\nAn error occurred: " << e.what() << ". " << std::endl;
+        jobOut.mesg="An error occurred: " + std::string(e.what());
         jobOut.error= false;
     } catch (...) {
         //std::cerr << "\n\nAn unknown error occurred. " << std::endl;
