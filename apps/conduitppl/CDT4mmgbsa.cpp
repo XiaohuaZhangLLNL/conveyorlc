@@ -272,10 +272,16 @@ void mmgbsa(CDTmeta& cdtMeta) {
         cdtMeta.message= "Finished!";
         cdtMeta.error=true;
 
+    } catch (conduit::Error& e){
+        cdtMeta.message= e.what();
+        cdtMeta.error=false;
     } catch (LBindException& e){
         cdtMeta.message= e.what();
         cdtMeta.error=false;
-    } 
+    }catch (...){
+        cdtMeta.message= "Unknown error";
+        cdtMeta.error=false;
+    }
 
 }
 

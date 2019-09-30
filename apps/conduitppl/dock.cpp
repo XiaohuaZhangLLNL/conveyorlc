@@ -339,6 +339,9 @@ void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& localDir){
     } catch (LBIND::LBindException& e) {
         jobOut.mesg = e.what();
         jobOut.error= false;
+    } catch (conduit::Error& e){
+        jobOut.mesg= e.what();
+        jobOut.error=false;
     } catch(conduit::Error &error){
         jobOut.mesg= error.message();
         jobOut.error= false;
