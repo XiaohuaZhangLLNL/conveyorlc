@@ -37,6 +37,7 @@ bool CDT2LigandPO(int argc, char** argv, POdata& podata) {
                 ("backup", value<std::string> (&podata.backup)->default_value("off"), "Backup HDF5 file every 1000 ligands")
                 ("firstLigID", value<int> (&podata.firstLigID)->default_value(1), "First ligID default from 1")
                 ("skipList", value<std::string > (&podata.skipFile), "File name for a list of ligand IDs skipping calculations")
+                ("score_only", bool_switch(&podata.score_only), "rescoring the score_only docking calculation")
                 ;   
         options_description info("Optional:");
         info.add_options()

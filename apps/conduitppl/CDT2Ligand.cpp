@@ -338,58 +338,62 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
                 }
             }
 
-            //! GB energy minimization
-            std::string minFName = "LIG_minGB.in";
-            {
-                std::ofstream minFile;
-                try {
-                    minFile.open(minFName.c_str());
+            if(jobInput.score_only){
+                cmd = "ambpdb -p LIG.prmtop < LIG.inpcrd > LIG_minTmp.pdb ";
+            }else {
+                //! GB energy minimization
+                std::string minFName = "LIG_minGB.in";
+                {
+                    std::ofstream minFile;
+                    try {
+                        minFile.open(minFName.c_str());
+                    }
+                    catch (...) {
+                        std::string mesg = "mmpbsa::receptor()\n\t Cannot open min file: " + minFName;
+                        throw LBindException(mesg);
+                    }
+
+                    minFile << "title..\n"
+                            << "&cntrl\n"
+                            << "  imin   = 1,\n"
+                            << "  ntmin   = 3,\n"
+                            << "  maxcyc = 2000,\n"
+                            << "  ncyc   = 1000,\n"
+                            << "  ntpr   = 200,\n"
+                            << "  ntb    = 0,\n"
+                            << "  igb    = 5,\n"
+                            << "  gbsa   = 1,\n"
+                            << "  cut    = 15,\n"
+                            << " /\n" << std::endl;
+
+                    minFile.close();
                 }
-                catch (...) {
-                    std::string mesg = "mmpbsa::receptor()\n\t Cannot open min file: " + minFName;
-                    throw LBindException(mesg);
+
+                if (jobInput.ambVersion == 13) {
+                    cmd = "sander13  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
+                } else {
+                    cmd = "sander  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
+                }
+                //std::cout <<cmd <<std::endl;
+                errMesg = "sander ligand minimization fails";
+                command(cmd, errMesg);
+                boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
+                std::string sanderOut = "LIG_minGB.out";
+                double ligGBen = 0;
+                bool success = pSanderOutput->getEnergy(sanderOut, ligGBen);
+                jobOut.gbEn = ligGBen;
+
+                if (!success) {
+                    std::string message = "Ligand GB minimization fails.";
+                    throw LBindException(message);
                 }
 
-                minFile << "title..\n"
-                        << "&cntrl\n"
-                        << "  imin   = 1,\n"
-                        << "  ntmin   = 3,\n"
-                        << "  maxcyc = 2000,\n"
-                        << "  ncyc   = 1000,\n"
-                        << "  ntpr   = 200,\n"
-                        << "  ntb    = 0,\n"
-                        << "  igb    = 5,\n"
-                        << "  gbsa   = 1,\n"
-                        << "  cut    = 15,\n"
-                        << " /\n" << std::endl;
-
-                minFile.close();
-            }
-
-            if (jobInput.ambVersion == 13) {
-                cmd = "sander13  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
-            } else {
-                cmd = "sander  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
-            }
-            //std::cout <<cmd <<std::endl;
-            errMesg = "sander ligand minimization fails";
-            command(cmd, errMesg);
-            boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
-            std::string sanderOut = "LIG_minGB.out";
-            double ligGBen = 0;
-            bool success = pSanderOutput->getEnergy(sanderOut, ligGBen);
-            jobOut.gbEn = ligGBen;
-
-            if (!success) {
-                std::string message = "Ligand GB minimization fails.";
-                throw LBindException(message);
-            }
-
-            //! Use ambpdb generated PDB file for PDBQT.
-            if (jobInput.ambVersion == 16) {
-                cmd = "ambpdb -p LIG.prmtop -c LIG_min.rst > LIG_minTmp.pdb ";
-            } else {
-                cmd = "ambpdb -p LIG.prmtop < LIG_min.rst > LIG_minTmp.pdb ";
+                //! Use ambpdb generated PDB file for PDBQT.
+                if (jobInput.ambVersion == 16) {
+                    cmd = "ambpdb -p LIG.prmtop -c LIG_min.rst > LIG_minTmp.pdb ";
+                } else {
+                    cmd = "ambpdb -p LIG.prmtop < LIG_min.rst > LIG_minTmp.pdb ";
+                }
             }
 
         }else{
@@ -548,6 +552,7 @@ int main(int argc, char** argv) {
         // Pass the ligand name option
         jobInput.cmpName=podata.cmpName;
         jobInput.ambVersion=podata.version;
+        jobInput.score_only=podata.score_only;
 
         // Start to read in the SDF file
         //std::string sdfFileName=inputDir+"/"+podata.sdfFile;

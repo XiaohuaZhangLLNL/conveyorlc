@@ -21,6 +21,7 @@ struct POdata{
     std::string skipFile;
     int firstLigID;
     bool restart;
+    bool score_only;
     int version;
 };
 
