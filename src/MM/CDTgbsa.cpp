@@ -289,7 +289,7 @@ void CDTgbsa::run(CDTmeta &cdtMeta){
 
     if(cdtMeta.score_only){
         ligMinimize(cdtMeta);
-        cmd = "cat std4pdbqt.pdb LIG_min.pdb > com_init.pdb";
+        cmd = "grep -v END std4pdbqt.pdb > dd.pdb && cat dd.pdb LIG_min.pdb > com_init.pdb";
     }else {
         cmd = "cat rec_min.pdb lig_full.pdb > com_init.pdb";
     }
