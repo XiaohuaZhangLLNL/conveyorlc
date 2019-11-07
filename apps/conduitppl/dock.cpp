@@ -84,6 +84,23 @@ bool getScores(JobOutData& jobOut){
     return true;
 }
 
+bool getScoreOnlyScores(JobOutData& jobOut){
+
+    std::vector<std::string> lines;
+    tokenize(jobOut.scorelog, lines, " ");
+    std::cout << jobOut.scorelog << std::endl;
+    if(lines.size()<2)  return false;
+
+    if(lines[0]=="Affinity:") {
+        double score = Sstrm<double, std::string>(lines[1]);
+        jobOut.scores.push_back(score);
+    }
+
+    if(jobOut.scores.size()==0) return false;
+
+    return true;
+}
+
 
 void getRecData(JobInputData& jobInput, std::string& recKey, grid_dims& gd){
     Node nRec;
@@ -296,7 +313,13 @@ void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& localDir){
 
         
         jobOut.scores.clear();
-        bool success=getScores(jobOut);
+        bool success=false;
+
+        if(jobInput.score_only){
+            success = getScoreOnlyScores(jobOut);
+        } else {
+            success = getScores(jobOut);
+        }
         if(success){
             jobOut.mesg="Finished!";
         }else{
