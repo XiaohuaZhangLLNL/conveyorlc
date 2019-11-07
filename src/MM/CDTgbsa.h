@@ -29,6 +29,7 @@ struct CDTmeta{
     int procID;
 
     bool error;
+    bool score_only;
     double dockscore;
     double gbbind;
     std::string recID;
@@ -58,6 +59,7 @@ private:
     static void getRecData(CDTmeta & cdtMeta);
     static void getDockData(CDTmeta & cdtMeta);
 
+    static void ligMinimize(CDTmeta &cdtMeta);
 
 };
 

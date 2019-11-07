@@ -32,6 +32,7 @@ bool CDT4mmgbsaPO(int argc, char** argv, POdata& podata) {
                 ("ligFile", value<std::string > (&podata.ligFile)->default_value("scratch/ligand.hdf5"), "ligand HDF5 file")
                 ("version", value<int>(&podata.version)->default_value(13), "AMBER Version")
                 ("keep", bool_switch(&podata.keep), "Keep all intermeidate files for fail calculation")
+                ("score_only", bool_switch(&podata.score_only), "rescoring the score_only docking calculation")
                 ;
         options_description info("Optional:");
         info.add_options()

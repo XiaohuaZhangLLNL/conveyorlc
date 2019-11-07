@@ -465,6 +465,7 @@ int main(int argc, char** argv) {
             cdtMeta.dockInDir=podata.dockInDir;
             cdtMeta.recFile=podata.recFile;
             cdtMeta.ligFile=podata.ligFile;
+            cdtMeta.score_only=podata.score_only;
 
             cdtMeta.workDir=workDir;
             cdtMeta.localDir=localDir;

@@ -123,7 +123,7 @@ void toConduit(JobOutData& jobOut, std::string& recCdtFile){
         n[recIDMeta + "/Mesg"] = jobOut.message;
         std::string recIDFile ="rec/"+jobOut.pdbid + "/file/";
 
-        std::vector<std::string> filenames={"rec_min.pdbqt", "rec_min.rst", "rec.prmtop", "rec_min.pdb",
+        std::vector<std::string> filenames={"rec_min.pdbqt", "rec_min.rst", "rec.prmtop", "rec_min.pdb", "std4pdbqt.pdb",
                                             "rec_minGB.out", "site.txt", "rec_geo.txt"};
         if(jobOut.cutProt){
             filenames.push_back("recCut_min.rst");

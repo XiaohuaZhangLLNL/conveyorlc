@@ -17,6 +17,8 @@
 #include "MM/CDTgbsa.h"
 #include "Parser/Pdb.h"
 #include "Parser/SanderOutput.h"
+#include "CDTgbsa.h"
+#include "MM/Amber.h"
 
 using namespace conduit;
 
@@ -38,15 +40,23 @@ void CDTgbsa::getLigData(CDTmeta &cdtMeta) {
         throw LBindException("Ligand " + cdtMeta.ligID + " preparation failed");
     }
 
-
-    cdtMeta.ligGB = nLig["meta/GBEN"].as_double();
-
-    std::vector<std::string> filenames = {"LIG.lib", "LIG_min.pdbqt", "ligand.frcmod"};
+    if(nLig.has_path("meta/GBEN")) {
+        cdtMeta.ligGB = nLig["meta/GBEN"].as_double();
+    }else if(cdtMeta.score_only){
+        cdtMeta.ligGB = 0;
+    }else{
+        throw LBindException("Ligand " + cdtMeta.ligID + " has no GB energy");
+    }
+    std::vector<std::string> filenames = {"LIG.lib", "LIG_min.pdbqt", "ligand.frcmod", "LIG_min.pdb", "ligand.mol2"};
 
     for (std::string &name : filenames) {
-        std::ofstream outfile(name);
-        std::string outLines = nLig["file/" + name].as_string();
-        outfile << outLines;
+
+        if(nLig.has_path("file/" + name)) {
+            std::ofstream outfile(name);
+            std::string outLines = nLig["file/" + name].as_string();
+            outfile << outLines;
+        }
+
     }
 
     //relay::io::hdf5_close_file(lig_hid);
@@ -81,16 +91,14 @@ void CDTgbsa::getRecData(CDTmeta &cdtMeta)
     }
 
 
-    std::vector<std::string> filenames = {"rec_min.pdb"};
+    std::vector<std::string> filenames = {"rec_min.pdb", "std4pdbqt.pdb"};
 
     for (std::string &name : filenames) {
 
-        try{
+        if(nRec.has_path("file/" + name)) {
             std::ofstream outfile(name);
             std::string outLines = nRec["file/" + name].as_string();
             outfile << outLines;
-        }catch(...){
-            throw LBindException("Receptor "+name+" missing");
         }
 
     }
@@ -123,6 +131,7 @@ void CDTgbsa::getDockData(LBIND::CDTmeta &cdtMeta)
     std::string outLines = n["file/"+name].as_string();
     outfile << outLines;
 
+    if(cdtMeta.score_only) return;
     //hid_t dock_hid=relay::io::hdf5_open_file_for_read(dockHDF5file);
     //relay::io::hdf5_read(dock_hid, n);
 
@@ -184,6 +193,75 @@ void CDTgbsa::getDockData(LBIND::CDTmeta &cdtMeta)
     command(cmd, errMesg);
 }
 
+void CDTgbsa::ligMinimize(CDTmeta &cdtMeta){
+
+    boost::scoped_ptr<Amber> pAmber(new Amber(cdtMeta.version));
+    //! leap to obtain forcefield for ligand
+    std::string ligName="LIG";
+    std::string tleapFile="leap.in";
+    std::string output="ligand.mol2";
+
+    pAmber->tleapInput(output,ligName,tleapFile, cdtMeta.poseDir);
+    pAmber->tleap(tleapFile);
+
+    std::string checkFName="LIG.prmtop";
+    {
+        if(!fileExist(checkFName)){
+            std::string message="LIG.prmtop does not exist.";
+            throw LBindException(message);
+        }
+
+        if(fileEmpty(checkFName)){
+            std::string message="LIG.prmtop is empty.";
+            throw LBindException(message);
+        }
+    }
+
+    //! GB energy minimization
+    std::string minFName = "LIG_minGB.in";
+    {
+        std::ofstream minFile;
+        try {
+            minFile.open(minFName.c_str());
+        }
+        catch (...) {
+            std::string mesg = "mmpbsa::receptor()\n\t Cannot open min file: " + minFName;
+            throw LBindException(mesg);
+        }
+
+        minFile << "title..\n"
+                << "&cntrl\n"
+                << "  imin   = 1,\n"
+                << "  ntmin   = 3,\n"
+                << "  maxcyc = 2000,\n"
+                << "  ncyc   = 1000,\n"
+                << "  ntpr   = 200,\n"
+                << "  ntb    = 0,\n"
+                << "  igb    = 5,\n"
+                << "  gbsa   = 1,\n"
+                << "  cut    = 15,\n"
+                << " /\n" << std::endl;
+
+        minFile.close();
+    }
+
+    std::string cmd;
+    if (cdtMeta.version == 13) {
+        cmd = "sander13  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
+    } else {
+        cmd = "sander  -O -i LIG_minGB.in -o LIG_minGB.out  -p LIG.prmtop -c LIG.inpcrd -ref LIG.inpcrd  -x LIG.mdcrd -r LIG_min.rst  >> log";
+    }
+    //std::cout <<cmd <<std::endl;
+    std::string errMesg = "sander ligand minimization fails";
+    command(cmd, errMesg);
+    boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
+    std::string sanderOut = "LIG_minGB.out";
+    double ligGBen = 0;
+    bool success = pSanderOutput->getEnergy(sanderOut, ligGBen);
+    cdtMeta.ligGB = ligGBen;
+    return;
+}
+
 void CDTgbsa::run(CDTmeta &cdtMeta){
 
     std::vector<std::string> keystrs;
@@ -209,7 +287,12 @@ void CDTgbsa::run(CDTmeta &cdtMeta){
     getRecData(cdtMeta);
     getDockData(cdtMeta);
 
-    cmd="cat rec_min.pdb lig_full.pdb > com_init.pdb";
+    if(cdtMeta.score_only){
+        ligMinimize(cdtMeta);
+        cmd = "cat std4pdbqt.pdb LIG_min.pdb > com_init.pdb";
+    }else {
+        cmd = "cat rec_min.pdb lig_full.pdb > com_init.pdb";
+    }
     errMesg="MMGBSA::run combine rec and lig to com pdb fails";
     command(cmd, errMesg);
 

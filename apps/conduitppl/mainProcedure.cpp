@@ -161,6 +161,7 @@ void do_search(model& m, const boost::optional<model>& ref, const scoring_functi
             log << "WARNING: affinity. Consider reporting this as a bug:\n";
             log << "WARNING: http://vina.scripps.edu/manual.html#bugs\n";
         }
+        how_many=1; // assgin 1 pose for the score_only
     } else if (local_only) {
         output_type out(c, e);
         doing(verbosity, "Performing local search", log);

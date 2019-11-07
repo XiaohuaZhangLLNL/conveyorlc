@@ -15,6 +15,7 @@ struct POdata{
 
     int version;
     bool keep;
+    bool score_only;
     std::string dockInDir;
     std::string recFile;
     std::string ligFile;
