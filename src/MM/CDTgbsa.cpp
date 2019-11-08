@@ -131,7 +131,12 @@ void CDTgbsa::getDockData(LBIND::CDTmeta &cdtMeta)
     std::string outLines = n["file/"+name].as_string();
     outfile << outLines;
 
-    if(cdtMeta.score_only) return;
+    if(cdtMeta.score_only) {
+        if(n.has_path("meta/scores/1")) {
+            cdtMeta.dockscore = n["meta/scores/1"].as_double();
+        }
+        return;
+    }
     //hid_t dock_hid=relay::io::hdf5_open_file_for_read(dockHDF5file);
     //relay::io::hdf5_read(dock_hid, n);
 
@@ -239,6 +244,7 @@ void CDTgbsa::ligMinimize(CDTmeta &cdtMeta){
                 << "  ntb    = 0,\n"
                 << "  igb    = 5,\n"
                 << "  gbsa   = 1,\n"
+                << "  intdiel= " << cdtMeta.intDiel << ",\n"
                 << "  cut    = 15,\n"
                 << " /\n" << std::endl;
 
@@ -392,6 +398,7 @@ void CDTgbsa::run(CDTmeta &cdtMeta){
                 << "  ntb    = 0,\n"
                 << "  igb    = 5,\n"
                 << "  gbsa   = 1,\n"
+                << "  intdiel= " << cdtMeta.intDiel << ",\n"
                 << "  cut    = 15,\n"
                 << "  ntr=1,\n"
                 << "  restraint_wt=5.0,\n"
@@ -523,6 +530,7 @@ void CDTgbsa::run(CDTmeta &cdtMeta){
                 << "  ntb    = 0,\n"
                 << "  igb    = 5,\n"
                 << "  gbsa   = 1,\n"
+                << "  intdiel= " << cdtMeta.intDiel << ",\n"
                 << "  cut    = 15,\n"
                 << "  ntr=1,\n"
                 << "  restraint_wt=5.0,\n"

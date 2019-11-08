@@ -88,7 +88,7 @@ bool getScoreOnlyScores(JobOutData& jobOut){
 
     std::vector<std::string> lines;
     tokenize(jobOut.scorelog, lines, " ");
-    std::cout << jobOut.scorelog << std::endl;
+    //std::cout << jobOut.scorelog << std::endl;
     if(lines.size()<2)  return false;
 
     if(lines[0]=="Affinity:") {

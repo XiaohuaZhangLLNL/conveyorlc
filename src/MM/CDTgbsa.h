@@ -30,6 +30,7 @@ struct CDTmeta{
 
     bool error;
     bool score_only;
+    double intDiel;
     double dockscore;
     double gbbind;
     std::string recID;
