@@ -304,6 +304,7 @@ int main(int argc, char* argv[]) {
 
     if (world.rank() == 0) {
         std::cout << "CDT3Docking Found All Finished Calculation: " << timestamp() << std::endl;
+        std::cout << "CDT3Docking Number of Calculations : " << keysCalc.size() << std::endl;
     }
 
     if (world.rank() == 0) {
