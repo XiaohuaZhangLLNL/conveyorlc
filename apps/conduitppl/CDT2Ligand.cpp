@@ -121,6 +121,7 @@ void toConduit(JobOutData& jobOut, std::string& ligCdtFile){
 
 }
 
+/*
 bool isRun(JobInputData& jobInput){
 
     Node n;
@@ -133,6 +134,7 @@ bool isRun(JobInputData& jobInput){
     }
     return false;
 }
+ */
 
 void getCalcHDF5(std::string& fileName, std::vector<bool>& calcList, std::vector<int>& skipList){
     Node n;

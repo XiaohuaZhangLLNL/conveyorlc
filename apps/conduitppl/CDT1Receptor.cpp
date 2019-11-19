@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <unordered_set>
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/smart_ptr/scoped_ptr.hpp>
@@ -159,7 +160,45 @@ void toConduit(JobOutData& jobOut, std::string& recCdtFile){
 
 }
 
+void getCalcHDF5(std::vector<bool>& calcList, std::string& fileName, std::vector<std::string>& recList){
+    Node n;
 
+    hid_t rec_hid=relay::io::hdf5_open_file_for_read(fileName);
+
+    std::vector<std::string> rec_names;
+    try {
+        relay::io::hdf5_group_list_child_names(rec_hid, "/rec/", rec_names);
+    }catch (...){
+        std::cout << "Warning some error in receptor.hdf5" << std::endl;
+    }
+
+    relay::io::hdf5_close_file(rec_hid);
+
+    std::cout << "Previous complete receptors " <<  rec_names.size() << std::endl;
+
+    std::unordered_set<std::string> set(rec_names.begin(), rec_names.end());
+
+    for(int i=0; i<recList.size(); i++){
+        if(set.find(recList[i]) != set.end() ){
+            calcList[i]=true;
+        }
+    }
+
+}
+
+void getCalcList(std::vector<bool>& calcList, std::string& fileName, std::vector<RecData*>& dirList){
+    int numRec=dirList.size();
+    calcList.resize(numRec, false);
+    std::vector<std::string> recList;
+    for(int i=0; i<dirList.size(); i++){
+        std::string pdbid;
+        getFileBasename(dirList[i]->pdbFile, pdbid);
+        recList.push_back(pdbid);
+    }
+    getCalcHDF5(calcList, fileName, recList);
+}
+
+/*
 bool isRun(JobInputData& jobInput){
 
     std::string pdbid;
@@ -176,7 +215,7 @@ bool isRun(JobInputData& jobInput){
     }
     return false;
 }
-
+*/
 void rmRecDir(JobOutData& jobOut)
 {
     std::string cmd="rm -rf " + jobOut.recPath;
@@ -745,11 +784,17 @@ int main(int argc, char** argv) {
 
     if (world.rank() == 0) {
 
+        bool isNew=true;
         // if force re-do just delete the receptor.hdf5
         if (jobInput.forceRedoFlg) {
             std::string cmd = "rm -f " + workDir + "/scratch/receptor.hdf5";
             std::string errMesg = "Remove fails for " + workDir + "/scratch/receptor.hdf5";
             command(cmd, errMesg);
+        }
+
+        std::string recHDF5filename=workDir + "/scratch/receptor.hdf5";
+        if(fileExist(recHDF5filename)){
+            isNew=false;
         }
         //! Open a Conduit file to track the calculation
         std::string cmd = "mkdir -p " + workDir + "/scratch";
@@ -770,14 +815,20 @@ int main(int argc, char** argv) {
         std::string pdbList=inputDir+"/"+podata.inputFile;
 
         saveStrList(pdbList, dirList);
+
+        std::vector<bool> calcList;
+        if(!isNew){
+            getCalcList(calcList, recHDF5filename, dirList);
+        }
+
         int count=0;
            
         for(unsigned i=0; i<dirList.size(); ++i){
             jobInput.dirBuffer=dirList[i]->pdbFile;
             //For restart
             // If force re-do the calculation skip check the hdf5 file and continue calculation (by default not force re-do)
-            if(!jobInput.forceRedoFlg){
-                if(isRun(jobInput)){
+            if(!isNew){
+                if(calcList[i]){
                     continue;
                 }
             }
