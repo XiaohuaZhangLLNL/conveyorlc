@@ -44,7 +44,7 @@
 using namespace conduit;
 using namespace LBIND;
 
-void saveRec(std::string& fileName, std::vector<std::string>& recList){
+void saveRecOLD(std::string& fileName, std::vector<std::string>& recList){
     Node n;
 
     hid_t rec_hid=relay::io::hdf5_open_file_for_read(fileName);
@@ -69,6 +69,38 @@ void saveRec(std::string& fileName, std::vector<std::string>& recList){
     }
     relay::io::hdf5_close_file(rec_hid);
 
+}
+
+void saveRec(std::string& fileName, std::vector<std::string>& recList){
+
+    hid_t rec_hid=relay::io::hdf5_open_file_for_read(fileName);
+
+    std::vector<std::string> rec_names;
+    try {
+        relay::io::hdf5_group_list_child_names(rec_hid, "/rec/", rec_names);
+    }catch (...){
+        std::cout << "Warning some error in receptor.hdf5" << std::endl;
+    }
+
+    std::cout << "Previous complete receptor " <<  rec_names.size() << std::endl;
+
+    Node n_test;
+    for(int i=0; i<rec_names.size(); i++){
+        try {
+            relay::io::hdf5_read(rec_hid, "rec/" + rec_names[i] + "/status", n_test);
+
+            if (n_test.dtype().is_int()) {
+                int status = n_test.as_int();
+                if (status == 1) {
+                    recList.push_back(rec_names[i]);
+                }
+            }
+        }catch (...){
+            std::cout << "Receptor " << rec_names[i] << " has status corrupted" << std::endl;
+        }
+    }
+
+    relay::io::hdf5_close_file(rec_hid);
 }
 
 void saveLig(std::string& fileName, std::vector<std::string>& ligList){
