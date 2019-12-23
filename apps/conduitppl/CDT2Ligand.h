@@ -20,6 +20,7 @@ public:
         ar & ambVersion;
         ar & minimizeFlg;
         ar & score_only;
+        ar & intDiel;
         ar & dirBuffer;
         ar & sdfBuffer;
         ar & cmpName;
@@ -29,6 +30,7 @@ public:
     int ambVersion;
     bool minimizeFlg;
     bool score_only;
+    double intDiel;
     std::string dirBuffer;
     std::string sdfBuffer;
     std::string cmpName;

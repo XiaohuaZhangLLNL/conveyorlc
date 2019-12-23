@@ -23,6 +23,7 @@ struct POdata{
     bool restart;
     bool score_only;
     int version;
+    double intDiel;
 };
 
 bool CDT2LigandPO(int argc, char** argv, POdata& podata);

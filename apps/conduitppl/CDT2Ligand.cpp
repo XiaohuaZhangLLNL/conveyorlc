@@ -365,6 +365,7 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
                             << "  ntb    = 0,\n"
                             << "  igb    = 5,\n"
                             << "  gbsa   = 1,\n"
+                            << "  intdiel= " << jobInput.intDiel << ",\n"
                             << "  cut    = 15,\n"
                             << " /\n" << std::endl;
 
@@ -555,6 +556,7 @@ int main(int argc, char** argv) {
         jobInput.cmpName=podata.cmpName;
         jobInput.ambVersion=podata.version;
         jobInput.score_only=podata.score_only;
+        jobInput.intDiel=podata.intDiel;
 
         // Start to read in the SDF file
         //std::string sdfFileName=inputDir+"/"+podata.sdfFile;

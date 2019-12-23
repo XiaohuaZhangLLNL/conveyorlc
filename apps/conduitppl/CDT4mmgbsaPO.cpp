@@ -31,7 +31,7 @@ bool CDT4mmgbsaPO(int argc, char** argv, POdata& podata) {
                 ("recFile", value<std::string > (&podata.recFile)->default_value("scratch/receptor.hdf5"), "receptor HDF5 file")
                 ("ligFile", value<std::string > (&podata.ligFile)->default_value("scratch/ligand.hdf5"), "ligand HDF5 file")
                 ("version", value<int>(&podata.version)->default_value(13), "AMBER Version")
-                ("intDiel", value<double>(&podata.intDiel)->default_value(1.0), "Solute dielectric constant")
+                ("intDiel", value<double>(&podata.intDiel)->default_value(4.0), "Solute dielectric constant")
                 ("keep", bool_switch(&podata.keep), "Keep all intermeidate files for fail calculation")
                 ("score_only", bool_switch(&podata.score_only), "rescoring the score_only docking calculation")
                 ;
