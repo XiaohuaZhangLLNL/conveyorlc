@@ -269,10 +269,7 @@ void CDTgbsa::ligMinimize(CDTmeta &cdtMeta){
 }
 
 void CDTgbsa::run(CDTmeta &cdtMeta){
-    cdtMeta.ligGB=0;
-    cdtMeta.comGB=0;
-    cdtMeta.recGB=0;
-
+    
     std::vector<std::string> keystrs;
     tokenize(cdtMeta.key, keystrs, "/");
     if(keystrs.size()==3){
@@ -300,7 +297,7 @@ void CDTgbsa::run(CDTmeta &cdtMeta){
         ligMinimize(cdtMeta);
         cmd = "grep -v END std4pdbqt.pdb > dd.pdb && cat dd.pdb LIG_min.pdb > com_init.pdb";
     }else {
-        cmd = "cat rec_min.pdb lig_full.pdb > com_init.pdb";
+        cmd = "grep -v END rec_min.pdb   > dd.pdb && cat dd.pdb lig_full.pdb > com_init.pdb";
     }
     errMesg="MMGBSA::run combine rec and lig to com pdb fails";
     command(cmd, errMesg);
