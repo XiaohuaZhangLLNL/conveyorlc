@@ -497,6 +497,11 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         {
             boost::scoped_ptr<Pdb> pPdb(new Pdb() );
             pPdb->standardlize(b4pdbqt, "std4pdbqt.pdb");
+            if(!jobInput.minimizeFlg){
+                cmd="cp std4pdbqt.pdb rec_min.pdb";
+                errMesg="Fail to generate rec_min.pdb for gbsa without minimization";
+                command(cmd,errMesg);
+            }
             //cmd="prepare_receptor4.py -r "+b4pdbqt+" -o "+jobOut.pdbid+".pdbqt";
             cmd="obabel -ipdb std4pdbqt.pdb -opdbqt -xr -O temp.pdbqt >& pdbqt.log";
             errMesg="obabel converting std4pdbqt.pdb  temp.pdbqt to fails";
