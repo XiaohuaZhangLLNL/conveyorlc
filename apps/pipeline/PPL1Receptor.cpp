@@ -420,87 +420,23 @@ void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& check
     errMesg = "tleap creating receptor prmtop fails";
     command(cmd, errMesg);
 
-    std::string minFName = recType + "_minGB.in";
-    {
-        std::ofstream minFile;
-        try {
-            minFile.open(minFName.c_str());
-        } catch (...) {
-            std::string mesg = "mmpbsa::receptor()\n\t Cannot open min file: " + minFName;
-            throw LBindException(mesg);
-        }
-
-        minFile << "title..\n"
-                << "&cntrl\n"
-                << "  imin   = 1,\n"
-                << "  ntmin   = 3,\n"
-                << "  maxcyc = 2000,\n"
-                << "  ncyc   = 1000,\n"
-                << "  ntpr   = 200,\n"
-                << "  ntb    = 0,\n"
-                << "  igb    = 5,\n"
-                << "  gbsa   = 1,\n"
-                << "  cut    = 15,\n"
-                << "  ntr=1,\n"
-                << "  restraint_wt=5.0,\n"
-                << "  restraintmask='!@H=',\n"
-                << " /\n" << std::endl;
-        minFile.close();
-    }
-    if (jobInput.ambVersion == 13) {
-        cmd = "sander13 -O -i " + recType + "_minGB.in -o " + recType + "_minGB.out  -p " + recType + ".prmtop -c " + recType + ".inpcrd -ref " + recType + ".inpcrd -x " + recType + ".mdcrd -r " + recType + "_min.rst";
-    } else {
-        cmd = "sander -O -i " + recType + "_minGB.in -o " + recType + "_minGB.out  -p " + recType + ".prmtop -c " + recType + ".inpcrd -ref " + recType + ".inpcrd -x " + recType + ".mdcrd -r " + recType + "_min.rst";
-    }
-    //std::cout <<cmd <<std::endl;
-    errMesg = "sander receptor minimization fails";
-    command(cmd, errMesg);
-
-    boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
-    std::string sanderOut = recType + "_minGB.out";
-    double recGBen = 0;
-    bool success = pSanderOutput->getEnergy(sanderOut, recGBen);
-    jobOut.gbEn = recGBen;
-
-    if (!success) {
-        std::string message = "Receptor GB minimization fails.";
-        throw LBindException(message);
-    }
-
     if (jobInput.ambVersion == 16) {
-        cmd = "ambpdb -p " + recType + ".prmtop -aatm -c " + recType + "_min.rst > " + recType + "_min_0.pdb";
+        cmd = "ambpdb -p " + recType + ".prmtop -c " + recType + ".inpcrd > " + recType + "_min_1.pdb";
     } else {
-        cmd = "ambpdb -p " + recType + ".prmtop -aatm < " + recType + "_min.rst > " + recType + "_min_0.pdb";
+        cmd = "ambpdb -p " + recType + ".prmtop < " + recType + ".inpcrd > " + recType + "_min_1.pdb";
     }
 
     //std::cout <<cmd <<std::endl;
-    errMesg = "ambpdb converting rst to " + recType + "_min_0.pdb file fails";
+    errMesg = "ambpdb converting inpcrd to " + recType + "_min_1.pdb file fails";
     command(cmd, errMesg);
 
-    checkFName = recType + "_min_0.pdb";
-    if (!fileExist(checkFName)) {
-        std::string message = checkFName + " does not exist.";
-        throw LBindException(message);
-    }
-
-    cmd = "grep -v END " + recType + "_min_0.pdb > " + recType + "_min_orig.pdb ";
-    //std::cout <<cmd <<std::endl;
-    errMesg = "grep " + recType + "_min_0.pdb fails";
-    command(cmd, errMesg);
-
-    if (jobInput.ambVersion == 16) {
-        cmd = "ambpdb -p " + recType + ".prmtop -c " + recType + "_min.rst > " + recType + "_min_1.pdb";
-    } else {
-        cmd = "ambpdb -p " + recType + ".prmtop < " + recType + "_min.rst > " + recType + "_min_1.pdb";
-    }
-
-    //std::cout <<cmd <<std::endl;
-    errMesg = "ambpdb converting rst to " + recType + "_min_1.pdb file fails";
-    command(cmd, errMesg);
-
-    cmd="ln -sf "+recType + "_min_orig.pdb Rec_min.pdb";
-    errMesg="ln Rec_min.pdb fails for"+recType + "_min_orig.pdb";
+    cmd="ln -sf "+recType + "_min_1.pdb Rec_min.pdb";
+    errMesg="ln Rec_min.pdb fails for"+recType + "_min_1.pdb";
     command(cmd, errMesg);  
+
+    //cmd ="rm -f leap.log  rec_AForm.pdb  rec_leap.in  rec_noh.pdb  rec_rd.pdb  rec_std.pdb";
+    //errMesg="rm - remove files fails";
+    //command(cmd, errMesg);    
 }
 
 bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, std::string& inputDir, std::string& dataPath){
@@ -592,26 +528,6 @@ bool preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             minimization(jobInput, jobOut, checkFName, recType, libDir);
             b4pdbqt="rec_min_0.pdb";
         }
-
-        {
-            boost::scoped_ptr<Pdb> pPdb(new Pdb() );
-            pPdb->standardlize(b4pdbqt, "std4pdbqt.pdb");
-            //cmd="prepare_receptor4.py -r "+b4pdbqt+" -o "+jobOut.pdbid+".pdbqt";
-            cmd="obabel -ipdb std4pdbqt.pdb -opdbqt -xr -O temp.pdbqt >& pdbqt.log";
-            errMesg="obabel converting std4pdbqt.pdb  temp.pdbqt to fails";
-            command(cmd,errMesg);  
-            cmd="grep -v REMARK temp.pdbqt > " + jobOut.pdbid+".pdbqt";
-            errMesg="grep to remove REMARK fails";
-            command(cmd,errMesg);  
-
-        }
-
-        checkFName=jobOut.pdbid+".pdbqt";
-        if(!fileExist(checkFName)){
-            std::string message=checkFName+" does not exist.";
-            throw LBindException(message);         
-        } 
-        jobOut.recPath="scratch/com/"+jobOut.pdbid+"/rec/"+jobOut.pdbid+".pdbqt";
 
         // Skip the site calculation
         if(!jobInput.siteFlg){
