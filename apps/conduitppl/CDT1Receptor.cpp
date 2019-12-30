@@ -495,8 +495,9 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         }
 
         {
+            std::vector<std::vector<int> > ssList;
             boost::scoped_ptr<Pdb> pPdb(new Pdb() );
-            pPdb->standardlize(b4pdbqt, "std4pdbqt.pdb");
+            pPdb->standardlizeSS(b4pdbqt, "std4pdbqt.pdb", ssList);
             if(!jobInput.minimizeFlg){
                 cmd="cp std4pdbqt.pdb rec_min.pdb";
                 errMesg="Fail to generate rec_min.pdb for gbsa without minimization";

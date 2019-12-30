@@ -1897,6 +1897,17 @@ void Pdb::standardlizeSS(const std::string& inFileName, const std::string& outFi
           
     }
 
+    // Fix the residue ID
+    moleculeList=pNewCom->getChildren();
+    int count=1;
+    for(unsigned i=0;i<moleculeList.size();i++) {
+        std::vector<Fragment *> resList = moleculeList[i]->getChildren();
+
+        for (unsigned j = 0; j < resList.size(); j++) {
+            resList[j]->setID(count);
+            count++;
+        }
+    }
 
     this->parseOut(outFileName, pNewCom.get());
     
