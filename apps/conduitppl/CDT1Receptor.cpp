@@ -495,13 +495,16 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
         }
 
         {
-            std::vector<std::vector<int> > ssList;
+
             boost::scoped_ptr<Pdb> pPdb(new Pdb() );
-            pPdb->standardlizeSS(b4pdbqt, "std4pdbqt.pdb", ssList);
+            pPdb->standardlize(b4pdbqt, "std4pdbqt.pdb");
             if(!jobInput.minimizeFlg){
-                cmd="cp std4pdbqt.pdb rec_min.pdb";
-                errMesg="Fail to generate rec_min.pdb for gbsa without minimization";
-                command(cmd,errMesg);
+                std::vector<std::vector<int> > ssList;
+                pPdb->getDisulfide("std4pdbqt.pdb", ssList);
+                pPdb->standardlizeSS("std4pdbqt.pdb", "rec_min.pdb", ssList);
+                //cmd="cp std4pdbqt.pdb rec_min.pdb";
+                //errMesg="Fail to generate rec_min.pdb for gbsa without minimization";
+                //command(cmd,errMesg);
             }
             //cmd="prepare_receptor4.py -r "+b4pdbqt+" -o "+jobOut.pdbid+".pdbqt";
             cmd="obabel -ipdb std4pdbqt.pdb -opdbqt -xr -O temp.pdbqt >& pdbqt.log";
