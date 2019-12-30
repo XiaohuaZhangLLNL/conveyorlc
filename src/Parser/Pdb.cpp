@@ -1652,7 +1652,8 @@ void Pdb::standardlize(const std::string& inFileName, const std::string& outFile
     }
     pMolecule->addFragment(resList[resList.size()-1]);
 
-    moleculeList=pComplex->getChildren();
+    // Fix the residue ID
+    moleculeList=pNewCom->getChildren();
     int count=1;
     for(unsigned i=0;i<moleculeList.size();i++) {
         std::vector<Fragment *> resList = moleculeList[i]->getChildren();
