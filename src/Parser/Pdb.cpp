@@ -1651,7 +1651,18 @@ void Pdb::standardlize(const std::string& inFileName, const std::string& outFile
         pMolecule=pNewCom->addMolecule();
     }
     pMolecule->addFragment(resList[resList.size()-1]);
-    
+
+    moleculeList=pComplex->getChildren();
+    int count=1;
+    for(unsigned i=0;i<moleculeList.size();i++) {
+        std::vector<Fragment *> resList = moleculeList[i]->getChildren();
+
+        for (unsigned j = 0; j < resList.size(); j++) {
+            resList[j]->setID(count);
+            count++;
+        }
+    }
+
     this->parseOut(outFileName, pNewCom.get());
     
     moleculeList=pNewCom->getChildren();
@@ -1885,18 +1896,7 @@ void Pdb::standardlizeSS(const std::string& inFileName, const std::string& outFi
           
     }
 
-    moleculeList=pComplex->getChildren();
-    int count=1;
-    for(unsigned i=0;i<moleculeList.size();i++) {
-        std::vector<Fragment *> resList = moleculeList[i]->getChildren();
 
-        for (unsigned j = 0; j < resList.size(); j++) {
-            resList[j]->setID(count);
-            count++;
-        }
-    }
-
-    
     this->parseOut(outFileName, pNewCom.get());
     
     moleculeList=pNewCom->getChildren();
