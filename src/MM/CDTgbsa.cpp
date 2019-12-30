@@ -269,7 +269,7 @@ void CDTgbsa::ligMinimize(CDTmeta &cdtMeta){
 }
 
 void CDTgbsa::run(CDTmeta &cdtMeta){
-    
+
     std::vector<std::string> keystrs;
     tokenize(cdtMeta.key, keystrs, "/");
     if(keystrs.size()==3){
