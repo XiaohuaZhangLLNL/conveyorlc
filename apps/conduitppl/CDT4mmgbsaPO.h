@@ -20,6 +20,7 @@ struct POdata{
     std::string dockInDir;
     std::string recFile;
     std::string ligFile;
+    std::string minimizeFlg;
 
 };
 

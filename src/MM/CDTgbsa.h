@@ -30,6 +30,7 @@ struct CDTmeta{
 
     bool error;
     bool score_only;
+    bool minimize;
     double intDiel;
     double dockscore;
     double gbbind;

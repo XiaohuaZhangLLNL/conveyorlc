@@ -37,7 +37,7 @@ bool CDT2LigandPO(int argc, char** argv, POdata& podata) {
                 ("backup", value<std::string> (&podata.backup)->default_value("off"), "Backup HDF5 file every 1000 ligands")
                 ("firstLigID", value<int> (&podata.firstLigID)->default_value(1), "First ligID default from 1")
                 ("skipList", value<std::string > (&podata.skipFile), "File name for a list of ligand IDs skipping calculations")
-                ("score_only", bool_switch(&podata.score_only), "rescoring the score_only docking calculation")
+                ("score_only", bool_switch(&podata.score_only)->default_value(false), "rescoring the score_only docking calculation")
                 ("intDiel", value<double>(&podata.intDiel)->default_value(4.0), "Solute dielectric constant")
                 ;   
         options_description info("Optional:");

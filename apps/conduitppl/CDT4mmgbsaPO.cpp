@@ -32,8 +32,9 @@ bool CDT4mmgbsaPO(int argc, char** argv, POdata& podata) {
                 ("ligFile", value<std::string > (&podata.ligFile)->default_value("scratch/ligand.hdf5"), "ligand HDF5 file")
                 ("version", value<int>(&podata.version)->default_value(13), "AMBER Version")
                 ("intDiel", value<double>(&podata.intDiel)->default_value(4.0), "Solute dielectric constant")
-                ("keep", bool_switch(&podata.keep), "Keep all intermeidate files for fail calculation")
-                ("score_only", bool_switch(&podata.score_only), "rescoring the score_only docking calculation")
+                ("keep", bool_switch(&podata.keep)->default_value(false), "Keep all intermeidate files for fail calculation")
+                ("score_only", bool_switch(&podata.score_only)->default_value(false), "rescoring the score_only docking calculation")
+                ("minimize", value<std::string> (&podata.minimizeFlg)->default_value("on"), "Run minimization by default")
                 ;
         options_description info("Optional:");
         info.add_options()

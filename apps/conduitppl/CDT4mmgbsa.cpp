@@ -466,6 +466,13 @@ int main(int argc, char** argv) {
             cdtMeta.recFile=podata.recFile;
             cdtMeta.ligFile=podata.ligFile;
             cdtMeta.score_only=podata.score_only;
+
+            if(podata.minimizeFlg=="on"){
+                cdtMeta.minimize=true;
+            }else{
+                cdtMeta.minimize=false;
+            }
+
             cdtMeta.intDiel = podata.intDiel;
 
             cdtMeta.workDir=workDir;

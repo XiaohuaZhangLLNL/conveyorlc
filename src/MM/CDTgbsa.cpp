@@ -378,6 +378,15 @@ void CDTgbsa::run(CDTmeta &cdtMeta){
         }
     }
 
+    // Skip minimization
+    if(!cdtMeta.minimize){
+        // receptor energy calculation
+        cmd="ambpdb -p Com.prmtop -aatm < Com.inpcrd > Com_min.pdb";
+        errMesg="ambpdb complex fails";
+        command(cmd, errMesg);
+        return;
+    }
+
     std::string minFName="Com_min.in";
     {
         std::ofstream minFile;

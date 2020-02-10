@@ -243,7 +243,7 @@ Thank you!\n";
     try {
 
         bool help;
-        jobInput.useScoreCF=false;
+        //jobInput.useScoreCF=false;
         
         positional_options_description positional; // remains empty
         
@@ -256,14 +256,14 @@ Thank you!\n";
                 ("granularity", value<double>(&(jobInput.granularity))->default_value(0.375), "the granularity of grids (default value 0.375)")
                 ("num_modes", value<int>(&jobInput.num_modes)->default_value(10), "maximum number (default value 10) of binding modes to generate")
                 ("seed", value<int>(&jobInput.seed), "explicit random seed")
-                ("randomize", bool_switch(&jobInput.randomize), "Use different random seeds for complex")
+                ("randomize", bool_switch(&jobInput.randomize)->default_value(false), "Use different random seeds for complex")
                 ("energy_range", value<fl> (&jobInput.energy_range)->default_value(2.0), "maximum energy difference (default value 2.0) between the best binding mode and the worst one displayed (kcal/mol)")
                 ("min_rmsd", value<fl> (&jobInput.min_rmsd)->default_value(1.0), "maximum energy difference (default value 2.0) between the best binding mode and the worst one displayed (kcal/mol)")
-                ("useScoreCF", bool_switch(&jobInput.useScoreCF), "Use score cutoff to save ligand with top score higher than certain critical value")
+                ("useScoreCF", bool_switch(&jobInput.useScoreCF)->default_value(false), "Use score cutoff to save ligand with top score higher than certain critical value")
                 ("scoreCF", value<double>(&jobInput.scoreCF)->default_value(-8.0), "Score cutoff to save ligand with top score higher than certain value (default -8.0)")
-                ("score_only", bool_switch(&jobInput.score_only), "score only and not perform pose search")
-                ("local_only",     bool_switch(&jobInput.local_only), "do local search only")
-                ("randomize_only", bool_switch(&jobInput.randomize_only), "randomize input, attempting to avoid clashes")
+                ("score_only", bool_switch(&jobInput.score_only)->default_value(false), "score only and not perform pose search")
+                ("local_only",     bool_switch(&jobInput.local_only)->default_value(false), "do local search only")
+                ("randomize_only", bool_switch(&jobInput.randomize_only)->default_value(false), "randomize input, attempting to avoid clashes")
                 ;
         options_description info("Information (optional)");
         info.add_options()

@@ -43,7 +43,7 @@ bool CDT1ReceptorPO(int argc, char** argv, POdata& podata) {
                 ("cutProt", value<std::string> (&podata.cutProt)->default_value("off"), "Turn off cut protein by default")
                 ("cutRadius", value<double>(&podata.cutRadius)->default_value(5.0), "Radius to cut the protein")
                 ("forceRedo", value<std::string> (&podata.forceRedoFlg)->default_value("off"), "Not to redo calculation by default")
-                ("keep", bool_switch(&podata.keep), "Keep all intermeidate files for fail calculation")
+                ("keep", bool_switch(&podata.keep)->default_value(false), "Keep all intermeidate files for fail calculation")
                 ;   
         options_description info("Optional:");
         info.add_options()
