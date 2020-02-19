@@ -341,7 +341,7 @@ void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& check
                 << "  ntb    = 0,\n"
                 << "  igb    = 5,\n"
                 << "  gbsa   = 1,\n"
-                << "  cut    = 15,\n"
+                << "  cut    = 50,\n"
                 << "  ntr=0,\n"
                 << "  restraint_wt=5.0,\n"
                 << "  restraintmask='!@H=',\n"

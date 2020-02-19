@@ -358,7 +358,7 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
                     minFile << "title..\n"
                             << "&cntrl\n"
                             << "  imin   = 1,\n"
-                            << "  ntmin   = 3,\n"
+                            << "  ntmin   = 1,\n"
                             << "  maxcyc = 2000,\n"
                             << "  ncyc   = 1000,\n"
                             << "  ntpr   = 200,\n"
@@ -366,7 +366,7 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
                             << "  igb    = 5,\n"
                             << "  gbsa   = 1,\n"
                             << "  intdiel= " << jobInput.intDiel << ",\n"
-                            << "  cut    = 15,\n"
+                            << "  cut    = 50,\n"
                             << " /\n" << std::endl;
 
                     minFile.close();
