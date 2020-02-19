@@ -267,8 +267,11 @@ void toConduit(CDTmeta &cdtMeta, std::string& gbsaHDF5File){
 void mmgbsa(CDTmeta& cdtMeta) {
 
     try{
-
-        CDTgbsa::runNew(cdtMeta);
+        if(cdtMeta.newapp) {
+            CDTgbsa::runNew(cdtMeta);
+        } else{
+            CDTgbsa::run(cdtMeta);
+        }
         cdtMeta.message= "Finished!";
         cdtMeta.error=true;
 
@@ -466,6 +469,7 @@ int main(int argc, char** argv) {
             cdtMeta.recFile=podata.recFile;
             cdtMeta.ligFile=podata.ligFile;
             cdtMeta.score_only=podata.score_only;
+            cdtMeta.newapp=podata.newapp;
 
             if(podata.minimizeFlg=="on"){
                 cdtMeta.minimize=true;

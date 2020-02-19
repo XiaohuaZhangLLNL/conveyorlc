@@ -15,6 +15,7 @@ struct POdata{
 
     bool keep;
     bool score_only;
+    bool newapp;
     int version;
     double intDiel;
     std::string dockInDir;

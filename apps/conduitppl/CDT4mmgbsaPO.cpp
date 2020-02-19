@@ -34,6 +34,7 @@ bool CDT4mmgbsaPO(int argc, char** argv, POdata& podata) {
                 ("intDiel", value<double>(&podata.intDiel)->default_value(4.0), "Solute dielectric constant")
                 ("keep", bool_switch(&podata.keep)->default_value(false), "Keep all intermeidate files for fail calculation")
                 ("score_only", bool_switch(&podata.score_only)->default_value(false), "rescoring the score_only docking calculation")
+                ("newapp", bool_switch(&podata.newapp)->default_value(false), "rescoring using new approach")
                 ("minimize", value<std::string> (&podata.minimizeFlg)->default_value("on"), "Run minimization by default")
                 ;
         options_description info("Optional:");
