@@ -268,7 +268,7 @@ void mmgbsa(CDTmeta& cdtMeta) {
 
     try{
 
-        CDTgbsa::run(cdtMeta);
+        CDTgbsa::runNew(cdtMeta);
         cdtMeta.message= "Finished!";
         cdtMeta.error=true;
 

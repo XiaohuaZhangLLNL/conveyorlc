@@ -55,6 +55,7 @@ public:
     virtual ~CDTgbsa();
 
     static void run(CDTmeta & cdtMeta);
+    static void runNew(CDTmeta & cdtMeta);
 
 private:
     static void getLigData(CDTmeta & cdtMeta);
