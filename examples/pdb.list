@@ -1,0 +1,32 @@
+# Comments start with '#'
+# The first column of the input always is the path/pdb_file
+# The second column and third one are optional 
+#
+# To specify key residues in the active site to help identify the binding site start with "KeyRes:"
+# residues separated by '|' and are in <three-letter-residue-name>.<residue-id>.[<chain-id>] format
+#
+# To specify non-standard residues in receptor start with "NonRes:"
+# nonstandard residues also separated by '|'
+#
+#pdb/1a27_A_9959_minimized_w_cofactor.pdb NonRes:NAP.M
+#pdb/2y2vA_A.pdb KeyRes:SGB.203|GLU.202.A NonRes:SGB
+pdb/sarinXtalnAChE_A.pdb KeyRes:SGB.203  NonRes:SGB
+#pdb/sarinXtalnAChE.pdb SubRes:pdb/ligand.pdb  NonRes:SGB
+#pdb/1a50_protein.pdb SubRes:pdb/1a50_ligand.mol2
+# PDBBind
+#pdb/11gs_rec.pdb  SubRes:pdb/11gs_lig.pdb
+#pdb/1a07_rec.pdb  SubRes:pdb/1a07_lig.pdb
+#pdb/1a0t_rec.pdb  SubRes:pdb/1a0t_lig.pdb
+#pdb/1a4h_rec.pdb  SubRes:pdb/1a4h_lig.pdb
+#pdb/6cpa_rec.pdb  SubRes:pdb/6cpa_lig.pdb
+#pdb/13gs_rec.pdb  SubRes:pdb/13gs_lig.pdb
+#pdb/1a0q_rec.pdb  SubRes:pdb/1a0q_lig.pdb
+#pdb/1a2c_rec.pdb  SubRes:pdb/1a2c_lig.pdb
+#pdb/5upj_rec.pdb  SubRes:pdb/5upj_lig.pdb
+#pdb/7std_rec.pdb  SubRes:pdb/7std_lig.pdb
+#
+#pdb/3tbg.pdb 
+#pdb/1a6q_A_784_minimized_w_metal.pdb
+#pdb/1a6q_A_784_minimized_w_metal3.pdb
+#pdb/1a6q_A_784_minimized_w_metal5.pdb
+#pdb/4zpr_B_3453_minimized.pdb

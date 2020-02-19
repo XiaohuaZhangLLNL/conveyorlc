@@ -1,0 +1,13 @@
+#MSUB -A bbs
+#MSUB -l nodes=1:ppn=16
+#MSUB -l walltime=16:00:00
+#MSUB -l partition=syrah
+#MSUB -m be
+
+export LBindData=/usr/gapps/aha/quartz/conveyorlc_10/data
+export PATH=/usr/gapps/aha/quartz/conveyorlc_10/bin:/usr/gapps/aha/quartz/bin:$PATH
+export AMBERHOME=/usr/gapps/aha/quartz/amber16
+export AMBERHOME10=/usr/gapps/aha/quartz/amber10
+export PATH=$AMBERHOME/bin/:$AMBERHOME10/bin/:$PATH
+
+srun -N 1 -n 16 CDT4mmgbsa --version 13

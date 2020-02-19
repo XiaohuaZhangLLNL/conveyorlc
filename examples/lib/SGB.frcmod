@@ -1,0 +1,21 @@
+From VanBeek et al. Biophys J. (2007) 92, 4168-4178 
+
+BOND
+P - CT     259.7    1.8130    same as gaff c3-p5
+
+ANGLE
+P -CT-HC   42.540   109.640   same as gaff hc-c3-p5
+OH-CT-HC   50.870   108.700   same as hc-c3-os
+CT-P -OH   65.840   100.770   same as c3-p5-os
+P -OH-CT   65.440   108.860   same as oh-c3-p5
+O2-P -CT   63.790   112.500   same as c3-p5-o
+OH-P -OH   72.510   101.770   same as os-p5-os
+CT-OH-P    65.840   100.770   same as c3-p5-os 
+
+DIHE
+HC-CT-P-OH  9  0.200   0.000    3.000  same as X-c3-p5-X
+O2-P-CT-HC  9  0.200   0.000    3.000  same as X-c3-p5-X
+OH-P-CT-HC  9  0.200   0.000    3.000  same as X-c3-p5-X
+
+IMPROPER 
+
