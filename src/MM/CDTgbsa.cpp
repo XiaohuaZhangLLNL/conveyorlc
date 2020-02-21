@@ -708,7 +708,7 @@ void CDTgbsa::runNew(CDTmeta &cdtMeta){
                     << "  igb    = 5,\n"
                     << "  gbsa   = 1,\n"
                     << "  intdiel= " << cdtMeta.intDiel << ",\n"
-                    << "  cut    = 50,\n"
+                    << "  cut    = 25,\n"
                     << "  ntr=1,\n"
                     << "  restraint_wt=5.0,\n"
                     << "  restraintmask='@CA,C,N= & !:LIG'\n"
@@ -728,9 +728,56 @@ void CDTgbsa::runNew(CDTmeta &cdtMeta){
         command(cmd, errMesg);
 
         boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
-        cdtMeta.comGB=0;
-        bool success=pSanderOutput->getEAmber(sanderOut,cdtMeta.comGB);
-        if(!success) throw LBindException("Cannot get complex GB energy");
+        //cdtMeta.comGB=0;
+        //bool success=pSanderOutput->getEAmber(sanderOut,cdtMeta.comGB);
+        //if(!success) throw LBindException("Cannot get complex GB energy");
+
+    // end receptor energy re-calculation
+
+    minFName="Com_minGB_2.in";
+    {
+        std::ofstream minFile;
+        try {
+            minFile.open(minFName.c_str());
+        }
+        catch(...){
+            std::string mesg="Cannot open min file: "+minFName;
+            throw LBindException(mesg);
+        }
+
+        minFile << "title..\n"
+                << "&cntrl\n"
+                << "  imin   = 1,\n"
+                << "  ntmin   = 1,\n"
+                << "  maxcyc = 0,\n"
+                << "  ncyc   = 0,\n"
+                << "  ntpr   = 1,\n"
+                << "  ntb    = 0,\n"
+                << "  igb    = 5,\n"
+                << "  gbsa   = 1,\n"
+                << "  intdiel= " << cdtMeta.intDiel << ",\n"
+                << "  cut    = 999,\n"
+                << "  ntr=0,\n"
+                << "  restraint_wt=5.0,\n"
+                << "  restraintmask='!@H='\n"
+                << " /\n";
+
+        minFile.close();
+    }
+
+    if(cdtMeta.version==13){
+        cmd="sander13 -O -i Com_minGB_2.in -o Com_minGB_2.out  -p Com.prmtop -c Com_min.rst -ref Com_min.rst -x Com2.mdcrd -r Com_min2.rst";
+    }else{
+        cmd="sander -O -i Com_minGB_2.in -o Com_minGB_2.out -p Com.prmtop -c Com_min.rst -ref Com_min.rst -x Com2.mdcrd -r Com_min2.rst";
+    }
+    //std::cout <<cmd <<std::endl;
+    errMesg="MMGBSA::run complex energy fails";
+    command(cmd, errMesg);
+
+    sanderOut="Com_minGB_2.out";
+    cdtMeta.comGB=0;
+    bool success=pSanderOutput->getEnergy(sanderOut, cdtMeta.comGB);
+    if(!success) throw LBindException("Cannot get complex GB energy");
 
         std::cout << "Complex GB Minimization Energy: " << cdtMeta.comGB <<" kcal/mol."<< std::endl;
 
