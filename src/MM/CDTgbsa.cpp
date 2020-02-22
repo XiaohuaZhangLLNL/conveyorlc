@@ -709,6 +709,7 @@ void CDTgbsa::runNew(CDTmeta &cdtMeta){
                     << "  gbsa   = 1,\n"
                     << "  intdiel= " << cdtMeta.intDiel << ",\n"
                     << "  cut    = 25,\n"
+                    << "  drms=1e-3,\n"
                     << "  ntr=1,\n"
                     << "  restraint_wt=5.0,\n"
                     << "  restraintmask='@CA,C,N= & !:LIG'\n"
