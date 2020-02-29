@@ -849,7 +849,7 @@ int main(int argc, char** argv) {
                 world.recv(mpi::any_source, outTag, jobOut);
 
                 toConduit(jobOut, recCdtFile);
-                if(jobOut.error) {
+                if(jobOut.error && !podata.keep) {
                     rmRecDir(jobOut);
                 }
             }   
@@ -877,7 +877,7 @@ int main(int argc, char** argv) {
             world.recv(mpi::any_source, outTag, jobOut);
 
             toConduit(jobOut, recCdtFile);
-            if(jobOut.error) {
+            if(jobOut.error && !podata.keep) {
                 rmRecDir(jobOut);
             }
         } 
