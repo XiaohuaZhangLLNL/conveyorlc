@@ -39,6 +39,7 @@ bool CDT2LigandPO(int argc, char** argv, POdata& podata) {
                 ("skipList", value<std::string > (&podata.skipFile), "File name for a list of ligand IDs skipping calculations")
                 ("score_only", bool_switch(&podata.score_only)->default_value(false), "rescoring the score_only docking calculation")
                 ("intDiel", value<double>(&podata.intDiel)->default_value(4.0), "Solute dielectric constant")
+                ("keep", bool_switch(&podata.keep)->default_value(false), "Keep intermediate files")
                 ;   
         options_description info("Optional:");
         info.add_options()

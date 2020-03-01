@@ -22,6 +22,7 @@ struct POdata{
     int firstLigID;
     bool restart;
     bool score_only;
+    bool keep;
     int version;
     double intDiel;
 };

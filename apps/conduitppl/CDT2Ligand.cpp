@@ -598,7 +598,7 @@ int main(int argc, char** argv) {
                     if(backupHDF5 && count%1000==0){
                         backupHDF5File(ligHDF5Backup);
                     }
-                    if(jobOut.error) {
+                    if(jobOut.error && !podata.keep) {
                         rmLigDir(jobOut);
                     }
                 }
@@ -630,7 +630,7 @@ int main(int argc, char** argv) {
             if(backupHDF5 && i%1000==0){
                 backupHDF5File(ligHDF5Backup);
             }
-            if(jobOut.error) {
+            if(jobOut.error  && !podata.keep) {
             	rmLigDir(jobOut);
             }
         } 
