@@ -231,13 +231,14 @@ void backupHDF5File(std::string& hdf5file)
     command(cmd, errMesg);
 }
 
-void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir) {
+void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, std::string& targetDir, bool useLocalDir) {
 
     try{
         jobOut.ligID=jobInput.dirBuffer;
         jobOut.message="Finished!";
 
         std::string subDir=workDir+"/scratch/lig/"+jobOut.ligID;
+        std::string tgtDir=targetDir+"/scratch/lig/"+jobOut.ligID;
         jobOut.ligPath=subDir;
 
         jobOut.gbEn=0.0;        
@@ -442,8 +443,24 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         //std::cout << cmd << std::endl;
         errMesg="sed to fix Br fails";
         command(cmd, errMesg);
+        if(useLocalDir) {
+            cmd = "mkdir -p " + tgtDir;
+            errMesg = "mkdir ligand target directory fails";
+            command(cmd, errMesg);
 
+            cmd = "cp LIG.prmtop LIG.lib LIG.inpcrd LIG_min.pdbqt LIG_min.pdb ligand.mol2 LIG_min.rst LIG_minGB.out ligand.frcmod " + tgtDir;
+            errMesg = "copying saved ligand files fails";
+            command(cmd, errMesg);
+
+            jobOut.ligPath=tgtDir;
+        }
         chdir(workDir.c_str());
+
+        if(useLocalDir) {
+            std::string cmd="rm -rf " + subDir;
+            std::string errMesg="Remove fails for "+subDir;
+            command(cmd, errMesg);
+        }
 
     } catch (LBindException& e){
         jobOut.message= e.what();
@@ -478,6 +495,8 @@ int main(int argc, char** argv) {
     if(!initConveyorlcEnv(workDir, localDir, inputDir, dataPath)){
         world.abort(1);
     }
+
+    bool useLocalDir=(localDir!=workDir);
        
     POdata podata;
     
@@ -644,6 +663,11 @@ int main(int argc, char** argv) {
         }
         
     }else {
+        if(useLocalDir){
+            std::string cmd = "rm -rf " + localDir+"/scratch";
+            std::string errMesg = "Clean up local disk fails before calculation";
+            LBIND::command(cmd, errMesg);
+        }
         while (1) {
             world.send(0, rankTag, world.rank());
             world.recv(0, jobTag, jobFlag);
@@ -653,9 +677,15 @@ int main(int argc, char** argv) {
 
             world.recv(0, inpTag, jobInput);
 
-            preLigands(jobInput, jobOut, workDir);
+            preLigands(jobInput, jobOut, localDir, workDir, useLocalDir);
 
             world.send(0, outTag, jobOut);
+
+            if(useLocalDir){
+                std::string cmd = "rm -rf " + localDir+"/scratch";
+                std::string errMesg = "Clean up local disk fails before calculation";
+                LBIND::command(cmd, errMesg);
+            }
         }
     }
 
