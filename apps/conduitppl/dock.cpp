@@ -189,6 +189,27 @@ void getLigDataOLD(std::string& fileName, std::string& ligKey, std::string& ligN
     relay::io::hdf5_close_file(lig_hid);
 }
 
+bool checkLigData(std::string& fileName, std::string& ligKey){
+    hid_t lig_hid=relay::io::hdf5_open_file_for_read(fileName);
+
+   try {
+        Node n_test;
+        relay::io::hdf5_read(lig_hid, "lig/" + ligKey+ "/status", n_test);
+
+        if (n_test.dtype().is_int()) {
+            int status = n_test.as_int();
+            if (status == 1) {
+                return true;
+            }
+        }
+    }catch (...){
+        std::cout << "Ligand " << ligKey << " has status corrupted" << std::endl;
+   }
+
+    relay::io::hdf5_close_file(lig_hid);
+   return false;
+}
+
 void getLigData(std::string& fileName, std::string& ligKey, std::string& ligName, std::stringstream& ligSS){
 
     hid_t lig_hid=relay::io::hdf5_open_file_for_read(fileName);
@@ -234,6 +255,12 @@ void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& localDir){
 
         jobOut.pdbID=keys[0];
         jobOut.ligID=keys[1];
+
+        bool checkLig=checkLigData(jobInput.ligFile, jobOut.ligID);
+        if(!checkLig) {
+            jobOut.error = false;
+            return;
+        }
 
         // -0.035579, -0.005156, 0.840245, -0.035069, -0.587439, 0.05846
         fl weight_gauss1 = -0.035579;

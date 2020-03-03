@@ -103,7 +103,7 @@ void saveRec(std::string& fileName, std::vector<std::string>& recList){
     relay::io::hdf5_close_file(rec_hid);
 }
 
-void saveLig(std::string& fileName, std::vector<std::string>& ligList){
+void saveLigWithCheck(std::string& fileName, std::vector<std::string>& ligList){
 
     hid_t lig_hid=relay::io::hdf5_open_file_for_read(fileName);
 
@@ -131,6 +131,38 @@ void saveLig(std::string& fileName, std::vector<std::string>& ligList){
             std::cout << "Ligand " << lig_names[i] << " has status corrupted" << std::endl;
         }
     }
+
+    relay::io::hdf5_close_file(lig_hid);
+}
+
+void saveLig(std::string& fileName, std::vector<std::string>& ligList){
+
+    hid_t lig_hid=relay::io::hdf5_open_file_for_read(fileName);
+
+    //std::vector<std::string> lig_names;
+    try {
+        relay::io::hdf5_group_list_child_names(lig_hid, "/lig/", ligList);
+    }catch (...){
+        std::cout << "Warning some error in ligand.hdf5" << std::endl;
+    }
+
+    std::cout << "Previous complete ligand " <<  ligList.size() << std::endl;
+
+    //Node n_test;
+    //for(int i=0; i<lig_names.size(); i++){
+    //   try {
+    //        relay::io::hdf5_read(lig_hid, "lig/" + lig_names[i] + "/status", n_test);
+
+    //        if (n_test.dtype().is_int()) {
+    //            int status = n_test.as_int();
+    //            if (status == 1) {
+    //                ligList.push_back(lig_names[i]);
+    //            }
+    //        }
+    //    }catch (...){
+    //        std::cout << "Ligand " << lig_names[i] << " has status corrupted" << std::endl;
+    //   }
+    //}
 
     relay::io::hdf5_close_file(lig_hid);
 }
