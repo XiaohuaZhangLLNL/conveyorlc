@@ -95,6 +95,7 @@ void toConduit(JobOutData& jobOut, std::string& ligCdtFile){
 
         std::vector<std::string> filenames={"LIG.prmtop", "LIG.lib", "LIG.inpcrd", "LIG_min.pdbqt", "LIG_min.pdb", "ligand.mol2",
                                   "LIG_min.rst", "LIG_minGB.out", "ligand.frcmod"};
+        std::cout << "CONDUIT: " << jobOut.ligPath << std::endl;
 
         for(std::string& name : filenames)
         {
@@ -219,6 +220,7 @@ void getCalcList(std::vector<bool>& calcList, std::string& fileName, POdata& pod
 
 void rmLigDir(JobOutData& jobOut)
 {
+    std::cout << "rmLigDir: " << jobOut.ligPath << std::endl;
     std::string cmd="rm -rf " + jobOut.ligPath;
     std::string errMesg="Remove fails for "+jobOut.ligPath;
     command(cmd, errMesg);
@@ -451,8 +453,9 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
             cmd = "cp LIG.prmtop LIG.lib LIG.inpcrd LIG_min.pdbqt LIG_min.pdb ligand.mol2 LIG_min.rst LIG_minGB.out ligand.frcmod " + tgtDir;
             errMesg = "copying saved ligand files fails";
             command(cmd, errMesg);
-
+            std::cout << "BEFORE: " << jobOut.ligPath << std::endl;
             jobOut.ligPath=tgtDir;
+	    std::cout << "AFTER : " << jobOut.ligPath << std::endl;
         }
         chdir(workDir.c_str());
 
