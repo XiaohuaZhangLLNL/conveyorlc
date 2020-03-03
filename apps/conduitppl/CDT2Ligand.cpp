@@ -663,11 +663,11 @@ int main(int argc, char** argv) {
         }
         
     }else {
-        if(useLocalDir){
-            std::string cmd = "rm -rf " + localDir+"/scratch";
-            std::string errMesg = "Clean up local disk fails before calculation";
-            LBIND::command(cmd, errMesg);
-        }
+        //if(useLocalDir){
+        //    std::string cmd = "rm -rf " + localDir+"/scratch";
+        //    std::string errMesg = "Clean up local disk fails before calculation";
+        //    LBIND::command(cmd, errMesg);
+        //}
         while (1) {
             world.send(0, rankTag, world.rank());
             world.recv(0, jobTag, jobFlag);
@@ -681,11 +681,11 @@ int main(int argc, char** argv) {
 
             world.send(0, outTag, jobOut);
 
-            if(useLocalDir){
-                std::string cmd = "rm -rf " + localDir+"/scratch";
-                std::string errMesg = "Clean up local disk fails before calculation";
-                LBIND::command(cmd, errMesg);
-            }
+            //if(useLocalDir){
+            //    std::string cmd = "rm -rf " + localDir+"/scratch";
+            //    std::string errMesg = "Clean up local disk fails before calculation";
+            //    LBIND::command(cmd, errMesg);
+            //}
         }
     }
 
