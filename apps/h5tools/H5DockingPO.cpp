@@ -24,13 +24,8 @@ bool H5ReceptorPO(int argc, char** argv, POdata& podata) {
     try {
         options_description inputs("Required:");
         inputs.add_options()
-                ("input,i", value<std::string > (&podata.inputFile)->default_value("scratch/receptor.hdf5"), "receptor HDF5 input file")
-                ("output,o", value<std::string > (&podata.outputFile)->default_value("scratch/receptor_out.hdf5"), "receptor HDF5 output file")
-                ("del,d", bool_switch(&podata.del), "delete all paths for failed calculations")
-                ("name,n", value<std::string > (&podata.name)->default_value(""), "extract meta data and files by receptor name")
-                ("delname,x", value<std::string > (&podata.delname)->default_value(""), "delete path by receptor name")
-                ("storename,s", value<std::string > (&podata.storename)->default_value(""), "save data to HDF5 output file by receptor name")
-                ("checkdata,c", value<std::vector<std::string> >(&podata.checkdata)->multitoken(), "update meta data by protein name and checkpoint file name (e.g. sarinXtalnAChE  checkpoint.txt)");
+                ("input,i", value<std::string > (&podata.dockInDir)->default_value("scratch/dockHDF5"), "path to dock HDF5 file Directory")
+                ("output,o", value<std::string > (&podata.outputFile)->default_value("dock.csv"), "output meta CSV file")
         ;
         options_description info("Optional:");
         info.add_options()

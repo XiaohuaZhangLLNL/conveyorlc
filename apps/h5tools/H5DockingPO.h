@@ -10,7 +10,7 @@
 
 struct POdata{
     bool del;
-    std::string inputFile;
+    std::string dockInDir;
     std::string outputFile;
     std::string name;
     std::string delname;
