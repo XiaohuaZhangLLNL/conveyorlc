@@ -202,6 +202,12 @@ int main(int argc, char* argv[]) {
     }
 
     bool useLocalDir=(localDir!=workDir);
+    if(useLocalDir){
+        std::string cmd = "rm -rf " + localDir+"/scratch";
+        std::string errMesg = "Clean up local disk fails before calculation";
+        LBIND::command(cmd, errMesg);
+        world.barrier();
+    }
 
     std::cout << "Number of tasks= " << world.size() << " My rank= " << world.rank() << std::endl;
 
@@ -366,11 +372,6 @@ int main(int argc, char* argv[]) {
         }
 
     } else {
-        if(useLocalDir){
-            std::string cmd = "rm -rf " + localDir+"/scratch";
-            std::string errMesg = "Clean up local disk fails before calculation";
-            LBIND::command(cmd, errMesg);
-        }
 
         std::string dockHDF5File=workDir+"/scratch/dockHDF5/dock_proc"+std::to_string(world.rank())+".hdf5:/";
         //hid_t dock_hid=relay::io::hdf5_open_file_for_read_write(dockHDF5File);
@@ -401,16 +402,19 @@ int main(int argc, char* argv[]) {
 
         }
 
-        if(useLocalDir){
-            std::string cmd = "rm -rf " + localDir+"/scratch";
-            std::string errMesg = "Clean up local disk fails before calculation";
-            LBIND::command(cmd, errMesg);
-        }
         //relay::io::hdf5_close_file(dock_hid);
     }
 
 
     std::cout << "Rank= " << world.rank() <<" MPI Wall Time= " << runingTime.elapsed() << " Sec."<< std::endl;
+
+    if(useLocalDir){
+        world.barrier();
+        std::string cmd = "rm -rf " + localDir+"/scratch";
+        std::string errMesg = "Clean up local disk fails before calculation";
+        LBIND::command(cmd, errMesg);
+
+    }
 
     if (world.rank() == 0) {
         std::cout << "CDT3Docking End Calculation: " << timestamp() << std::endl;
