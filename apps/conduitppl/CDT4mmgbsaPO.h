@@ -16,8 +16,10 @@ struct POdata{
     bool keep;
     bool score_only;
     bool newapp;
+    bool useScoreCF; //switch to turn on score cutoff
     int version;
     double intDiel;
+    double scoreCF;  // value for score cutoff
     std::string dockInDir;
     std::string recFile;
     std::string ligFile;

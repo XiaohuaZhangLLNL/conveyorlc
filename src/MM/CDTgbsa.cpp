@@ -590,9 +590,22 @@ void CDTgbsa::runNew(CDTmeta &cdtMeta){
         command(cmd, errMesg);
         chdir(poseDir.c_str());
 
+        getDockData(cdtMeta);
+
+        if(cdtMeta.useScoreCF){
+            if(cdtMeta.dockscore > cdtMeta.scoreCF){
+                cdtMeta.gbbind=0;
+                cdtMeta.comGB=0;
+                cdtMeta.recGB=0;
+                cdtMeta.ligGB=0;
+
+                throw LBindException("Docking score is higher that threshold");
+            }
+
+        }
+
         getLigData(cdtMeta);
         getRecData(cdtMeta);
-        getDockData(cdtMeta);
 
         if(cdtMeta.score_only){
             cmd = "grep -v END std4pdbqt.pdb > dd.pdb && cat dd.pdb LIG_min.pdb > com_init.pdb";

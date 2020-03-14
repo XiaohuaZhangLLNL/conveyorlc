@@ -473,6 +473,8 @@ int main(int argc, char** argv) {
             cdtMeta.ligFile=podata.ligFile;
             cdtMeta.score_only=podata.score_only;
             cdtMeta.newapp=podata.newapp;
+            cdtMeta.useScoreCF=podata.useScoreCF;
+            cdtMeta.scoreCF=podata.scoreCF;
 
             if(podata.minimizeFlg=="on"){
                 cdtMeta.minimize=true;
