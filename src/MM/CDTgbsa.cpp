@@ -156,6 +156,18 @@ void CDTgbsa::getDockData(LBIND::CDTmeta &cdtMeta)
     std::string pIDstr=cdtMeta.poseID.substr(1, cdtMeta.poseID.size()-1);
     int pID=std::stoi(pIDstr);
 
+    if(cdtMeta.useScoreCF){
+        double pose1score=0;
+        pPdb->readByModel(name, "pose1.pdbqt", 1, pose1score);
+        if(pose1score > cdtMeta.scoreCF){
+            cdtMeta.gbbind=0;
+            cdtMeta.comGB=0;
+            cdtMeta.recGB=0;
+            cdtMeta.ligGB=0;
+            throw LBindException("Docking score is higher that threshold");
+        }
+    }
+
     pPdb->readByModel(name, ligpdbqt, pID, cdtMeta.dockscore);
 
     std::string posePDB="lig_model.pdb";
@@ -590,21 +602,10 @@ void CDTgbsa::runNew(CDTmeta &cdtMeta){
         command(cmd, errMesg);
         chdir(poseDir.c_str());
 
-        getDockData(cdtMeta);
-
-        if(cdtMeta.useScoreCF){
-            if(cdtMeta.dockscore > cdtMeta.scoreCF){
-                cdtMeta.gbbind=0;
-                cdtMeta.comGB=0;
-                cdtMeta.recGB=0;
-                cdtMeta.ligGB=0;
-
-                throw LBindException("Docking score is higher that threshold");
-            }
-
-        }
-
         getLigData(cdtMeta);
+
+        getDockData(cdtMeta);
+        
         getRecData(cdtMeta);
 
         if(cdtMeta.score_only){
