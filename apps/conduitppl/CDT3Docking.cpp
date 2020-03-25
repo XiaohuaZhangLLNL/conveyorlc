@@ -153,17 +153,18 @@ void toHDF5File(JobInputData& jobInput, JobOutData& jobOut, std::string& dockHDF
             if(jobOut.scores[0]>jobInput.scoreCF){
                 //Mark the low score compound as "fail" so when restart program won't re-do it
                 jobOut.error=false;
-                jobOut.numPose=0;
+                //jobOut.numPose=0;
                 jobOut.mesg="Beyond score cutoff";
-                jobOut.scorelog="";
-                jobOut.pdbqtfile="";
-                jobOut.scores.clear();
+                //jobOut.scorelog="";
+                //jobOut.pdbqtfile="";
+                //jobOut.scores.clear();
             }
-            toConduit(jobOut, dockHDF5File);
+        }else{
+            jobOut.error=false;
         }
-    }else{
-        toConduit(jobOut, dockHDF5File);
     }
+    toConduit(jobOut, dockHDF5File);
+
 }
 
 std::string timestamp(){

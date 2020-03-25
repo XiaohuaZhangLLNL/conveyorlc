@@ -605,7 +605,7 @@ void CDTgbsa::runNew(CDTmeta &cdtMeta){
         getLigData(cdtMeta);
 
         getDockData(cdtMeta);
-        
+
         getRecData(cdtMeta);
 
         if(cdtMeta.score_only){
