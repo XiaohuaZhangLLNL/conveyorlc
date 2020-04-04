@@ -29,11 +29,12 @@ inline void command(std::string& cmd, std::string& errMesg){
     tim.tv_sec = 1;
     tim.tv_nsec = 0;
 
-    int status;
+    int status = system(cmd.c_str());;
 
     while(WEXITSTATUS(status)==127) {
-        status = system(cmd.c_str());
+        std::cout << cmd << " return exit code " << WEXITSTATUS(status) << '\n';
         nanosleep(&tim, &tim2);
+        status = system(cmd.c_str());
     }
     if (status < 0) {
         std::string message = strerror(errno);
