@@ -164,7 +164,7 @@ void CDTgbsa::getDockData(LBIND::CDTmeta &cdtMeta)
             cdtMeta.comGB=0;
             cdtMeta.recGB=0;
             cdtMeta.ligGB=0;
-            throw LBindException("Docking score is higher that threshold");
+            throw LBindException("Docking score is higher than threshold");
         }
     }
 
