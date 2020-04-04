@@ -17,20 +17,30 @@
 #include <cstdlib>
 #include <cstring>
 #include <errno.h>
+#include <stdio.h>
+#include <time.h>
 #include "Common/LBindException.h"
 
 namespace LBIND {
 
 inline void command(std::string& cmd, std::string& errMesg){
 
-    int status = system(cmd.c_str());
+    struct timespec tim, tim2;
+    tim.tv_sec = 1;
+    tim.tv_nsec = 0;
 
+    int status;
+
+    while(WEXITSTATUS(status)==127) {
+        status = system(cmd.c_str());
+        nanosleep(&tim, &tim2);
+    }
     if (status < 0) {
         std::string message = strerror(errno);
         throw LBindException(message);
     } else {
         if (WIFEXITED(status)) {
-            std::cout << cmd << " return normally exit code " << WEXITSTATUS(status) << '\n';
+            std::cout << cmd << " return exit code " << WEXITSTATUS(status) << '\n';
         } else {
             throw LBindException(errMesg);
         }
