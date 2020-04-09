@@ -286,18 +286,19 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
 
         pPdb->strip(pdbFile, tmpFile);
 
+        boost::scoped_ptr<Sdf> pSdf(new Sdf());
+        if(jobInput.cmpName=="NoName"){
+            jobOut.ligName=pSdf->getTitle(sdfFile);
+        }else{
+            jobOut.ligName=pSdf->getInfo(sdfFile, jobInput.cmpName);
+        }
+
         if(jobInput.minimizeFlg) {
             //! Get ligand charge from SDF file.
             std::string keyword="TOTAL_CHARGE";
 
-            boost::scoped_ptr<Sdf> pSdf(new Sdf());
             std::string info=pSdf->getInfo(sdfFile, keyword);
-            if(jobInput.cmpName=="NoName"){
-                jobOut.ligName=pSdf->getTitle(sdfFile);
-            }else{
-                jobOut.ligName=pSdf->getInfo(sdfFile, jobInput.cmpName);
-            }
-
+            
             std::cout << "Charge:" << info << std::endl;
             int charge=Sstrm<int, std::string>(info);
             std::string chargeStr=Sstrm<std::string,int>(charge);
