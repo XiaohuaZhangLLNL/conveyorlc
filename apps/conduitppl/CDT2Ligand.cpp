@@ -424,7 +424,7 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
 
         //! Get DPBQT file for ligand from minimized structure.
         //cmd="prepare_ligand4.py -l  LIG_min.pdb >> log";
-        cmd="obabel -ipdb LIG_min.pdb  -xn -opdbqt > LIG_min.pdbqt"
+        cmd="obabel -ipdb LIG_min.pdb  -xn -opdbqt > LIG_min.pdbqt";
         //std::cout << cmd << std::endl;   
         //errMesg="prepare_ligand4.py fails";
         errMesg="obabel LIG_min.pdbqt fails";

@@ -178,7 +178,7 @@ bool preLigands(std::string& dir) {
     pPdb->fixElement("LIG_minTmp.pdb", "LIG_min.pdb"); 
         
     //! Get DPBQT file for ligand from minimized structure.
-    cmd="obabel -ipdb LIG_min.pdb  -xn -opdbqt > LIG_min.pdbqt"
+    cmd="obabel -ipdb LIG_min.pdb  -xn -opdbqt > LIG_min.pdbqt";
     std::cout << cmd << std::endl;
     system(cmd.c_str());
     
