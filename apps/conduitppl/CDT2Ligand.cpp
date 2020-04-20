@@ -298,7 +298,7 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
             std::string keyword="TOTAL_CHARGE";
 
             std::string info=pSdf->getInfo(sdfFile, keyword);
-            
+
             std::cout << "Charge:" << info << std::endl;
             int charge=Sstrm<int, std::string>(info);
             std::string chargeStr=Sstrm<std::string,int>(charge);
@@ -423,9 +423,11 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         pPdb->fixElement("LIG_minTmp.pdb", "LIG_min.pdb");
 
         //! Get DPBQT file for ligand from minimized structure.
-        cmd="prepare_ligand4.py -l  LIG_min.pdb >> log";
+        //cmd="prepare_ligand4.py -l  LIG_min.pdb >> log";
+        cmd="obabel -ipdb LIG_min.pdb  -xn -opdbqt > LIG_min.pdbqt"
         //std::cout << cmd << std::endl;   
-        errMesg="prepare_ligand4.py fails";
+        //errMesg="prepare_ligand4.py fails";
+        errMesg="obabel LIG_min.pdbqt fails";
         command(cmd, errMesg);
 
         checkFName="LIG_min.pdbqt";
