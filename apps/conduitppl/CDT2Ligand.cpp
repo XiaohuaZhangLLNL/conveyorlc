@@ -424,10 +424,13 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
 
         //! Get DPBQT file for ligand from minimized structure.
         //cmd="prepare_ligand4.py -l  LIG_min.pdb >> log";
-        cmd="obabel -ipdb LIG_min.pdb  -xn -opdbqt > LIG_min.pdbqt";
+        cmd="obabel -ipdb LIG_min.pdb  -xn -opdbqt > LIG_min_temp.pdbqt";
         //std::cout << cmd << std::endl;   
         //errMesg="prepare_ligand4.py fails";
         errMesg="obabel LIG_min.pdbqt fails";
+        command(cmd, errMesg);
+        cmd="sed '/LIG_min.pdb/d' LIG_min_temp.pdbqt | sed '/vdW  Elec/d' | sed '/_____/d' >LIG_min.pdbqt";
+        errMesg="obabel fix file";
         command(cmd, errMesg);
 
         checkFName="LIG_min.pdbqt";
