@@ -88,6 +88,18 @@ void Amber::parmchk(std::string mol2FName){
     command(cmd, errMesg);       
 }
 
+void Amber::parmchk2(std::string mol2FName){
+    //! Assue PDB file name suffix is .mol2
+    std::string mol2FBase=mol2FName.substr(0,mol2FName.size()-5);
+    //! parmchk -i sustiva.mol2 -f mol2 -o sustiva.frcmod
+    std::string cmd=AMBERPATH +"/bin/parmchk2 -i " + mol2FName + " -f mol2 -o "
+                    +mol2FBase+".frcmod";
+
+    //std::cout << cmd << std::endl;
+    std::string errMesg = "Amber::parmchk2 fails";
+    command(cmd, errMesg);
+}
+
 void Amber::ligLeapInput(std::string pdbid, std::string ligName, std::string tleapFName){
     std::ofstream tleapFile;
     try {

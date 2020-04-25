@@ -322,7 +322,11 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
                 }
             }
 
-            pAmber->parmchk(output);
+            if (jobInput.ambVersion == 16) {
+                pAmber->parmchk2(output);
+            }else {
+                pAmber->parmchk(output); // parmchk is deprecated from AMBER16
+            }
 
             //! leap to obtain forcefield for ligand
             std::string ligName="LIG";
