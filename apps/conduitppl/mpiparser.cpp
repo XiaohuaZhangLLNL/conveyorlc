@@ -328,7 +328,11 @@ Thank you!\n";
             std::cerr << "Missing receptor List file.\n" << "\nCorrect usage:\n" << desc << '\n';
             return 1;
         }else{
-            jobInput.recFile=workDir+"/"+recFile;
+            if(recFile[0]=="/"){
+                jobInput.recFile = recFile;
+            }else {
+                jobInput.recFile = workDir + "/" + recFile;
+            }
             saveRec(jobInput.recFile, recList);
         }
         
@@ -336,7 +340,11 @@ Thank you!\n";
             std::cerr << "Missing ligand List file.\n" << "\nCorrect usage:\n" << desc << '\n';
             return 1;
         }else{
-            jobInput.ligFile=workDir+"/"+ligFile;
+            if(ligFile[0]=="/"){
+                jobInput.ligFile = ligFile;
+            }else{
+                jobInput.ligFile=workDir+"/"+ligFile;
+            }
             saveLig(jobInput.ligFile, ligList);
         }
 

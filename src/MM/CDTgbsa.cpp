@@ -113,6 +113,9 @@ void CDTgbsa::getDockData(LBIND::CDTmeta &cdtMeta)
 
     //
     std::string dockHDF5file=cdtMeta.workDir+"/"+cdtMeta.dockInDir+"/dock_proc"+std::to_string(cdtMeta.procID)+".hdf5";
+    if(cdtMeta.dockInDir[0] == "/"){
+        dockHDF5file=cdtMeta.dockInDir+"/dock_proc"+std::to_string(cdtMeta.procID)+".hdf5";
+    }
     //std::string pdbqtPath="dock/"+cdtMeta.recID+"/"+cdtMeta.ligID+"/file/"+name;
     std::string dockPath="dock/"+cdtMeta.recID+"/"+cdtMeta.ligID;
     std::string dockdataPath=dockHDF5file+":"+dockPath;
