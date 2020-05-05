@@ -456,11 +456,12 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             boost::scoped_ptr<Pdb> pPdb(new Pdb() );
             pPdb->selectAForm(pdbFile, "rec_AForm.pdb");
 
-            cmd="pdb4amber -i rec_AForm.pdb -o rec_pdb4amber.pdb --dry --reduce";
-            errMesg="pdb4amber fails";
-            command(cmd,errMesg);
+            //cmd="pdb4amber -i rec_AForm.pdb -o rec_pdb4amber.pdb --dry --reduce";
+            //errMesg="pdb4amber fails";
+            //command(cmd,errMesg);
             //! begin energy minimization of receptor
-            cmd="reduce -Quiet -Trim  rec_pdb4amber.pdb >& rec_noh.pdb ";
+            //cmd="reduce -Quiet -Trim  rec_pdb4amber.pdb >& rec_noh.pdb ";
+            cmd="reduce -Quiet -Trim  rec_AForm.pdb >& rec_noh.pdb ";
             //std::cout <<cmd <<std::endl;
             errMesg="reduce converting rec_AForm.pdb fails";
             command(cmd,errMesg);
