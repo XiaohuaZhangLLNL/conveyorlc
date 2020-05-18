@@ -826,8 +826,12 @@ int main(int argc, char** argv) {
         initInputData(jobInput, podata);
 
         std::vector<RecData*> dirList;        
-        
+
         std::string pdbList=inputDir+"/"+podata.inputFile;
+        //Check for the absolute path
+        if(podata.inputFile[0]=="/"){
+            pdbList=podata.inputFile;
+        }
 
         saveStrList(pdbList, dirList);
 
