@@ -829,7 +829,7 @@ int main(int argc, char** argv) {
 
         std::string pdbList=inputDir+"/"+podata.inputFile;
         //Check for the absolute path
-        if(podata.inputFile[0]=="/"){
+        if(podata.inputFile[0]=='/'){
             pdbList=podata.inputFile;
         }
 
