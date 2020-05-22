@@ -310,7 +310,7 @@ void CDTgbsa::run(CDTmeta &cdtMeta){
 
     if(cdtMeta.score_only){
         ligMinimize(cdtMeta);
-        cmd = "grep -v END std4pdbqt.pdb > dd.pdb && cat dd.pdb LIG_min.pdb > com_init.pdb";
+        cmd = "grep -v END rec_min.pdb > dd.pdb && cat dd.pdb LIG_min.pdb > com_init.pdb";
     }else {
         cmd = "grep -v END rec_min.pdb   > dd.pdb && cat dd.pdb lig_full.pdb > com_init.pdb";
     }
@@ -612,7 +612,7 @@ void CDTgbsa::runNew(CDTmeta &cdtMeta){
         getRecData(cdtMeta);
 
         if(cdtMeta.score_only){
-            cmd = "grep -v END std4pdbqt.pdb > dd.pdb && cat dd.pdb LIG_min.pdb > com_init.pdb";
+            cmd = "grep -v END rec_min.pdb > dd.pdb && cat dd.pdb LIG_min.pdb > com_init.pdb";
         }else {
             cmd = "grep -v END rec_min.pdb   > dd.pdb && cat dd.pdb lig_full.pdb > com_init.pdb";
         }
