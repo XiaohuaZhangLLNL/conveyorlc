@@ -9,10 +9,10 @@ target_link_libraries(CDT2Ligand LBind ${Boost_LIBRARIES} ${MPI_CXX_LIBRARIES} c
 set_target_properties(CDT2Ligand PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(TARGETS CDT2Ligand DESTINATION bin)
 
-add_executable(CDT2LigandNomin CDT2LigandNomin.cpp CDT2LigandPO.cpp CDT2LigandNomin.h InitEnv.h )
-target_link_libraries(CDT2LigandNomin LBind ${Boost_LIBRARIES} ${MPI_CXX_LIBRARIES} ${OPENBABEL3_LIBRARIES} conduit conduit_relay conduit_blueprint)
-set_target_properties(CDT2LigandNomin PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
-install(TARGETS CDT2LigandNomin DESTINATION bin)
+add_executable(CDT2LigandNoMin CDT2LigandNoMin.cpp CDT2LigandPO.cpp CDT2LigandNoMin.h InitEnv.h )
+target_link_libraries(CDT2LigandNoMin LBind ${Boost_LIBRARIES} ${MPI_CXX_LIBRARIES} ${OPENBABEL3_LIBRARIES} conduit conduit_relay conduit_blueprint)
+set_target_properties(CDT2LigandNoMin PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+install(TARGETS CDT2LigandNoMin DESTINATION bin)
 
 add_executable(CDT3Docking CDT3Docking.cpp dock.cpp mpiparser.cpp mainProcedure.cpp InitEnv.h)
 target_link_libraries(CDT3Docking LBind ${Boost_LIBRARIES} ${MPI_CXX_LIBRARIES} conduit conduit_relay conduit_blueprint)
