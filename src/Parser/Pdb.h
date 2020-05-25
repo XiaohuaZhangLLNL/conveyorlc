@@ -40,7 +40,9 @@ public:
     void write(const std::string& fileName, std::vector<Atom*>& atomList, const std::string& resName);
     
     void renameAtom(const std::string& inFileName, const std::string& outFileName);
+    void renameAtomStr(const std::string inputStr, std::string& outputStr);
     void strip(const std::string& inFileName, const std::string& outFileName);
+    void stripStr(const std::string inputStr, std::string& outputStr);
     void cutByRadius(const std::string& inFileName, const std::string& outFileName, Coor3d& center, double radius);
     bool aveKeyResCoor(const std::string& inFileName, std::vector<std::string>& keyRes, Coor3d& aveCoor);
     bool calcAverageCoor(const std::string& fileName, Coor3d& aveCoor);
@@ -59,6 +61,7 @@ public:
     void getDisulfide(const std::string& inFileName, std::vector<std::vector<int> >& ssList);
     
     void fixElement(const std::string& inFileName, const std::string& outFileName);
+    void fixElementStr(const std::string inputStr, std::string& outputStr);
 //    void write(const std::string& fileName, boost::shared_ptr<Conformer> pConformer);
 //    void write(const std::string& fileName, Conformer* pConformer);
     
@@ -68,6 +71,7 @@ public:
 private:
     void guessElement(std::string& atomType, const std::string& resName, const std::string& atomName);
     std::string newAtomName(const std::string& atomType, int seq);
+    void newAtomNameLine(std::string& fileLine, int& nC, int& nO, int& nN, int& nH, int& nS, int& nP, int& nE, int& nCL);
     
     void toALA(Fragment* pFrag); //! Convert non-standard Amino Acid to ALA
     // a multi-definition issue.

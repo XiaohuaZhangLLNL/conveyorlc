@@ -587,6 +587,63 @@ std::string Pdb::newAtomName(const std::string& atomType, int seq){
     return ss.str();
 }
 
+void Pdb::newAtomNameLine(std::string& fileLine, int& nC, int& nO, int& nN, int& nH, int& nS, int& nP, int& nE, int& nCL) {
+    const std::string atomStr="ATOM";
+    const std::string hetatmStr="HETATM";
+
+    const std::string ResStr="LIG";
+    const std::string RidStr="  1";
+
+    if(fileLine.compare(0,4, atomStr)==0 || fileLine.compare(0,6, hetatmStr)==0){
+        std::string newAtomName="";
+        std::string atomTypeTmp=fileLine.substr(76,2);
+        std::string atomType="";
+        if(atomTypeTmp.compare(0,1," ")==0){
+            atomType=atomTypeTmp.substr(1,1);
+        }else{
+            atomType=atomTypeTmp;
+        }
+
+        if(atomType.size()==1){
+            if(atomType.compare(0, 1, "C")==0){
+                nC=nC+1;
+                newAtomName=this->newAtomName(atomType, nC);
+            } else if(atomType.compare(0, 1, "O")==0){
+                nO=nO+1;
+                newAtomName=this->newAtomName(atomType, nO);
+            } else if(atomType.compare(0, 1, "N")==0){
+                nN=nN+1;
+                newAtomName=this->newAtomName(atomType, nN);
+            } else if(atomType.compare(0, 1, "H")==0){
+                nH=nH+1;
+                newAtomName=this->newAtomName(atomType, nH);
+            } else if(atomType.compare(0, 1, "S")==0){
+                nS=nS+1;
+                newAtomName=this->newAtomName(atomType, nS);
+            } else if(atomType.compare(0, 1, "P")==0){
+                nP=nP+1;
+                newAtomName=this->newAtomName(atomType, nP);
+            } else {
+                nE=nE+1;
+                newAtomName=this->newAtomName(atomType, nE);
+            }
+        }else {
+            if(atomType.compare(0, 2, "Cl")==0){
+                nCL=nCL+1;
+                atomType="CL";
+                newAtomName=this->newAtomName(atomType, nCL);
+            } else {
+                nE=nE+1;
+                newAtomName=this->newAtomName(atomType, nE);
+            }
+        }
+        fileLine.replace(12, 4, newAtomName);
+        // Also rename the residue name to LIG and residue ID to 1.
+        fileLine.replace(17, 3, ResStr);
+        fileLine.replace(23, 3, RidStr);
+    }
+}
+
 void Pdb::renameAtom(const std::string& inFileName, const std::string& outFileName){
     std::ifstream inFile;
     try {
@@ -608,13 +665,7 @@ void Pdb::renameAtom(const std::string& inFileName, const std::string& outFileNa
     }    
 
     std::string fileLine="";    
-    
-    const std::string atomStr="ATOM";
-    const std::string hetatmStr="HETATM"; 
-    
-    const std::string ResStr="LIG";
-    const std::string RidStr="  1";
-    
+
     int nC=0;
     int nO=0;
     int nN=0;
@@ -625,63 +676,37 @@ void Pdb::renameAtom(const std::string& inFileName, const std::string& outFileNa
     int nE=0;   
     
     while(std::getline(inFile, fileLine)){
-
-        if(fileLine.compare(0,4, atomStr)==0 || fileLine.compare(0,6, hetatmStr)==0){
-            std::string newAtomName="";
-            std::string atomTypeTmp=fileLine.substr(76,2);
-            std::string atomType="";
-            if(atomTypeTmp.compare(0,1," ")==0){
-                atomType=atomTypeTmp.substr(1,1);
-            }else{
-                atomType=atomTypeTmp;
-            }
-            
-            if(atomType.size()==1){
-                if(atomType.compare(0, 1, "C")==0){
-                    nC=nC+1;
-                    newAtomName=this->newAtomName(atomType, nC);
-                } else if(atomType.compare(0, 1, "O")==0){
-                    nO=nO+1;
-                    newAtomName=this->newAtomName(atomType, nO);
-                } else if(atomType.compare(0, 1, "N")==0){
-                    nN=nN+1;
-                    newAtomName=this->newAtomName(atomType, nN);
-                } else if(atomType.compare(0, 1, "H")==0){
-                    nH=nH+1;
-                    newAtomName=this->newAtomName(atomType, nH);
-                } else if(atomType.compare(0, 1, "S")==0){
-                    nS=nS+1;
-                    newAtomName=this->newAtomName(atomType, nS);
-                } else if(atomType.compare(0, 1, "P")==0){
-                    nP=nP+1;
-                    newAtomName=this->newAtomName(atomType, nP);
-                } else {
-                    nE=nE+1;
-                    newAtomName=this->newAtomName(atomType, nE);               
-                } 
-            }else { 
-                if(atomType.compare(0, 2, "Cl")==0){
-                    nCL=nCL+1;
-                    atomType="CL";
-                    newAtomName=this->newAtomName(atomType, nCL);
-                } else {
-                    nE=nE+1;
-                    newAtomName=this->newAtomName(atomType, nE);               
-                }
-            }
-            fileLine.replace(12, 4, newAtomName);
-            // Also rename the residue name to LIG and residue ID to 1.
-            fileLine.replace(17, 3, ResStr);
-            fileLine.replace(23, 3, RidStr);
-        }
-
+        newAtomNameLine(fileLine, nC, nO, nN, nH, nS, nP, nE, nCL);
         outFile << fileLine << std::endl;
-           
     }
     
     inFile.close();
     outFile.close();
     
+}
+
+void Pdb::renameAtomStr(const std::string inputStr, std::string& outputStr){
+
+    int nC=0;
+    int nO=0;
+    int nN=0;
+    int nH=0;
+    int nS=0;
+    int nP=0;
+    int nCL=0;
+    int nE=0;
+
+    std::vector<std::string> inputLines;
+    const std::string delimiter="\n";
+    tokenize(inputStr, inputLines, delimiter);
+
+    outputStr="";
+    for(unsigned i=0; i<inputLines.size(); i++){
+        std::string fileLine=inputLines[i];
+        newAtomNameLine(fileLine, nC, nO, nN, nH, nS, nP, nE, nCL);
+        outputStr=outputStr+fileLine+"\n";
+    }
+
 }
 
 void Pdb::strip(const std::string& inFileName, const std::string& outFileName){
@@ -719,6 +744,27 @@ void Pdb::strip(const std::string& inFileName, const std::string& outFileName){
     inFile.close();
     outFile.close();
     
+}
+
+void Pdb::stripStr(const std::string inputStr, std::string &outputStr) {
+
+    const std::string atomStr="ATOM";
+    const std::string hetatmStr="HETATM";
+
+    std::vector<std::string> inputLines;
+    const std::string delimiter="\n";
+    tokenize(inputStr, inputLines, delimiter);
+
+    outputStr="";
+    for(unsigned i=0; i<inputLines.size(); i++){
+        std::string fileLine=inputLines[i];
+
+        if(fileLine.compare(0,4, atomStr)==0 || fileLine.compare(0,6, hetatmStr)==0){
+            outputStr=outputStr+fileLine+"\n";
+        }
+    }
+
+
 }
 
 void Pdb::cutByRadius(const std::string& inFileName, const std::string& outFileName, Coor3d& center, double radius){
@@ -2315,6 +2361,38 @@ void Pdb::fixElement(const std::string& inFileName, const std::string& outFileNa
     inFile.close();
     outFile.close();
         
+}
+
+void Pdb::fixElementStr(const std::string inputStr, std::string &outputStr) {
+
+    const std::string atomStr="ATOM";
+    const std::string hetatmStr="HETATM";
+
+    std::vector<std::string> inputLines;
+    const std::string delimiter="\n";
+    tokenize(inputStr, inputLines, delimiter);
+
+    outputStr="";
+    for(unsigned i=0; i<inputLines.size(); i++){
+        std::string fileLine=inputLines[i];
+
+        if(fileLine.compare(0,4, atomStr)==0 || fileLine.compare(0,6, hetatmStr)==0){
+            if(fileLine.size()>=79){
+                if(fileLine.compare(78,1, " ")!=0){
+                    outputStr=outputStr+fileLine.substr(0,76) + fileLine.substr(77,2) +"\n";
+                }else{
+                    outputStr=outputStr+fileLine +"\n";
+                }
+
+            }else{
+                outputStr=outputStr+fileLine +"\n";
+            }
+
+        }else{
+            outputStr=outputStr+fileLine +"\n";
+        }
+    }
+
 }
 
 }// namespace LBIND
