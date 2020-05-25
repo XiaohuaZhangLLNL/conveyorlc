@@ -158,3 +158,6 @@ src/libLBind.a
 apps/h5tools/H5Receptor
 apps/h5tools/Makefile
 apps/h5tools/cmake_install.cmake
+/apps/tools/testOpenBabel
+/apps/conduitppl/CDT2LigandNomin
+/apps/h5tools/H5Docking

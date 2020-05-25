@@ -169,6 +169,39 @@ std::string Sdf::getInfo(const std::string& fileName, const std::string& keyword
     return info;
 }
 
+std::string Sdf::getInfoStr(const std::string inputStr, const std::string keyword){
+
+    std::string info="";
+
+    //static const boost::regex terRegex(keyword.c_str());
+    const boost::regex terRegex(keyword.c_str());
+    boost::smatch what;
+
+    int count=3;
+
+    std::vector<std::string> inputLines;
+    const std::string delimiter="\n";
+    tokenize(inputStr, inputLines, delimiter);
+
+    for(unsigned i=0; i<inputLines.size(); i++){
+        std::string fileLine=inputLines[i];
+
+        if(boost::regex_search(fileLine,what,terRegex)){
+            count=0;
+        }
+        if(count==1){
+            std::vector<std::string> tokens;
+            tokenize(fileLine, tokens, "\n" );
+            if(tokens.size() > 0){
+                return tokens[0];
+            }
+        }
+        count=count+1;
+    }
+
+    return info;
+}
+
 std::string Sdf::getTitle(const std::string& fileName){
 
     std::ifstream inFile;
@@ -187,6 +220,22 @@ std::string Sdf::getTitle(const std::string& fileName){
     if(tokens.size() > 0){
         return tokens[0];
     }    
+    return info;
+}
+
+std::string Sdf::getTitleStr(const std::string inputStr) {
+
+    std::vector<std::string> inputLines;
+    const std::string delimiter="\n";
+    tokenize(inputStr, inputLines, delimiter);
+
+    std::string fileLine=inputLines[0];
+    std::string info="";
+    std::vector<std::string> tokens;
+    tokenize(fileLine, tokens, "\n" );
+    if(tokens.size() > 0){
+        return tokens[0];
+    }
     return info;
 }
 

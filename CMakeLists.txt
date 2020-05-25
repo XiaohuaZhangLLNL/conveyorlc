@@ -9,7 +9,7 @@ project(ConveyorLC)
 
 # project version
 set(VERSION_MAJOR 1)
-set(VERSION_MINOR 0)
+set(VERSION_MINOR 1)
 set(VERSION_PATCH 0)
 set(VERSION_STRING ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
@@ -72,6 +72,14 @@ endif()
 #endif()
 find_package(Boost 1.35 REQUIRED COMPONENTS program_options system filesystem regex serialization mpi thread)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+
+if (APPLE)
+    #set(BOOST_ROOT "../../../boost/boost_1_54_0/mac")
+    set(OPENBABEL3_ROOT "/Users/zhang30/inst/conveyorlc_contrib/openbabel3")
+endif()
+
+find_package(OpenBabel3 REQUIRED)
+include_directories( ${OPENBABEL3_INCLUDE_DIRS} )
 
 # find sqlite3
 find_package (sqlite3 QUIET)
