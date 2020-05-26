@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
 
     std::string pdbStripStr="";
     pPdb->stripStr(pdbReNameStr, pdbStripStr);
-    //std::cout << pdbStripStr << std::endl;
+    std::cout << pdbStripStr << std::endl;
 
     boost::scoped_ptr<Sdf> pSdf(new Sdf());
     std::cout << "Title: " <<pSdf->getTitleStr(sdfStr) << std::endl;
