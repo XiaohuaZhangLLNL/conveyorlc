@@ -870,36 +870,36 @@ put the following two command into your .bashrc or .cshrc
 
 ```asm
   workon conveyorlc
-  mv run_converyorlc.yaml ~/W/ConveyorLC/workflow
+  mv run_conveyorlc.yaml ~/W/ConveyorLC/workflow
   cd ~/W/ConveyorLC/workflow
   maestro run -h
-  maestro run ./run_converyorlc.yaml
+  maestro run ./run_conveyorlc.yaml
 
 ```
 
-The "maestro run" will crearte a subdirectory using time stamp (i.e. run_converyorlc_20180504-155630)
+The "maestro run" will crearte a subdirectory using time stamp (i.e. run_conveyorlc_20180504-155630)
 To check the job status, run "maestro status"
 
 ```asm
-(conveyorlc)[zhang30@syrah256 workflow]$  maestro status run_converyorlc_20180504-155630
+(conveyorlc)[zhang30@syrah256 workflow]$  maestro status run_conveyorlc_20180504-155630
 
 Step Name     Workspace                        State              Run Time        Elapsed Time    Start Time                  Submit Time                 End Time                      Number Restarts
 ------------  -------------------------------  -----------------  --------------  --------------  --------------------------  --------------------------  --------------------------  -----------------
-PPL4parseXML  run_converyorlc_20180504-155630  State.INITIALIZED  --:--:--        --:--:--        --                          --                          --                                          0
-PPL1Receptor  run_converyorlc_20180504-155630  State.FINISHED     0:12:01.079873  0:13:01.157428  2018-05-04 15:57:36.256237  2018-05-04 15:56:36.178682  2018-05-04 16:09:37.336110                  0
-PPL4mmgbsa    run_converyorlc_20180504-155630  State.RUNNING      --:--:--        0:30:03.091956  2018-05-04 16:12:37.699076  2018-05-04 16:11:37.603008  --                                          0
-PPL2Ligand    run_converyorlc_20180504-155630  State.FINISHED     0:01:00.053917  0:02:00.187536  2018-05-04 15:57:36.256309  2018-05-04 15:56:36.122690  2018-05-04 15:58:36.310226                  0
-PPL3Docking   run_converyorlc_20180504-155630  State.FINISHED     0:01:00.096606  0:02:00.202646  2018-05-04 16:10:37.473674  2018-05-04 16:09:37.367634  2018-05-04 16:11:37.570280                  0
+PPL4parseXML  run_conveyorlc_20180504-155630  State.INITIALIZED  --:--:--        --:--:--        --                          --                          --                                          0
+PPL1Receptor  run_conveyorlc_20180504-155630  State.FINISHED     0:12:01.079873  0:13:01.157428  2018-05-04 15:57:36.256237  2018-05-04 15:56:36.178682  2018-05-04 16:09:37.336110                  0
+PPL4mmgbsa    run_conveyorlc_20180504-155630  State.RUNNING      --:--:--        0:30:03.091956  2018-05-04 16:12:37.699076  2018-05-04 16:11:37.603008  --                                          0
+PPL2Ligand    run_conveyorlc_20180504-155630  State.FINISHED     0:01:00.053917  0:02:00.187536  2018-05-04 15:57:36.256309  2018-05-04 15:56:36.122690  2018-05-04 15:58:36.310226                  0
+PPL3Docking   run_conveyorlc_20180504-155630  State.FINISHED     0:01:00.096606  0:02:00.202646  2018-05-04 16:10:37.473674  2018-05-04 16:09:37.367634  2018-05-04 16:11:37.570280                  0
 ```
 
-All the results are under the run_converyorlc_20180504-155630 subdirectory.
+All the results are under the run_conveyorlc_20180504-155630 subdirectory.
 
 
-### 4.5 run_converyorlc.yaml sample file
+### 4.5 run_conveyorlc.yaml sample file
 
 ```asm
 description:
-    name: run_converyorlc
+    name: run_conveyorlc
     description: |
         Run the conveyorlc code.
 
@@ -909,8 +909,8 @@ env:
 
     labels:
         SETUP_MAIN: |
-            export LBindData=$(CONVERYOR_BIN)/data
-            export PATH=$(CONVERYOR_BIN)/bin:$(BIN_HOME)/bin:$PATH
+            export LBindData=$(CONVEYOR_BIN)/data
+            export PATH=$(CONVEYOR_BIN)/bin:$(BIN_HOME)/bin:$PATH
             export AMBERHOME=$(BIN_HOME)/amber10
             export PATH=$AMBERHOME/bin/:$PATH
             export INPUTDIR=$(INPUT_DIR)
@@ -921,7 +921,7 @@ env:
             - name: BIN_HOME
               path: /usr/gapps/aha/cab
 
-            - name: CONVERYOR_BIN
+            - name: CONVEYOR_BIN
               path: /usr/gapps/aha/cab/conveyorlc_test
 
             - name: INPUT_DIR
