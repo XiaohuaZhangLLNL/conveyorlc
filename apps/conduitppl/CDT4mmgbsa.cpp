@@ -182,8 +182,18 @@ void getKeysHDF5(std::string& fileName, std::vector<std::string>& keysFinish)
 
 void getKeysHDF5pIO(std::string& fileName, std::vector<std::string>& keysFinish)
 {
-
-    hid_t gbsa_hid=relay::io::hdf5_open_file_for_read(fileName);
+    hid_t gbsa_hid;
+    // Remove the corrupt gbsa HDF5 file
+    try {
+        gbsa_hid= relay::io::hdf5_open_file_for_read(fileName);
+    } catch(conduit::Error &error){
+        std::cout << "Warning: gbsa HDF5 file " << fileName << " is corrupt." << std::endl;
+        std::cout << error.what() << std::endl;
+        std::string cmd = "rm -f " + fileName;
+        std::string errMesg = "Remove corrupt gbsa HDF5 file " +fileName;
+        LBIND::command(cmd, errMesg);
+        return;
+    }
 
     std::vector<std::string> rec_names;
     relay::io::hdf5_group_list_child_names(gbsa_hid,"/gbsa/",rec_names);
