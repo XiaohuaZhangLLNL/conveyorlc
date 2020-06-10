@@ -211,6 +211,12 @@ void CDTgbsa::getDockData(LBIND::CDTmeta &cdtMeta)
     //std::cout <<cmd <<std::endl;
     errMesg="Ligand tleap fails";
     command(cmd, errMesg);
+
+    std::string checkFName="lig_full.pdb";
+    if(!fileExist(checkFName)){
+        std::string message=checkFName+" does not exist.";
+        throw LBindException(message);
+    }
 }
 
 void CDTgbsa::ligMinimize(CDTmeta &cdtMeta){
