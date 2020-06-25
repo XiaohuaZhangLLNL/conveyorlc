@@ -171,16 +171,30 @@ void sdf2pdb(std::string& inputStr, std::string& outputStr)
 
 void pdb2pdbqt(std::string& inputStr, std::string& outputStr)
 {
-    OBConversion conv;
-    OBMol mol;
-    conv.SetInFormat("pdb");
-    conv.SetOutFormat("pdbqt");
-    conv.SetOutputIndex(1);
-    conv.SetOptions("n", conv.OUTOPTIONS);
+    std::string mol2str;
+    {
+        OBConversion conv;
+        OBMol mol;
+        conv.SetInFormat("pdb");
+        conv.SetOutFormat("mol2");
+        conv.SetOutputIndex(1);
+        conv.SetOptions("O", conv.OUTOPTIONS);
 
-    conv.ReadString(&mol, inputStr);
-    outputStr = conv.WriteString(&mol, true);
+        conv.ReadString(&mol, inputStr);
+        mol2str = conv.WriteString(&mol, true);
+    }
 
+    {
+        OBConversion conv;
+        OBMol mol;
+        conv.SetInFormat("mol2");
+        conv.SetOutFormat("pdbqt");
+        conv.SetOutputIndex(1);
+        conv.SetOptions("n", conv.OUTOPTIONS);
+
+        conv.ReadString(&mol, mol2str);
+        outputStr = conv.WriteString(&mol, true);
+    }
 }
 
 void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, std::string& targetDir, bool useLocalDir) {
