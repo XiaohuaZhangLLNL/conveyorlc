@@ -379,7 +379,7 @@ int main(int argc, char* argv[]) {
         std::vector<double> time_dock;
         std::vector<double> time_io;
         std::ofstream ofh;
-        ofh.open("time_"+std::to_string(world.rank())+".csv",'w');
+        ofh.open(workDir+"/scratch/dockHDF5/time_"+std::to_string(world.rank())+".csv");
         ofh <<"dock,io\n";
         int count=0;
         while (1) {
