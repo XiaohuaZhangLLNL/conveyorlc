@@ -74,6 +74,8 @@ struct JobOutData{
 public:
     bool error;
     int numPose;
+    double time_dock;
+    double time_io;
     std::string pdbID;
     std::string ligID;
     std::string ligName;

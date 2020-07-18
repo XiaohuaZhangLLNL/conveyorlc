@@ -126,6 +126,8 @@ void toConduit(JobOutData& jobOut, std::string& dockHDF5File){
         n[recIDMeta+"ligName"]=jobOut.ligName;
         n[recIDMeta+"numPose"]=jobOut.numPose;
         n[recIDMeta+"Mesg"]=jobOut.mesg;
+        n[recIDMeta+"t_dock"]=jobOut.time_dock;
+        n[recIDMeta+"t_io"]=jobOut.time_io;
 
         for(int i=0; i< jobOut.scores.size(); ++i)
         {
@@ -314,11 +316,6 @@ int main(int argc, char* argv[]) {
         std::cout << "CDT3Docking Number of Calculations : " << keysCalc.size() << std::endl;
     }
 
-    std::vector<double> time_dock;
-    std::vector<double> time_io;
-    std::ofstream ofh;
-    ofh.open(workDir+"/scratch/dockHDF5/time_"+std::to_string(world.rank())+".csv");
-    ofh <<"dock,io\n";
 
     if (world.rank() == 0) {
         unsigned num_cpus = boost::thread::hardware_concurrency();
@@ -401,10 +398,9 @@ int main(int argc, char* argv[]) {
             toHDF5File(jobInput, jobOut, dockHDF5File);
             std::chrono::steady_clock::time_point io_end = std::chrono::steady_clock::now();
 
-            double t_dock=std::chrono::duration_cast<std::chrono::milliseconds>(dock_end - dock_begin).count();
-            double t_io=std::chrono::duration_cast<std::chrono::microseconds>(io_end - dock_end).count();
-            time_dock.push_back(t_dock);
-            time_io.push_back(t_io);
+            jobOut.time_dock=std::chrono::duration_cast<std::chrono::milliseconds>(dock_end - dock_begin).count();
+            jobOut.time_io=std::chrono::duration_cast<std::chrono::microseconds>(io_end - dock_end).count();
+
             // Go back the localDir to get rid of following error
             // shell-init: error retrieving current directory: getcwd: cannot access
             chdir(localDir.c_str());
@@ -414,23 +410,7 @@ int main(int argc, char* argv[]) {
             std::string errMesg="remove dockDir fails";
             LBIND::command(cmd, errMesg);
 
-            count++;
-            if(count%100==0){
-                for(int i=0; i<time_dock.size(); i++){
-                    ofh << time_dock[i] << "," << time_io[i] << "\n";
-                }
-                ofh.flush();
-                time_dock.clear();
-                time_io.clear();
-            }
-
         }
-
-        for(int i=0; i<time_dock.size(); i++){
-            ofh << time_dock[i] << "," << time_io[i] << "\n";
-        }
-        ofh.flush();
-        ofh.close();
         //relay::io::hdf5_close_file(dock_hid);
     }
 
