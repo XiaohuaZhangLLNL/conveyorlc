@@ -314,6 +314,12 @@ int main(int argc, char* argv[]) {
         std::cout << "CDT3Docking Number of Calculations : " << keysCalc.size() << std::endl;
     }
 
+    std::vector<double> time_dock;
+    std::vector<double> time_io;
+    std::ofstream ofh;
+    ofh.open(workDir+"/scratch/dockHDF5/time_"+std::to_string(world.rank())+".csv");
+    ofh <<"dock,io\n";
+
     if (world.rank() == 0) {
         unsigned num_cpus = boost::thread::hardware_concurrency();
         if (num_cpus > 0)
@@ -376,11 +382,6 @@ int main(int argc, char* argv[]) {
 
         std::string dockHDF5File=workDir+"/scratch/dockHDF5/dock_proc"+std::to_string(world.rank())+".hdf5:/";
         //hid_t dock_hid=relay::io::hdf5_open_file_for_read_write(dockHDF5File);
-        std::vector<double> time_dock;
-        std::vector<double> time_io;
-        std::ofstream ofh;
-        ofh.open(workDir+"/scratch/dockHDF5/time_"+std::to_string(world.rank())+".csv");
-        ofh <<"dock,io\n";
         int count=0;
         while (1) {
 
@@ -400,8 +401,8 @@ int main(int argc, char* argv[]) {
             toHDF5File(jobInput, jobOut, dockHDF5File);
             std::chrono::steady_clock::time_point io_end = std::chrono::steady_clock::now();
 
-            double t_dock=std::chrono::duration_cast<std::chrono::seconds>(dock_end - dock_begin).count();
-            double t_io=std::chrono::duration_cast<std::chrono::seconds>(io_end - dock_end).count();
+            double t_dock=std::chrono::duration_cast<std::chrono::milliseconds>(dock_end - dock_begin).count();
+            double t_io=std::chrono::duration_cast<std::chrono::microseconds>(io_end - dock_end).count();
             time_dock.push_back(t_dock);
             time_io.push_back(t_io);
             // Go back the localDir to get rid of following error
