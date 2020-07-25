@@ -148,6 +148,23 @@ void toConduit(JobOutData& jobOut, std::string& dockHDF5File){
 
 }
 
+void toTimingConduit(JobOutData& jobOut, std::string& dockHDF5File){
+    try {
+
+        Node n;
+
+        std::string keyPath="dock/"+jobOut.pdbID +"/"+jobOut.ligID;
+        std::string recIDMeta =keyPath+ "/meta/";
+        n[recIDMeta+"t_dock"]=jobOut.time_dock;
+        n[recIDMeta+"t_io"]=jobOut.time_io;
+
+        relay::io::hdf5_append(n, dockHDF5File);
+
+    }catch(conduit::Error &error){
+        jobOut.mesg= error.message();
+    }
+}
+
 void toHDF5File(JobInputData& jobInput, JobOutData& jobOut, std::string& dockHDF5File)
 {
     if(jobInput.useScoreCF){
@@ -400,7 +417,7 @@ int main(int argc, char* argv[]) {
 
             jobOut.time_dock=std::chrono::duration_cast<std::chrono::milliseconds>(dock_end - dock_begin).count();
             jobOut.time_io=std::chrono::duration_cast<std::chrono::microseconds>(io_end - dock_end).count();
-
+            toTimingConduit(jobOut, dockHDF5File);
             // Go back the localDir to get rid of following error
             // shell-init: error retrieving current directory: getcwd: cannot access
             chdir(localDir.c_str());
