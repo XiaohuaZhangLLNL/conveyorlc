@@ -11,6 +11,7 @@
 #include <sstream>
 #include <cstring>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <boost/filesystem.hpp>
 #include <boost/scoped_ptr.hpp>
@@ -31,6 +32,7 @@
 #include "Common/File.hpp"
 #include "Common/LBindException.h"
 #include "Common/Command.hpp"
+#include "Common/Chomp.hpp"
 
 #include "InitEnv.h"
 #include "CDT4mmgbsa.h"
@@ -147,6 +149,72 @@ void getDockingKeysHDF5pIO(std::string& fileName, std::vector<std::string>& keys
 
 }
 
+void getLigNames(std::string& ligNameFile, std::unordered_set<std::string>& ligNameSet){
+
+    std::ifstream inFile;
+    inFile.open(ligNameFile.c_str());
+
+    const std::string comment="#";
+    std::string fileLine;
+    while(inFile){
+        std::getline(inFile, fileLine);
+        if(fileLine.compare(0, 1, comment)==0) continue;
+        chomp(fileLine);
+        ligNameSet.insert(fileLine);
+    }
+}
+
+void getDockingKeysByLigNameHDF5pIO(std::string& fileName, std::unordered_set<std::string>& ligNameSet, std::vector<std::string>& keysFinish)
+{
+    path p(fileName);
+    std::string fileBase=p.stem().string();
+    // asume filename are dock_proc1.hdf5 dock_proc2.hdf5, ... dock_procN.hdf5
+    int procID=std::stoi(fileBase.substr(9, fileBase.size()-9));
+
+    hid_t dock_hid=relay::io::hdf5_open_file_for_read(fileName);
+
+    std::vector<std::string> rec_names;
+    relay::io::hdf5_group_list_child_names(dock_hid,"/dock/",rec_names);
+
+    for(int i=0;i<rec_names.size();i++)
+    {
+        const std::string &curr_rec = rec_names[i];
+        std::vector<std::string> lig_names;
+        relay::io::hdf5_group_list_child_names(dock_hid,"/dock/"+curr_rec+"/",lig_names);
+
+        for(int j=0; j<lig_names.size(); j++)
+        {
+            const std::string &curr_lig = lig_names[j];
+            Node nLig;
+            relay::io::hdf5_read(dock_hid,"/dock/"+curr_rec+"/"+curr_lig, nLig);
+            std::string ligName=nLig["meta/ligName"].as_string();
+
+            auto pos = ligNameSet.find(ligName);
+            if (pos != ligNameSet.end()){
+                int numPose=0;
+                Node nNumPose=nLig["meta/numPose"];
+                if (nNumPose.dtype().is_int32()){
+                    numPose=nNumPose.as_int32();
+                }else if (nNumPose.dtype().is_int64()) {
+                    numPose= nNumPose.as_int64();
+                }else{
+                    numPose= nNumPose.as_int();
+                }
+
+                if(numPose>0){
+                    std::string key=curr_rec+"/"+curr_lig+"+"+std::to_string(numPose)+"+"+std::to_string(procID);
+                    keysFinish.push_back(key);
+                }
+            }
+        }
+
+    }
+
+    relay::io::hdf5_close_file(dock_hid);
+
+}
+
+
 void getKeysHDF5(std::string& fileName, std::vector<std::string>& keysFinish)
 {
     Node n;
@@ -246,8 +314,8 @@ void toConduit(CDTmeta &cdtMeta, std::string& gbsaHDF5File){
         std::string recIDFile =keyPath + "/file/";
 
         std::vector<std::string> filenames={"Com.prmtop", "Com.inpcrd", "Com_min.rst",
-                                            "Com_min.pdb", "Com_min_GB.out", "Rec_minGB.out",
-                                            "Rec_min.rst"};
+                                            "Com_min.pdb", "Com_min_GB.out", "Com_min_GB_2.out", "Rec_minGB.out",
+                                            "Rec_min.rst", "LIG_minGB.out "};
 
         for(std::string& name : filenames)
         {
@@ -324,6 +392,10 @@ int main(int argc, char** argv) {
         world.abort(1);
     }
 
+    std::unordered_set<std::string> ligNameSet;
+    if(podata.useLigName){
+        getLigNames(podata.ligNameFile, ligNameSet);
+    }
     if(!initConveyorlcEnv(workDir, localDir, inputDir, dataPath)){
         world.abort(1);
     }
@@ -372,7 +444,11 @@ int main(int argc, char** argv) {
 
         for(int i=start; i<hdf5Files.size(); i=i+stride)
         {
-            getDockingKeysHDF5pIO(hdf5Files[i], dockingKeys);
+            if(podata.useLigName){
+                getDockingKeysByLigNameHDF5pIO(hdf5Files[i], ligNameSet, dockingKeys);
+            }else {
+                getDockingKeysHDF5pIO(hdf5Files[i], dockingKeys);
+            }
         }
 
         gather(world, dockingKeys, 0);

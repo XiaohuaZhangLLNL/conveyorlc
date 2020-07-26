@@ -38,6 +38,8 @@ bool CDT4mmgbsaPO(int argc, char** argv, POdata& podata) {
                 ("minimize", value<std::string> (&podata.minimizeFlg)->default_value("on"), "Run minimization by default")
                 ("useScoreCF", bool_switch(&podata.useScoreCF)->default_value(false), "Use score cutoff to save ligand with top score higher than certain critical value")
                 ("scoreCF", value<double>(&podata.scoreCF)->default_value(-8.0), "Score cutoff to save ligand with top score higher than certain value (default -8.0)")
+                ("useLigName", bool_switch(&podata.useLigName)->default_value(false), "Run gbsa rescoring for ligands by ligNames in a file")
+                ("ligNameFile", value<std::string > (&podata.ligNameFile)->default_value("ligName.list"), "Innput file contains a list of ligNames")
                 ;
         options_description info("Optional:");
         info.add_options()
