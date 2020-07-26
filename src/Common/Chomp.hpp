@@ -12,7 +12,7 @@
 
 namespace LBIND {
     
-void chomp(std::string& s) {
+inline void chomp(std::string& s) {
     size_t p = s.find_first_not_of(" \t");
     s.erase(0, p);
 
