@@ -19,10 +19,12 @@ struct POdata{
     std::string saveSDF;
     std::string backup;
     std::string skipFile;
+    std::string ligNameFile;
     int firstLigID;
     bool restart;
     bool score_only;
     bool keep;
+    bool useLigName;
     int version;
     double intDiel;
 };

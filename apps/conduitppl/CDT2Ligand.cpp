@@ -11,6 +11,7 @@
 #include <fstream>
 #include <sstream>
 #include <cstring>
+#include <unordered_set>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -40,6 +41,7 @@
 #include "Common/Tokenize.hpp"
 #include "Common/LBindException.h"
 #include "Common/Command.hpp"
+#include "Common/Chomp.hpp"
 #include "XML/XMLHeader.hpp"
 
 #include "CDT2Ligand.h"
@@ -75,6 +77,20 @@ using namespace conduit;
    \endverbatim
  */
 
+void getLigNames(std::string& ligNameFile, std::unordered_set<std::string>& ligNameSet){
+
+    std::ifstream inFile;
+    inFile.open(ligNameFile.c_str());
+
+    const std::string comment="#";
+    std::string fileLine;
+    while(inFile){
+        std::getline(inFile, fileLine);
+        if(fileLine.compare(0, 1, comment)==0) continue;
+        chomp(fileLine);
+        ligNameSet.insert(fileLine);
+    }
+}
 
 void toConduit(JobOutData& jobOut, std::string& ligCdtFile){
 
@@ -233,7 +249,8 @@ void backupHDF5File(std::string& hdf5file)
     command(cmd, errMesg);
 }
 
-void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, std::string& targetDir, bool useLocalDir) {
+void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir, std::string& targetDir, bool useLocalDir,
+        std::unordered_set<std::string>& ligNameSet, POdata& podata) {
 
     try{
         jobOut.ligID=jobInput.dirBuffer;
@@ -291,6 +308,13 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
             jobOut.ligName=pSdf->getTitle(sdfFile);
         }else{
             jobOut.ligName=pSdf->getInfo(sdfFile, jobInput.cmpName);
+        }
+
+        auto pos = ligNameSet.find(jobOut.ligName);
+        if (pos == ligNameSet.end()){
+            jobOut.message= "Not in ligName.list";
+            jobOut.error=false;
+            return;
         }
 
         if(jobInput.minimizeFlg) {
@@ -509,12 +533,15 @@ int main(int argc, char** argv) {
     bool useLocalDir=(localDir!=workDir);
        
     POdata podata;
-    
-    if (world.rank() == 0) {        
-        bool success=CDT2LigandPO(argc, argv, podata);
-        if(!success){
-            world.abort(1);
-        }        
+
+    bool success=CDT2LigandPO(argc, argv, podata);
+    if(!success){
+        world.abort(1);
+    }
+
+    std::unordered_set<std::string> ligNameSet;
+    if(podata.useLigName){
+        getLigNames(podata.ligNameFile, ligNameSet);
     }
 
     if (world.size() < 2) {
@@ -687,7 +714,7 @@ int main(int argc, char** argv) {
 
             world.recv(0, inpTag, jobInput);
 
-            preLigands(jobInput, jobOut, localDir, workDir, useLocalDir);
+            preLigands(jobInput, jobOut, localDir, workDir, useLocalDir, ligNameSet, podata);
 
             world.send(0, outTag, jobOut);
 

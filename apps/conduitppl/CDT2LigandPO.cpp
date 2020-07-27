@@ -40,7 +40,9 @@ bool CDT2LigandPO(int argc, char** argv, POdata& podata) {
                 ("score_only", bool_switch(&podata.score_only)->default_value(false), "rescoring the score_only docking calculation")
                 ("intDiel", value<double>(&podata.intDiel)->default_value(4.0), "Solute dielectric constant")
                 ("keep", bool_switch(&podata.keep)->default_value(false), "Keep intermediate files")
-                ;   
+                ("useLigName", bool_switch(&podata.useLigName)->default_value(false), "Run gbsa rescoring for ligands by ligNames in a file")
+                ("ligNameFile", value<std::string > (&podata.ligNameFile)->default_value("ligName.list"), "Innput file contains a list of ligNames")
+                ;
         options_description info("Optional:");
         info.add_options()
                 ("help", bool_switch(&help), "display usage summary")
