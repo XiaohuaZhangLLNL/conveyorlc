@@ -128,6 +128,9 @@ void toConduit(JobOutData& jobOut, std::string& dockHDF5File){
         n[recIDMeta+"Mesg"]=jobOut.mesg;
         n[recIDMeta+"t_dock"]=jobOut.time_dock;
         n[recIDMeta+"t_io"]=jobOut.time_io;
+        n[recIDMeta+"num_steps"]=jobOut.num_steps;
+        n[recIDMeta+"num_mov"]=jobOut.num_mov;
+        n[recIDMeta+"num_dof"]=jobOut.num_dof;
 
         for(int i=0; i< jobOut.scores.size(); ++i)
         {

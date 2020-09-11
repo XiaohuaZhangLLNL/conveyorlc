@@ -257,7 +257,8 @@ void main_procedure(model& m, const boost::optional<model>& ref, // m is non-con
         bool score_only, bool local_only, bool randomize_only, bool no_cache,
         const grid_dims& gd, int exhaustiveness,
         const flv& weights,
-        int cpu, int seed, int verbosity, sz num_modes, fl energy_range, fl in_min_rmsd, std::stringstream& log, sz& how_many) {
+        int cpu, int seed, int verbosity, sz num_modes, fl energy_range, fl in_min_rmsd, std::stringstream& log, sz& how_many,
+        int& num_steps, int& num_mov, int& num_dof) {
 
     doing(verbosity, "Setting up the scoring function", log);
 
@@ -279,6 +280,9 @@ void main_procedure(model& m, const boost::optional<model>& ref, // m is non-con
     parallel_mc par;
     sz heuristic = m.num_movable_atoms() + 10 * m.get_size().num_degrees_of_freedom();
     par.mc.num_steps = unsigned(70 * 3 * (50 + heuristic) / 2); // 2 * 70 -> 8 * 20 // FIXME
+    num_steps=par.mc.num_steps;
+    num_mov =  m.num_movable_atoms();
+    num_dof = m.get_size().num_degrees_of_freedom();
     par.mc.ssd_par.evals = unsigned((25 + m.num_movable_atoms()) / 3);
     //par.mc.min_rmsd = 1.0;
     par.mc.min_rmsd = in_min_rmsd;

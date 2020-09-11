@@ -330,7 +330,7 @@ void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& localDir){
                 score_only, local_only, randomize_only, false, // no_cache == false
                 gd, exhaustiveness,
                 weights,
-                cpu, seed, verbosity, max_modes_sz, energy_range, jobInput.min_rmsd, log, how_many);
+                cpu, seed, verbosity, max_modes_sz, energy_range, jobInput.min_rmsd, log, how_many, jobOut.num_steps, jobOut.num_mov, jobOut.num_dof);
 
         jobOut.numPose=how_many;
 
