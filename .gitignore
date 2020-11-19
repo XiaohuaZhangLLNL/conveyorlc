@@ -161,3 +161,8 @@ apps/h5tools/cmake_install.cmake
 /apps/tools/testOpenBabel
 /apps/conduitppl/CDT2LigandNomin
 /apps/h5tools/H5Docking
+/apps/standalone/SDL1Receptor
+/apps/standalone/SDL2LigandNoMin
+/apps/standalone/SDL3Docking
+/apps/standalone/Makefile
+/apps/standalone/cmake_install.cmake
