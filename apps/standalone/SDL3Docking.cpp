@@ -241,7 +241,13 @@ int main(int argc, char* argv[]) {
 
     }
 
-    std::string dockhdf5File=workDir+"/scratch/dock.hdf5";
+    //std::string dockhdf5File=workDir+"/scratch/dock.hdf5";
+
+    std::string dockhdf5File=workDir+"/"+jobInput.outFile;
+    // if use absolute path
+    if(jobInput.outFile[0]=='/'){
+        dockhdf5File=jobInput.outFile;
+    }
 
     if(is_regular_file(dockhdf5File)) {
         getKeysHDF5(dockhdf5File, keysFinish);
@@ -270,11 +276,7 @@ int main(int argc, char* argv[]) {
     }
 
     //std::string dockHDF5File=workDir+"/scratch/dock.hdf5:/";
-    std::string dockHDF5File=workDir+"/"+jobInput.outFile+":/";
-    // if use absolute path
-    if(jobInput.outFile[0]=='/'){
-        dockHDF5File=jobInput.outFile+":/";
-    }
+    std::string dockHDF5FilePath=dockhdf5File+":/";
 
     std::string delimiter = "/";
     //int count=0;
@@ -287,7 +289,7 @@ int main(int argc, char* argv[]) {
 
         dockjob(jobInput, jobOut, localDir);
 
-        toHDF5File(jobInput, jobOut, dockHDF5File);
+        toHDF5File(jobInput, jobOut, dockHDF5FilePath);
 
         // Go back the localDir to get rid of following error
         // shell-init: error retrieving current directory: getcwd: cannot access
