@@ -286,7 +286,7 @@ Thank you!\n";
                 ("comFile", value<std::string > (&comFile)->default_value(""), "Specify how receptor and ligand combine")
                 ("out", value<std::string> (&(jobInput.outFile))->default_value("scratch/dock.hdf5"), "dock output HDF5 file")
                 ("exhaustiveness", value<int>(&(jobInput.exhaustiveness))->default_value(8), "exhaustiveness (default value 8) of the global search (roughly proportional to time): 1+")
-                ("num_cpu", value<int>(&jobInput.cpu)->default_value(0), "number of CPUs used in docking (default 0) to trigger auto-detect it")
+                ("num_cpu", value<int>(&(jobInput.cpu))->default_value(0), "number of CPUs used in docking (default 0) to trigger auto-detect it")
                 ("granularity", value<double>(&(jobInput.granularity))->default_value(0.375), "the granularity of grids (default value 0.375)")
                 ("num_modes", value<int>(&jobInput.num_modes)->default_value(10), "maximum number (default value 10) of binding modes to generate")
                 ("seed", value<int>(&jobInput.seed), "explicit random seed")
@@ -357,8 +357,8 @@ Thank you!\n";
             jobInput.comFile="";
         }
         
-        if (jobInput.cpu < 1)
-            jobInput.cpu = 1;
+        //if (jobInput.cpu < 1)
+        //    jobInput.cpu = 1;
         if (vm.count("seed") == 0)
             jobInput.seed = auto_seed();
         if (jobInput.exhaustiveness < 1)

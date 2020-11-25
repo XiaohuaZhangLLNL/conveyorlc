@@ -261,13 +261,15 @@ int main(int argc, char* argv[]) {
     std::cout << "SDL3Docking Found All Finished Calculation: " << timestamp() << std::endl;
     std::cout << "SDL3Docking Number of Calculations : " << keysCalc.size() << std::endl;
 
-    if(jobInput.cpu==0) { // if user didn't define the number of CPUs
+    if(jobInput.cpu<1) { // if user didn't define the number of CPUs
         unsigned num_cpus = boost::thread::hardware_concurrency();
         if (num_cpus > 0)
             jobInput.cpu = num_cpus;
         else
             jobInput.cpu = 1;
     }
+
+    std::cout << "Number of CPUs used in Calculation: " << jobInput.cpu << std::endl;
 
     jobInput.flexible=false;
 
