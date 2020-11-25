@@ -255,11 +255,13 @@ int main(int argc, char* argv[]) {
     std::cout << "SDL3Docking Found All Finished Calculation: " << timestamp() << std::endl;
     std::cout << "SDL3Docking Number of Calculations : " << keysCalc.size() << std::endl;
 
-    unsigned num_cpus = boost::thread::hardware_concurrency();
-    if (num_cpus > 0)
-        jobInput.cpu = num_cpus;
-    else
-        jobInput.cpu = 1;
+    if(jobInput.cpu==0) { // if user didn't define the number of CPUs
+        unsigned num_cpus = boost::thread::hardware_concurrency();
+        if (num_cpus > 0)
+            jobInput.cpu = num_cpus;
+        else
+            jobInput.cpu = 1;
+    }
 
     jobInput.flexible=false;
 
@@ -267,7 +269,12 @@ int main(int argc, char* argv[]) {
         srand(unsigned(std::time(NULL)));
     }
 
-    std::string dockHDF5File=workDir+"/scratch/dock.hdf5:/";
+    //std::string dockHDF5File=workDir+"/scratch/dock.hdf5:/";
+    std::string dockHDF5File=workDir+"/"+jobInput.outFile+":/";
+    // if use absolute path
+    if(jobInput.outFile[0]=='/'){
+        dockHDF5File=jobInput.outFile+":/";
+    }
 
     std::string delimiter = "/";
     //int count=0;

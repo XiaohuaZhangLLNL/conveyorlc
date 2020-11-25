@@ -46,6 +46,7 @@ public:
         ar & recFile;
         ar & ligFile;
         ar & comFile;
+        ar & outFile;
     }
 
     bool useScoreCF; //switch to turn on score cutoff
@@ -67,6 +68,7 @@ public:
     std::string recFile;
     std::string ligFile;
     std::string comFile;
+    std::string outFile;
 };
 
 struct JobOutData{
