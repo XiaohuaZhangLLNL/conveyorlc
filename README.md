@@ -1,6 +1,5 @@
 # ConveyorLC: A Parallel Virtual Screening Pipeline for Docking and MM/GSBA
 
-
 ## 1. Compile the program.
 
 ### 1.1 MPI and Boost libraries are required for ConveyorLC.
