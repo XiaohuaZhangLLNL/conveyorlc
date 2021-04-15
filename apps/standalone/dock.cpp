@@ -342,7 +342,7 @@ void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& localDir){
         jobOut.scores.clear();
         bool success=false;
 
-        if(jobInput.score_only){
+        if(jobInput.score_only || jobInput.local_only){
             success = getScoreOnlyScores(jobOut);
         } else {
             success = getScores(jobOut);

@@ -72,7 +72,7 @@ endif()
 #if (APPLE OR WIN32)
 #    set(Boost_USE_STATIC_LIBS TRUE)
 #endif()
-find_package(Boost 1.35 REQUIRED COMPONENTS program_options system filesystem regex serialization mpi thread)
+find_package(Boost 1.60 REQUIRED COMPONENTS program_options system filesystem regex serialization mpi thread)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 if (APPLE)

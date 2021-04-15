@@ -232,7 +232,7 @@ void getLigData(std::string& fileName, std::string& ligKey, std::string& ligName
     relay::io::hdf5_close_file(lig_hid);
 }
 
-
+__attribute__((annotate("@critical_path()")))
 void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& localDir){
     try{
         jobOut.error= true;
@@ -342,7 +342,7 @@ void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& localDir){
         jobOut.scores.clear();
         bool success=false;
 
-        if(jobInput.score_only){
+        if(jobInput.score_only || jobInput.local_only){
             success = getScoreOnlyScores(jobOut);
         } else {
             success = getScores(jobOut);

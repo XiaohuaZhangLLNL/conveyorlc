@@ -173,6 +173,19 @@ std::string timestamp(){
     return std::ctime(&cur_time);
 }
 
+__attribute__((annotate("@critical_path()"))) 
+void sendJob(std::unordered_set<std::string> :: iterator& itr, mpi::communicator& world, int& inpTag, int& rankTag, int& jobTag, int& jobFlag, JobInputData& jobInput){
+            int freeProc;
+            world.recv(mpi::any_source, rankTag, freeProc);
+            world.send(freeProc, jobTag, jobFlag);
+            jobInput.key = (*itr);
+
+            std::cout << "At Process: " << freeProc << " working on  Key: " << jobInput.key << std::endl;
+
+            world.send(freeProc, inpTag, jobInput);
+
+}
+
 int main(int argc, char* argv[]) {
 
     // ! MPI Parallel   
@@ -340,16 +353,7 @@ int main(int argc, char* argv[]) {
                 toFile(jobInput, jobOut);
             }
             */
-            int freeProc;
-            world.recv(mpi::any_source, rankTag, freeProc);
-            world.send(freeProc, jobTag, jobFlag);
-            // Start to send parameters
-            jobInput.key = (*itr);
-
-            std::cout << "At Process: " << freeProc << " working on  Key: " << jobInput.key << std::endl;
-
-            world.send(freeProc, inpTag, jobInput);
-
+            sendJob(itr, world, inpTag, rankTag, jobTag, jobFlag, jobInput);
         }
 
         /*
