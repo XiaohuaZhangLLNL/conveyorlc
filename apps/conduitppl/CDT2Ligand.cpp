@@ -320,8 +320,17 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         if(jobInput.minimizeFlg) {
             //! Get ligand charge from SDF file.
             std::string keyword="TOTAL_CHARGE";
+            std::string keyword2="FCharge";
 
             std::string info=pSdf->getInfo(sdfFile, keyword);
+            if(info==""){
+                info=pSdf->getInfo(sdfFile, keyword2);
+            }
+
+            if(info==""){
+                std::string message="Total charge is not in SDF file";
+                throw LBindException(message);
+            }
 
             std::cout << "Charge:" << info << std::endl;
             int charge=Sstrm<int, std::string>(info);
