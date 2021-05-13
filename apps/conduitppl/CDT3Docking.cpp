@@ -173,7 +173,7 @@ std::string timestamp(){
     return std::ctime(&cur_time);
 }
 
-__attribute__((annotate("@critical_path()"))) 
+//__attribute__((annotate("@critical_path()")))
 void sendJob(std::unordered_set<std::string> :: iterator& itr, mpi::communicator& world, int& inpTag, int& rankTag, int& jobTag, int& jobFlag, JobInputData& jobInput){
             int freeProc;
             world.recv(mpi::any_source, rankTag, freeProc);

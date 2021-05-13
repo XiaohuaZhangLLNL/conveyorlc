@@ -296,6 +296,8 @@ Thank you!\n";
                 ("score_only", bool_switch(&jobInput.score_only)->default_value(false), "score only and not perform pose search")
                 ("local_only",     bool_switch(&jobInput.local_only)->default_value(false), "do local search only")
                 ("randomize_only", bool_switch(&jobInput.randomize_only)->default_value(false), "randomize input, attempting to avoid clashes")
+                ("useDockBx", bool_switch(&jobInput.useDockBx)->default_value(false), "Use the dock box information from input instead of receptor.hdf5")
+                ("dockBx", value<std::string>(&jobInput.dockBx)->default_value(""), "A string in format (cx,cy,cz|dx,dy,dz) for box information cx cy cz are box centroid coordinates and dx dy dz are box dimension")
                 ;
         options_description info("Information (optional)");
         info.add_options()

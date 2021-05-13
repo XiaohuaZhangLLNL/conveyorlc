@@ -29,6 +29,7 @@ public:
     void serialize(Archive & ar, const unsigned int version)
     {
         ar & useScoreCF;
+        ar & useDockBx;
         ar & flexible;
         ar & randomize;
         ar & score_only;
@@ -47,9 +48,11 @@ public:
         ar & ligFile;
         ar & comFile;
         ar & outFile;
+        ar & dockBx;
     }
 
     bool useScoreCF; //switch to turn on score cutoff
+    bool useDockBx;
     bool flexible;
     bool randomize;
     bool score_only;
@@ -69,6 +72,7 @@ public:
     std::string ligFile;
     std::string comFile;
     std::string outFile;
+    std::string dockBx;
 };
 
 struct JobOutData{

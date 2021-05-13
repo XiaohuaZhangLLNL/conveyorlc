@@ -130,16 +130,25 @@ void getRecData(JobInputData& jobInput, std::string& recKey, grid_dims& gd){
 
     std::vector<double> geo;
 
-    for(std::string& k : kind)
-    {
-        for(std::string& a : axis)
-        {
-            std::string keyPath="meta/Site/"+k+"/"+a;
-            if(nRec.has_path(keyPath)){
-                double val=nRec[keyPath].as_double();
-                geo.push_back(val);
-            }else{
-                throw LBIND::LBindException("Cannot retrieve "+k+" "+a);
+    if(jobInput.useDockBx){
+        std::vector<std::string> tokens;
+        tokenize(jobInput.dockBx, tokens, ",|");
+        if(tokens.size()!=6){
+            throw LBIND::LBindException("DockDx format is not right "+jobInput.useDockBx);
+        }
+        for(std::string &value: tokens){
+            geo.push_back(std::stod(value) );
+        }
+    }else {
+        for (std::string &k : kind) {
+            for (std::string &a : axis) {
+                std::string keyPath = "meta/Site/" + k + "/" + a;
+                if (nRec.has_path(keyPath)) {
+                    double val = nRec[keyPath].as_double();
+                    geo.push_back(val);
+                } else {
+                    throw LBIND::LBindException("Cannot retrieve " + k + " " + a);
+                }
             }
         }
     }
