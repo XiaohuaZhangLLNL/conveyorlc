@@ -132,7 +132,7 @@ void getRecData(JobInputData& jobInput, std::string& recKey, grid_dims& gd){
 
     if(jobInput.useDockBx){
         std::vector<std::string> tokens;
-        tokenize(jobInput.dockBx, tokens, ",|");
+        tokenize(jobInput.dockBx, tokens, ",");
         if(tokens.size()!=6){
             throw LBIND::LBindException("DockDx format is not right "+jobInput.useDockBx);
         }

@@ -109,12 +109,12 @@ include_directories(${CONDUIT_INCLUDE_DIRS})
 
 # example how to set c++ compiler flags for GNU
 message(STATUS "Using C++ compiler: ${CMAKE_CXX_COMPILER_ID}")
-if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
+#if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
     #set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -Wall -Wno-unknown-pragmas -Wno-sign-compare -Woverloaded-virtual -Wwrite-strings -Wno-unused")
-    set(CMAKE_CXX_FLAGS_DEBUG   "-g -pg -DDEBUG")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+    #set(CMAKE_CXX_FLAGS_DEBUG   "-g -pg -DDEBUG")
+    #set(CMAKE_CXX_FLAGS_RELEASE "-O3")
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
-endif()
+#endif()
 
 set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -DUSE_MPI")
 
