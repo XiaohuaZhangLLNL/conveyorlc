@@ -14,6 +14,7 @@
 #include <vector> // ligand paths
 #include <cmath> // for ceila
 #include <unordered_set>
+#include <unordered_map>
 #include <chrono>
 #include <ctime>
 
@@ -187,6 +188,7 @@ int main(int argc, char* argv[]) {
     JobOutData jobOut;
 
     std::unordered_set<std::string> keysCalc;
+    std::unordered_map<std::string, std::string> boxes;
 
     std::vector<std::string> keysFinish;
 
@@ -197,7 +199,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> ligList;
     std::vector<std::string> comList;
 
-    int success = mpiParser(argc, argv, ligFile, recFile, ligList, recList, comList, fleList, jobInput);
+    int success = mpiParser(argc, argv, ligFile, recFile, ligList, recList, comList, fleList, boxes, jobInput);
     if (success != 0) {
         std::cerr << "Error: Parser input error" << std::endl;
         exit(-1);
@@ -280,6 +282,7 @@ int main(int argc, char* argv[]) {
     //std::string dockHDF5File=workDir+"/scratch/dock.hdf5:/";
     std::string dockHDF5FilePath=dockhdf5File+":/";
 
+    bool hasBox= (boxes.size()>0);
     std::string delimiter = "/";
     //int count=0;
     std::unordered_set<std::string> :: iterator itr;
@@ -289,6 +292,16 @@ int main(int argc, char* argv[]) {
 
         std::cout << "Working on  Key: " << jobInput.key << std::endl;
 
+        if(hasBox){
+            std::string key = (*itr);
+            if (boxes.find(key) == boxes.end()){
+                std::cout << "CDT3Docking Warning :  key " << key  << " is not in box list"<< std::endl;
+                continue;
+            }else{
+                jobInput.dockBx=boxes[key];std::cout << "DEBUG: dockBx=" << jobInput.dockBx  << std::endl;
+                jobInput.useDockBx=true;
+            }
+        }
         dockjob(jobInput, jobOut, localDir);
 
         toHDF5File(jobInput, jobOut, dockHDF5FilePath);
