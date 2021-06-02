@@ -241,7 +241,7 @@ void getLigData(std::string& fileName, std::string& ligKey, std::string& ligName
     relay::io::hdf5_close_file(lig_hid);
 }
 
-__attribute__((annotate("@critical_path()")))
+//__attribute__((annotate("@critical_path()")))
 void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& localDir){
     try{
         jobOut.error= true;
