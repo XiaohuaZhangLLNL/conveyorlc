@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-
+#include <unordered_map>
 #include <sstream>
 #include <exception>
 #include <stack>
@@ -40,6 +40,7 @@
 #include "mainProcedure.h"
 #include "XML/XMLHeader.hpp"
 #include "Common/LBindException.h"
+#include "Common/Chomp.hpp"
 
 using namespace conduit;
 using namespace LBIND;
@@ -216,6 +217,37 @@ void saveCom(std::string& fileName, std::vector<std::string>& comList){
     }
 }
 
+void saveBox(std::string& fileName, std::unordered_map<std::string, std::string>& boxes){
+    std::ifstream inFile;
+    try {
+        inFile.open(fileName.c_str());
+    }
+    catch(...){
+        std::cout << "Cannot open file: " << fileName << std::endl;
+    }
+
+    const std::string comment="#";
+    std::string fileLine;
+    while(inFile){
+        std::getline(inFile, fileLine);
+        if(fileLine.compare(0, 1, comment)==0) continue;
+        std::vector<std::string> tokens;
+        tokenize(fileLine, tokens, ",\n");
+        if(tokens.size() > 8){
+            std::string recID = tokens[0];
+            std::string ligID = tokens[1];
+            chomp(recID);
+            chomp(ligID);
+            std::string key = recID+"/"+ligID;
+            std::string value="";
+            for(int i=2; i<8; i++){
+                value = value+","+tokens[i];
+            }
+            boxes[key]= value;
+        }
+    }
+}
+
 int mpiParser(int argc, char* argv[],
         std::string& ligFile,
         std::string& recFile,
@@ -223,6 +255,7 @@ int mpiParser(int argc, char* argv[],
         std::vector<std::string>& recList,
         std::vector<std::string>& comList,
         std::vector<std::string>& fleList,
+        std::unordered_map<std::string, std::string>& boxes,
         JobInputData& jobInput){
     using namespace boost::program_options;
     const std::string version_string = "AutoDock Vina 1.1.2 (May 11, 2011)";
@@ -267,6 +300,7 @@ Thank you!\n";
     std::string localDir;
 
     std::string comFile;
+    std::string boxFile;
 
     if(!initConveyorlcEnv(workDir, localDir, inputDir, dataPath)){
         return 1;
@@ -297,7 +331,9 @@ Thank you!\n";
                 ("local_only",     bool_switch(&jobInput.local_only)->default_value(false), "do local search only")
                 ("randomize_only", bool_switch(&jobInput.randomize_only)->default_value(false), "randomize input, attempting to avoid clashes")
                 ("useDockBx", bool_switch(&jobInput.useDockBx)->default_value(false), "Use the dock box information from input instead of receptor.hdf5")
-                ("dockBx", value<std::string>(&jobInput.dockBx)->default_value(""), "A string in format (cx,cy,cz,dx,dy,dz) for box information cx cy cz are box centroid coordinates and dx dy dz are box dimension")
+                ("dockBx", value<std::string>(&jobInput.dockBx)->default_value(""), "A string in format (cx,cy,cz|dx,dy,dz) for box information cx cy cz are box centroid coordinates and dx dy dz are box dimension")
+                ("out", value<std::string>(&jobInput.outDir)->default_value("scratch/dockHDF5"), "Specify output directory (default scratch/dockHDF5)")
+                ("boxFile", value<std::string>(&boxFile)->default_value(""), "Specify output directory (default scratch/dockHDF5)")
                 ;
         options_description info("Information (optional)");
         info.add_options()
@@ -352,9 +388,19 @@ Thank you!\n";
 
         if(comFile!=""){
             jobInput.comFile=workDir+"/"+comFile;
+            if(comFile[0]=='/'){
+                jobInput.comFile=comFile;
+            }
             saveCom(jobInput.comFile, comList);
         }else{
             jobInput.comFile="";
+        }
+
+        if(boxFile!=""){
+            if(boxFile[0]!='/'){
+                boxFile=workDir+"/"+boxFile;
+            }
+            saveBox(boxFile, boxes);
         }
         
         if (jobInput.cpu < 1)

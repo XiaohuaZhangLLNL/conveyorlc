@@ -19,6 +19,7 @@ int mpiParser(int argc, char* argv[],
         std::vector<std::string>& recList,
         std::vector<std::string>& comList,
         std::vector<std::string>& fleList,
+        std::unordered_map<std::string, std::string>& boxes,
         JobInputData& jobInput);
 
 #endif

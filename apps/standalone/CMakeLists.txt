@@ -4,6 +4,11 @@ target_link_libraries(SDL1Receptor LBind ${Boost_LIBRARIES} conduit conduit_rela
 set_target_properties(SDL1Receptor PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(TARGETS SDL1Receptor DESTINATION bin)
 
+add_executable(SDL2Ligand SDL2Ligand.cpp SDL2LigandPO.cpp SDL2Ligand.h InitEnv.h )
+target_link_libraries(SDL2Ligand LBind ${Boost_LIBRARIES} ${OPENBABEL3_LIBRARIES} conduit conduit_relay conduit_blueprint)
+set_target_properties(SDL2Ligand PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+install(TARGETS SDL2Ligand DESTINATION bin)
+
 add_executable(SDL2LigandNoMin SDL2LigandNoMin.cpp SDL2LigandPO.cpp SDL2LigandNoMin.h InitEnv.h )
 target_link_libraries(SDL2LigandNoMin LBind ${Boost_LIBRARIES} ${OPENBABEL3_LIBRARIES} conduit conduit_relay conduit_blueprint)
 set_target_properties(SDL2LigandNoMin PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)

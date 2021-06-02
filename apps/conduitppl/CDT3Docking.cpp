@@ -14,6 +14,7 @@
 #include <vector> // ligand paths
 #include <cmath> // for ceila
 #include <unordered_set>
+#include <unordered_map>
 #include <chrono>
 #include <ctime>
 
@@ -229,6 +230,7 @@ int main(int argc, char* argv[]) {
     JobOutData jobOut;
 
     std::unordered_set<std::string> keysCalc;
+    std::unordered_map<std::string, std::string> boxes;
 
     std::vector<std::string> keysFinish;
 
@@ -241,7 +243,7 @@ int main(int argc, char* argv[]) {
         std::vector<std::string> ligList;
         std::vector<std::string> comList;
 
-        int success = mpiParser(argc, argv, ligFile, recFile, ligList, recList, comList, fleList, jobInput);
+        int success = mpiParser(argc, argv, ligFile, recFile, ligList, recList, comList, fleList, boxes, jobInput);
         if (success != 0) {
             std::cerr << "Error: Parser input error" << std::endl;
             world.abort(1);
@@ -253,7 +255,10 @@ int main(int argc, char* argv[]) {
         }
 
         //Create a HDF5 output directory for docking
-        std::string cmd = "mkdir -p " + workDir+"/scratch/dockHDF5";
+        std::string cmd = "mkdir -p " + workDir + "/" +jobInput.outDir;
+        if(jobInput.outDir[0]=='/'){
+            cmd = "mkdir -p " + jobInput.outDir;
+        }
         std::string errMesg="mkdir dockHDF5 fails";
         LBIND::command(cmd, errMesg);
 
@@ -340,6 +345,7 @@ int main(int argc, char* argv[]) {
             srand(unsigned(std::time(NULL)));
         }
 
+        bool hasBox= (boxes.size()>0);
         std::string delimiter = "/";
         //int count=0;
         std::unordered_set<std::string> :: iterator itr;
@@ -353,6 +359,18 @@ int main(int argc, char* argv[]) {
                 toFile(jobInput, jobOut);
             }
             */
+            if(hasBox){
+                std::string key = (*itr);
+                if (boxes.find(key) == boxes.end()){
+                    std::cout << "CDT3Docking Warning :  key " << key  << " is not in box list"<< std::endl;
+                    continue;
+                }
+                else{
+                    jobInput.dockBx=boxes[key];
+                    std::cout << "DEBUG: dockBx=" << jobInput.dockBx  << std::endl;
+                    jobInput.useDockBx=true;
+                }
+            }
             sendJob(itr, world, inpTag, rankTag, jobTag, jobFlag, jobInput);
         }
 

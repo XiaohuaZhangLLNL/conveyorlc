@@ -47,6 +47,7 @@ public:
         ar & recFile;
         ar & ligFile;
         ar & comFile;
+        ar & outDir;
         ar & dockBx;
     }
 
@@ -70,6 +71,7 @@ public:
     std::string recFile;
     std::string ligFile;
     std::string comFile;
+    std::string outDir;
     std::string dockBx;
 };
 
