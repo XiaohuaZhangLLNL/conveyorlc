@@ -69,7 +69,13 @@ void Amber::antechamber(std::string& input, std::string& output, std::string& op
 //    char buffer[256];
 //    snprintf(buffer, sizeof(buffer), "%g", totCharge);
 //    std::string strTotalCharge=buffer;
-    std::string cmd=AMBERPATH +"/bin/antechamber -i " +input + " -fi pdb -o "
+    std::vector<std::string> strs;
+    tokenize(input, strs,  ".");
+    std::string fi="pdb";
+    if(strs.size()>1) {
+        fi=strs[strs.size() - 1];
+    }
+    std::string cmd=AMBERPATH +"/bin/antechamber -i " +input + " -fi "+fi+" -o "
             + output + " -fo mol2 -s 0 -pf yes "+options+" >& antechamber.out"; 
     //std::cout << cmd << std::endl;
     std::string errMesg = "Amber::antechamber fails options "+options;

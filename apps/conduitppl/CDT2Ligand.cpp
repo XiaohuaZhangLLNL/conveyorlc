@@ -310,11 +310,13 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
             jobOut.ligName=pSdf->getInfo(sdfFile, jobInput.cmpName);
         }
 
-        auto pos = ligNameSet.find(jobOut.ligName);
-        if (pos == ligNameSet.end()){
-            jobOut.message= "Not in ligName.list";
-            jobOut.error=false;
-            return;
+        if(ligNameSet.size()>0) {
+            auto pos = ligNameSet.find(jobOut.ligName);
+            if (pos == ligNameSet.end()) {
+                jobOut.message = "Not in ligName.list";
+                jobOut.error = false;
+                return;
+            }
         }
 
         if(jobInput.minimizeFlg) {
