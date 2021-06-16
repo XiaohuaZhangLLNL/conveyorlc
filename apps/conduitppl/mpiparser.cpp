@@ -233,7 +233,7 @@ void saveBox(std::string& fileName, std::unordered_map<std::string, std::string>
         if(fileLine.compare(0, 1, comment)==0) continue;
         std::vector<std::string> tokens;
         tokenize(fileLine, tokens, ",\n");
-        if(tokens.size() > 8){
+        if(tokens.size() > 7){
             std::string recID = tokens[0];
             std::string ligID = tokens[1];
             chomp(recID);
@@ -241,7 +241,7 @@ void saveBox(std::string& fileName, std::unordered_map<std::string, std::string>
             std::string key = recID+"/"+ligID;
             std::string value="";
             for(int i=2; i<8; i++){
-                value = value+","+tokens[i];
+                value = value+tokens[i]+",";
             }
             boxes[key]= value;
         }
