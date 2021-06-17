@@ -343,7 +343,7 @@ void mmgbsa(POdata& cdtMeta){
     if(tot>0){
         charge = int(tot+0.5);
     }else{
-        charge = int(tot-0.5)
+        charge = int(tot-0.5);
     }
     std::string options=" -c bcc -nc "+ std::to_string(int(charge));
 
