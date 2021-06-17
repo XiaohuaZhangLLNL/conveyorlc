@@ -305,7 +305,7 @@ int main(int argc, char** argv){
 
     std::string subDir=workDir;
     JobInputData jobInput;
-    jobInput.ambVersion=16;
+    int ambVersion=16;
     OBConversion conv;
     OBMol mol;
     conv.SetInFormat("mol2");
@@ -352,7 +352,7 @@ int main(int argc, char** argv){
     std::string output="ligand.mol2";
     std::string options=" -c bcc -nc "+ std::to_string(int(tot));
 
-    boost::scoped_ptr<Amber> pAmber(new Amber(jobInput.ambVersion));
+    boost::scoped_ptr<Amber> pAmber(new Amber(ambVersion));
     pAmber->antechamber(mol2fileFix, output, options);
 
     {
@@ -367,7 +367,7 @@ int main(int argc, char** argv){
         }
     }
 
-    if (jobInput.ambVersion == 16) {
+    if (ambVersion == 16) {
         pAmber->parmchk2(output);
     }else {
         pAmber->parmchk(output); // parmchk is deprecated from AMBER16
@@ -411,7 +411,7 @@ int main(int argc, char** argv){
 
     jobInput.key="3OMQ/DTXSID9064392/3OMQ_1660";
     cdtMeta.key=jobInput.key;
-    cdtMeta.procID=jobInput.procID;
+    
 
     std::vector<std::string> keystrs;
     tokenize(cdtMeta.key, keystrs, "/");
