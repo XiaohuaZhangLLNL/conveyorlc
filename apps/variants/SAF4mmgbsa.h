@@ -22,13 +22,9 @@ public:
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
-        ar & ambVersion;
-        ar & procID;
         ar & key;
     }
 
-    int ambVersion;
-    int procID;
     std::string key;
 
 };

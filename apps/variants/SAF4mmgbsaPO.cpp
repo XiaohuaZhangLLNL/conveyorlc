@@ -29,12 +29,10 @@ bool SAF4mmgbsaPO(int argc, char** argv, POdata& podata) {
         inputs.add_options()
                 ("recFile", value<std::string > (&podata.recFile)->default_value("scratch/receptor.hdf5"), "receptor HDF5 file")
                 ("ligFile", value<std::string > (&podata.ligFile)->default_value(""), "ligand input file")
+                ("ligDir", value<std::string > (&podata.ligDir)->default_value("lig"), "ligand input directory")
                 ("version", value<int>(&podata.version)->default_value(16), "AMBER Version")
                 ("intDiel", value<double>(&podata.intDiel)->default_value(4.0), "Solute dielectric constant")
                 ("keep", bool_switch(&podata.keep)->default_value(false), "Keep all intermeidate files for fail calculation")
-                ("score_only", bool_switch(&podata.score_only)->default_value(false), "rescoring the score_only docking calculation")
-                ("newapp", bool_switch(&podata.newapp)->default_value(false), "rescoring using new approach")
-                ("minimize", value<std::string> (&podata.minimizeFlg)->default_value("on"), "Run minimization by default")
                 ;
         options_description info("Optional:");
         info.add_options()

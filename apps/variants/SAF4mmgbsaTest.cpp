@@ -62,47 +62,46 @@ using namespace OpenBabel;
  * Usage: mmgbsa <input-file>
  */
 
+struct SAFmeta{
+    int version;
+    std::string dockInDir;
+    std::string recFile;
+    std::string ligFile;
+    std::string ligName;
 
-void saveStrList(std::string& fileName, std::vector<std::string>& strList){
-    std::ifstream inFile;
-    try {
-        inFile.open(fileName.c_str());
-    }
-    catch(...){
-        std::cout << "Cannot open file: " << fileName << std::endl;
-    }
+    std::string workDir;
+    std::string localDir;
+    std::string inputDir;
+    std::string dataPath;
 
-    const std::string comment="#";
-    std::string fileLine;
-    while(inFile){
-        std::getline(inFile, fileLine);
-        if(fileLine.compare(0, 1, comment)==0) continue;
-        strList.push_back(fileLine);
-    }
-}
+    std::string poseDir;
 
-bool saveRec(std::string& fileName, std::string& recID) {
+    std::string key;
+    int procID;
 
-    hid_t rec_hid = relay::io::hdf5_open_file_for_read(fileName);
+    bool error;
+    bool score_only;
+    bool newapp;
+    bool minimize;
+    bool useScoreCF; //switch to turn on score cutoff
+    double scoreCF;  // value for score cutoff
+    double intDiel;
+    double dockscore;
+    double gbbind;
+    std::string recID;
+    std::string ligID;
+    std::string poseID;
+    std::string message;
 
-    std::vector<std::string> rec_names;
-    try {
-        relay::io::hdf5_group_list_child_names(rec_hid, "/rec/", rec_names);
-    } catch (...) {
-        std::cout << "Warning some error in receptor.hdf5" << std::endl;
-    }
+    double ligGB;
+    double recGB;
+    double comGB;
 
-    if(rec_names.size()==1){
-        recID=rec_names[0];
-    }else{
-        return false;
-    }
+    std::vector<std::string> nonRes;
 
-    return true;
-}
+};
 
-
-void getRecData(POdata &cdtMeta)
+void getRecData(SAFmeta &cdtMeta)
 {
     Node nRec;
 
@@ -221,7 +220,7 @@ void getKeysHDF5pIO(std::string& fileName, std::vector<std::string>& keysFinish)
 
 }
 
-void toConduit(POdata &cdtMeta, std::string& gbsaHDF5File){
+void toConduit(CDTmeta &cdtMeta, std::string& gbsaHDF5File){
     try {
 
         Node n;
@@ -270,37 +269,49 @@ void toConduit(POdata &cdtMeta, std::string& gbsaHDF5File){
 
 }
 
-void mmgbsa(POdata& cdtMeta){
+void mmgbsa(CDTmeta& cdtMeta) {
 
-    std::vector<std::string> keystrs;
-    tokenize(cdtMeta.key, keystrs, "/");
-    if(keystrs.size()==3){
-        cdtMeta.recID=keystrs[0];
-        cdtMeta.ligID=keystrs[1];
-        cdtMeta.poseID=keystrs[2];
-    }else{
-        throw LBindException("Key should have 3 fields: "+cdtMeta.key);
+    try{
+        if(cdtMeta.newapp) {
+            CDTgbsa::runNew(cdtMeta);
+        } else{
+            CDTgbsa::run(cdtMeta);
+        }
+        cdtMeta.message= "Finished!";
+        cdtMeta.error=true;
+
+    } catch (conduit::Error& e){
+        cdtMeta.message= e.what();
+        cdtMeta.error=false;
+    } catch (LBindException& e){
+        cdtMeta.message= e.what();
+        cdtMeta.error=false;
+    }catch (...){
+        cdtMeta.message= "Unknown error";
+        cdtMeta.error=false;
     }
 
-    cdtMeta.ligName=cdtMeta.ligID+cdtMeta.poseID;
+}
 
-    std::string libDir=cdtMeta.inputDir+"/lib/";
-    std::string poseDir=cdtMeta.localDir+"/scratch/gbsa/"+cdtMeta.key;
-    cdtMeta.poseDir=poseDir;
+int main(int argc, char** argv){
+    std::string workDir;
+    std::string inputDir;
+    std::string dataPath;
+    std::string localDir;
 
-    std::string cmd="mkdir -p "+poseDir;
-    std::string errMesg="CDTgbsa::run mkdir poseDir fails";
-    command(cmd, errMesg);
-    chdir(poseDir.c_str());
+    if(!initConveyorlcEnv(workDir, localDir, inputDir, dataPath)){
+        return -1;
+    }
 
+    std::string subDir=workDir;
+    JobInputData jobInput;
+    jobInput.ambVersion=16;
     OBConversion conv;
     OBMol mol;
     conv.SetInFormat("mol2");
     conv.SetOutFormat("pdb");
 
-    //std::string mol2file = "3OMQ_1660.mol2";
-    std::string mol2file = cdtMeta.inputDir+"/"+cdtMeta.ligDir+"/"+cdtMeta.ligID+"/"+cdtMeta.poseID+".mol2";
-
+    std::string mol2file = "3OMQ_1660.mol2";
     conv.ReadFile(&mol, mol2file);
     double tot=0;
     for(int i = 1; i <= mol.NumAtoms(); ++i) {
@@ -341,7 +352,7 @@ void mmgbsa(POdata& cdtMeta){
     std::string output="ligand.mol2";
     std::string options=" -c bcc -nc "+ std::to_string(int(tot));
 
-    boost::scoped_ptr<Amber> pAmber(new Amber(cdtMeta.version));
+    boost::scoped_ptr<Amber> pAmber(new Amber(jobInput.ambVersion));
     pAmber->antechamber(mol2fileFix, output, options);
 
     {
@@ -356,7 +367,7 @@ void mmgbsa(POdata& cdtMeta){
         }
     }
 
-    if (cdtMeta.version == 16) {
+    if (jobInput.ambVersion == 16) {
         pAmber->parmchk2(output);
     }else {
         pAmber->parmchk(output); // parmchk is deprecated from AMBER16
@@ -366,7 +377,7 @@ void mmgbsa(POdata& cdtMeta){
     std::string ligName="LIG";
     std::string tleapFile="leap.in";
 
-    pAmber->tleapInput(output,ligName,tleapFile, poseDir);
+    pAmber->tleapInput(output,ligName,tleapFile, subDir);
     pAmber->tleap(tleapFile);
 
     std::string checkFName="LIG.prmtop";
@@ -381,6 +392,41 @@ void mmgbsa(POdata& cdtMeta){
             throw LBindException(message);
         }
     }
+
+    SAFmeta cdtMeta;
+    std::string cmd;
+    std::string errMesg;
+
+    cdtMeta.version=16;
+    cdtMeta.recFile="scratch/receptor.hdf5";
+    //cdtMeta.ligFile=podata.ligFile;
+
+    cdtMeta.minimize=false;
+    cdtMeta.intDiel = 4;
+
+    cdtMeta.workDir=workDir;
+    cdtMeta.localDir=localDir;
+    cdtMeta.dataPath=dataPath;
+    cdtMeta.inputDir=inputDir;
+
+    jobInput.key="3OMQ/DTXSID9064392/3OMQ_1660";
+    cdtMeta.key=jobInput.key;
+    cdtMeta.procID=jobInput.procID;
+
+    std::vector<std::string> keystrs;
+    tokenize(cdtMeta.key, keystrs, "/");
+    if(keystrs.size()==3){
+        cdtMeta.recID=keystrs[0];
+        cdtMeta.ligID=keystrs[1];
+        cdtMeta.poseID=keystrs[2];
+    }else{
+        throw LBindException("Key should have 3 fields: "+cdtMeta.key);
+    }
+
+    std::string libDir=cdtMeta.inputDir+"/lib/";
+    std::string poseDir=cdtMeta.localDir+"/scratch/gbsa/"+cdtMeta.key;
+    cdtMeta.poseDir=poseDir;
+
 
     getRecData(cdtMeta);
 
@@ -506,6 +552,11 @@ void mmgbsa(POdata& cdtMeta){
     command(cmd, errMesg);
 
     boost::scoped_ptr<SanderOutput> pSanderOutput(new SanderOutput());
+    //cdtMeta.comGB=0;
+    //bool success=pSanderOutput->getEAmber(sanderOut,cdtMeta.comGB);
+    //if(!success) throw LBindException("Cannot get complex GB energy");
+
+    // end receptor energy re-calculation
 
     minFName="Com_minGB_2.in";
     {
@@ -776,28 +827,9 @@ void mmgbsa(POdata& cdtMeta){
 
     cdtMeta.gbbind=cdtMeta.comGB-cdtMeta.recGB-cdtMeta.ligGB;
 
-}
-
-void mmgbsaJob(POdata& cdtMeta) {
-
-    try{
-        mmgbsa(cdtMeta);
-        cdtMeta.message= "Finished!";
-        cdtMeta.error=true;
-
-    } catch (conduit::Error& e){
-        cdtMeta.message= e.what();
-        cdtMeta.error=false;
-    } catch (LBindException& e){
-        cdtMeta.message= e.what();
-        cdtMeta.error=false;
-    }catch (...){
-        cdtMeta.message= "Unknown error";
-        cdtMeta.error=false;
-    }
 
 }
-
+/*
 int main(int argc, char** argv) {
 
     int jobFlag=1; // 1: doing job,  0: done job
@@ -818,8 +850,8 @@ int main(int argc, char** argv) {
     std::string dataPath;
     std::string localDir;
 
-    POdata cdtMeta;
-    bool success = SAF4mmgbsaPO(argc, argv, cdtMeta);
+    POdata podata;
+    bool success = SAF4mmgbsaPO(argc, argv, podata);
     if (!success) {
         world.abort(1);
     }
@@ -827,11 +859,6 @@ int main(int argc, char** argv) {
     if(!initConveyorlcEnv(workDir, localDir, inputDir, dataPath)){
         world.abort(1);
     }
-
-    cdtMeta.workDir=workDir;
-    cdtMeta.localDir=localDir;
-    cdtMeta.dataPath=dataPath;
-    cdtMeta.inputDir=inputDir;
 
     bool useLocalDir=(localDir!=workDir);
 
@@ -847,66 +874,14 @@ int main(int argc, char** argv) {
         world.abort(1);
     }
 
-    std::vector<std::string> strList;
-    saveStrList(cdtMeta.ligFile, strList);
-
-    std::string recID;
-    success=saveRec(cdtMeta.recFile, recID);
-    if (!success) {
-        world.abort(1);
-    }
-
     JobInputData jobInput;
 
-    std::unordered_set<std::string> keysCalc;
+    std::vector<std::string> dockingKeys;
+    std::vector<std::vector<std::string> > allDockingKeys;
+
+
+    std::unordered_map<std::string, int> keysCalc;
     std::vector<std::string> keysFinish;
-
-    if (world.rank() == 0) {
-        //Create a HDF5 output directory for docking
-        std::string cmd = "mkdir -p " + workDir + "/scratch/gbsaHDF5";
-        std::string errMesg = "mkdir gbsaHDF5 fails";
-        LBIND::command(cmd, errMesg);
-
-        for(int i=0; i<strList.size(); i++){
-            std::vector<std::string> tokens;
-            tokenize(strList[i], tokens, "/.");
-            if(tokens.size()==4){
-                std::string key=recID+"/"+tokens[1]+"/"+tokens[2];
-                keysCalc.insert(key);
-            }
-        }
-
-        std::vector<std::vector<std::string> > allKeysFinish;
-        gather(world, keysFinish, allKeysFinish, 0);
-
-        for(int i=0; i < allKeysFinish.size(); ++i)
-        {
-            std::vector<std::string> keysVec=allKeysFinish[i];
-            for(int j=0; j< keysVec.size(); ++j)
-            {
-                keysCalc.erase(keysVec[j]);
-            }
-        }
-    }else{
-
-        std::string gbsaHDF5Dir=workDir+"/scratch/gbsaHDF5";
-        path gbsaHDF5path(gbsaHDF5Dir);
-        std::vector<std::string> hdf5Files;
-        if(is_directory(gbsaHDF5path)) {
-            for(auto& entry : boost::make_iterator_range(directory_iterator(gbsaHDF5path), {}))
-                hdf5Files.push_back(entry.path().string());
-        }
-        int start = world.rank()-1;
-        int stride = world.size()-1;
-
-        for(int i=start; i<hdf5Files.size(); i=i+stride)
-        {
-            //getKeysHDF5(hdf5Files[i], keysFinish);
-            getKeysHDF5pIO(hdf5Files[i], keysFinish);
-        }
-
-        gather(world, keysFinish, 0);
-    }
 
 
     if (world.rank() == 0) {
@@ -918,7 +893,8 @@ int main(int argc, char** argv) {
 
             world.send(freeProc, jobTag, jobFlag);
 
-            jobInput.key = cKey;
+            jobInput.key = cKey.first;
+            jobInput.procID=cKey.second;
             std::cout << "At Process: " << freeProc << " working on  Key: " << jobInput.key << std::endl;
 
             world.send(freeProc, inpTag, jobInput);
@@ -944,20 +920,42 @@ int main(int argc, char** argv) {
             // Receive parameters
             world.recv(0, inpTag, jobInput);
 
-            //jobInput.key="3OMQ/DTXSID9064392/3OMQ_1660";
-            cdtMeta.key=jobInput.key;
+            //initialize Meta data
+            CDTmeta cdtMeta;
+            cdtMeta.version=podata.version;
+            cdtMeta.recFile=podata.recFile;
+            cdtMeta.ligFile=podata.ligFile;
+            cdtMeta.score_only=podata.score_only;
+            cdtMeta.newapp=podata.newapp;
 
-            mmgbsaJob(cdtMeta);
+
+            if(podata.minimizeFlg=="on"){
+                cdtMeta.minimize=true;
+            }else{
+                cdtMeta.minimize=false;
+            }
+
+            cdtMeta.intDiel = podata.intDiel;
+
+            cdtMeta.workDir=workDir;
+            cdtMeta.localDir=localDir;
+            cdtMeta.dataPath=dataPath;
+            cdtMeta.inputDir=inputDir;
+
+            cdtMeta.key=jobInput.key;
+            cdtMeta.procID=jobInput.procID;
+
+            mmgbsa(cdtMeta);
 
             toConduit(cdtMeta, gbsaHDF5File);
 
             // Remove the working dire
-            if(cdtMeta.error && !cdtMeta.keep) {
+            if(cdtMeta.error && !podata.keep) {
                 chdir(cdtMeta.localDir.c_str());
                 std::string cmd = "rm -rf " + cdtMeta.poseDir;
                 std::string errMesg = "remove poseDir fails";
                 LBIND::command(cmd, errMesg);
-            } else if (useLocalDir && !cdtMeta.error && cdtMeta.keep){
+            } else if (useLocalDir && !cdtMeta.error && podata.keep){
                 std::string scrPoseDir = cdtMeta.workDir+"/scratch/gbsa/"+cdtMeta.key;
                 std::string cmd="mkdir -p "+scrPoseDir;
                 std::string errMesg="Run mkdir srcPoseDir fails";
@@ -988,4 +986,4 @@ int main(int argc, char** argv) {
     
     return 0;
 }
-
+*/

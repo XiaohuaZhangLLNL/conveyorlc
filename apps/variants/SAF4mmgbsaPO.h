@@ -14,15 +14,38 @@
 struct POdata{
 
     bool keep;
-    bool score_only;
-    bool newapp;
-    bool useLigName;
     int version;
+
+    bool error;
     double intDiel;
+    double dockscore;
+    double gbbind;
+
+    double ligGB;
+    double recGB;
+    double comGB;
+
+    std::string recID;
+    std::string ligID;
+    std::string poseID;
+    std::string message;
+
+    std::string ligDir;
     std::string recFile;
     std::string ligFile;
-    std::string minimizeFlg;
-    std::string ligNameFile;
+    std::string ligName;
+
+    std::string workDir;
+    std::string localDir;
+    std::string inputDir;
+    std::string dataPath;
+
+    std::string poseDir;
+
+    std::string key;
+
+    std::vector<std::string> nonRes;
+
 };
 
 bool SAF4mmgbsaPO(int argc, char** argv, POdata& podata);
