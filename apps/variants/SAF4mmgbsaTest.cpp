@@ -411,7 +411,7 @@ int main(int argc, char** argv){
 
     jobInput.key="3OMQ/DTXSID9064392/3OMQ_1660";
     cdtMeta.key=jobInput.key;
-    
+
 
     std::vector<std::string> keystrs;
     tokenize(cdtMeta.key, keystrs, "/");

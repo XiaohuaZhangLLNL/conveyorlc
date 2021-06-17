@@ -282,7 +282,7 @@ void mmgbsa(POdata& cdtMeta){
         throw LBindException("Key should have 3 fields: "+cdtMeta.key);
     }
 
-    cdtMeta.ligName=cdtMeta.ligID+cdtMeta.poseID;
+    cdtMeta.ligName=cdtMeta.ligID+"/"+cdtMeta.poseID;
 
     std::string libDir=cdtMeta.inputDir+"/lib/";
     std::string poseDir=cdtMeta.localDir+"/scratch/gbsa/"+cdtMeta.key;
