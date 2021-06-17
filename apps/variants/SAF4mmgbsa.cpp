@@ -339,7 +339,13 @@ void mmgbsa(POdata& cdtMeta){
 
     //std::cout << pdb << std::endl;
     std::string output="ligand.mol2";
-    std::string options=" -c bcc -nc "+ std::to_string(int(tot));
+    int charge=0;
+    if(tot>0){
+        charge = int(tot+0.5);
+    }else{
+        charge = int(tot-0.5)
+    }
+    std::string options=" -c bcc -nc "+ std::to_string(int(charge));
 
     boost::scoped_ptr<Amber> pAmber(new Amber(cdtMeta.version));
     pAmber->antechamber(mol2fileFix, output, options);
