@@ -162,6 +162,7 @@ void getRecData(JobInputData& jobInput, JobOutData& jobOut, grid_dims& gd){
         throw LBIND::LBindException("Size of geo is not equal to 6");
     }
 
+    jobOut.box.clear();
     for(int i=0; i<geo.size(); i++){
         jobOut.box.push_back(geo[i]);
     }

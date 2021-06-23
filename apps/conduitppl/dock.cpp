@@ -157,6 +157,7 @@ void getRecData(JobInputData& jobInput, JobOutData& jobOut, grid_dims& gd){
         }
     }
 
+    jobOut.box.clear();
     for(int i=0; i<geo.size(); i++){
         jobOut.box.push_back(geo[i]);
     }
