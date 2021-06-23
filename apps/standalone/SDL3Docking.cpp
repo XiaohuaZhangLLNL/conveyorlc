@@ -292,11 +292,12 @@ int main(int argc, char* argv[]) {
 
         std::cout << "Working on  Key: " << jobInput.key << std::endl;
 
+        jobInput.useDockBx=false;
         if(hasBox){
             std::string key = (*itr);
             if (boxes.find(key) == boxes.end()){
-                std::cout << "CDT3Docking Warning :  key " << key  << " is not in box list"<< std::endl;
-                continue;
+                std::cout << "CDT3Docking Warning :  key " << key  << " is not in box list, use default"<< std::endl;
+                //continue;
             }else{
                 jobInput.dockBx=boxes[key];std::cout << "DEBUG: dockBx=" << jobInput.dockBx  << std::endl;
                 jobInput.useDockBx=true;
