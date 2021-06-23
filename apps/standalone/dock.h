@@ -79,6 +79,7 @@ struct JobOutData{
 
 public:
     bool error;
+    bool useDockBx;
     int numPose;
     std::string pdbID;
     std::string ligID;
@@ -86,6 +87,7 @@ public:
     std::string dockDir;
     std::string mesg;
     std::vector<double> scores;
+    std::vector<double> box;
     std::string scorelog;
     std::string pdbqtfile;
 };

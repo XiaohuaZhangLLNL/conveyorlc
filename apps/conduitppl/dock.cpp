@@ -102,7 +102,11 @@ bool getScoreOnlyScores(JobOutData& jobOut){
 }
 
 
-void getRecData(JobInputData& jobInput, std::string& recKey, grid_dims& gd){
+void getRecData(JobInputData& jobInput, JobOutData& jobOut, grid_dims& gd){
+
+    jobOut.useDockBx=jobInput.useDockBx;
+    std::string recKey=jobOut.pdbID;
+
     Node nRec;
 
     hid_t rec_hid = relay::io::hdf5_open_file_for_read(jobInput.recFile);
@@ -134,7 +138,7 @@ void getRecData(JobInputData& jobInput, std::string& recKey, grid_dims& gd){
         std::vector<std::string> tokens;
         tokenize(jobInput.dockBx, tokens, ",");
         if(tokens.size()!=6){
-            throw LBIND::LBindException("DockDx format is not right "+jobInput.useDockBx);
+            throw LBIND::LBindException("DockDx format is not right "+jobInput.dockBx);
         }
         for(std::string &value: tokens){
             geo.push_back(std::stod(value) );
@@ -151,6 +155,10 @@ void getRecData(JobInputData& jobInput, std::string& recKey, grid_dims& gd){
                 }
             }
         }
+    }
+
+    for(int i=0; i<geo.size(); i++){
+        jobOut.box.push_back(geo[i]);
     }
 
     relay::io::hdf5_close_file(rec_hid);
@@ -291,7 +299,7 @@ void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& localDir){
 
 
         grid_dims gd; // n's = 0 via default c'tor
-        getRecData(jobInput, jobOut.pdbID, gd);
+        getRecData(jobInput, jobOut, gd);
 
         std::string rigid_name =jobOut.dockDir+"/rec_min.pdbqt";
         std::string flex_name = "";

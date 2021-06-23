@@ -123,6 +123,16 @@ void toConduit(JobOutData& jobOut, std::string& dockHDF5File){
         n[recIDMeta+"numPose"]=jobOut.numPose;
         n[recIDMeta+"Mesg"]=jobOut.mesg;
 
+        n[recIDMeta+"Box/default"]=jobOut.useDockBx;
+        if(jobOut.box.size()==6){
+            n[recIDMeta+"Box/cx"]=jobOut.box[0];
+            n[recIDMeta+"Box/cy"]=jobOut.box[1];
+            n[recIDMeta+"Box/cz"]=jobOut.box[2];
+            n[recIDMeta+"Box/dx"]=jobOut.box[3];
+            n[recIDMeta+"Box/dy"]=jobOut.box[4];
+            n[recIDMeta+"Box/dz"]=jobOut.box[5];
+        }
+
         for(int i=0; i< jobOut.scores.size(); ++i)
         {
             n[recIDMeta+"scores/"+std::to_string(i+1)]=jobOut.scores[i];
