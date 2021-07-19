@@ -14,6 +14,7 @@
 #ifndef COMMAND_HPP
 #define COMMAND_HPP
 
+#include <iostream>
 #include <cstdlib>
 #include <cstring>
 #include <errno.h>
