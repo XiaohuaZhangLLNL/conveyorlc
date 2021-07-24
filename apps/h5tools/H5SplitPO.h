@@ -9,6 +9,7 @@
 #include <vector>
 
 struct POdata{
+    int num;
     std::string inputFile;
     std::string outputDir;
     std::string type;

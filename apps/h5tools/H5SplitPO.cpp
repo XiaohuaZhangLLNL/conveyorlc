@@ -24,6 +24,7 @@ bool H5SplitPO(int argc, char** argv, POdata& podata) {
         inputs.add_options()
                 ("input,i", value<std::string > (&podata.inputFile)->default_value("receptor.hdf5"), "Input HDF5 files")
                 ("output,o", value<std::string > (&podata.outputDir)->default_value("out"), "Merged HDF5 output file")
+                ("num,n", value<int>(&podata.num)->default_value(0), "number of sphere vectors for surface")
                 ("type,t", value<std::string > (&podata.type)->default_value("rec"), "File type: 1. lig (default) 2. rec 3. dock 4. gbsa")
                 ;
         options_description info("Optional:");
