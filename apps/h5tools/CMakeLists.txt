@@ -23,3 +23,8 @@ add_executable(H5Split H5Split.cpp H5SplitPO.cpp H5Split.h)
 target_link_libraries(H5Split LBind ${Boost_LIBRARIES} ${MPI_CXX_LIBRARIES} conduit conduit_relay conduit_blueprint)
 set_target_properties(H5Split PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(TARGETS H5Split DESTINATION bin)
+
+add_executable(H5Native H5Native.cpp H5Native.h)
+target_link_libraries(H5Native LBind ${Boost_LIBRARIES} ${HDF5_CXX_HL_LIBRARIES} hdf5_cpp)
+set_target_properties(H5Native PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+install(TARGETS H5Native DESTINATION bin)

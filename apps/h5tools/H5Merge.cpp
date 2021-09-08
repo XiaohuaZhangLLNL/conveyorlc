@@ -46,6 +46,9 @@ void merge(std::string& h5file, std::string& ligCdtFile, std::string& type, int&
     relay::io::hdf5_group_list_child_names(rec_hid, path,item_names);
 
     bool reCount=(type=="lig");
+    std::cout << std::string(10, '.') << "   0%"<<std::flush;
+    double totalitems=double(item_names.size());
+    double oldprogress=0;
     for(int i=0;i<item_names.size();i++) {
         const std::string &curr_item = item_names[i];
         Node nData;
@@ -60,8 +63,17 @@ void merge(std::string& h5file, std::string& ligCdtFile, std::string& type, int&
         }
         relay::io::hdf5_append(n, ligCdtFile);
         count++;
-    }
 
+        int progress = double(i)/ totalitems *10;
+        if (progress!=oldprogress) {
+            std::cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";
+            std::cout << std::string(progress, '*') << std::string(10-progress, '.') << " "<< progress*10 <<"%"<<std::flush;
+        }
+        oldprogress=progress;
+    }
+    std::cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b";
+    std::cout << std::string(10, '*') << " "<< 100 <<"%"<<std::flush;
+    std::cout << std::endl;
 }
 
 
