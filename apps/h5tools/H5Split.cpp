@@ -66,6 +66,7 @@ void splitByNumber(POdata& podata){
         if(count%num==0){
             ligCdtFile=podata.outputDir+"/out_"+std::to_string(count/num)+".hdf5:/";
         }
+        count++;
 
         const std::string &curr_item = item_names[i];
 
