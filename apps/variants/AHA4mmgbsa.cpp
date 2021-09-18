@@ -70,6 +70,7 @@ using namespace OpenBabel;
 void getDockingKeysNativeHDF5(std::string& fileName, std::string& localDir, std::vector<std::string>& keysFinish)
 {
     std::string cmd="native_hdf5.py -i "+ fileName+" -o " + localDir +"/scratch/gbsa/";
+    std::cout << cmd << std::endl;
     std::string results=exec(cmd.c_str());
     std::vector<std::string> keyStrs;
     const std::string delimiter="\n";
@@ -909,6 +910,7 @@ void saveFileList(std::string& fileName, std::vector<std::string>& fileList){
     while(inFile){
         std::getline(inFile, fileLine);
         if(fileLine.compare(0, 1, comment)==0) continue;
+        if(fileLine.size()<1) continue;
         fileList.push_back(fileLine);
     }
 }
@@ -981,7 +983,7 @@ int main(int argc, char** argv) {
 
         std::vector<std::string> hdf5Files;
         saveFileList(cdtMeta.dockInFile, hdf5Files);
-
+        //std::cout << "Process " <<  world.rank() << " hdf5Files size=" << hdf5Files.size() << std::endl;
         int start = world.rank()-1;
         int stride = world.size()-1;
 

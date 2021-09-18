@@ -28,7 +28,7 @@ bool AHA4mmgbsaPO(int argc, char** argv, POdata& podata) {
         options_description inputs("Required:");
         inputs.add_options()
                 ("recFile", value<std::string > (&podata.recFile)->default_value("scratch/receptor.hdf5"), "receptor HDF5 file")
-                ("ligFile", value<std::string > (&podata.ligFile)->default_value(""), "ligand input file")
+                ("ligFile", value<std::string > (&podata.ligFile)->default_value("scratch/ligand.hdf5"), "ligand HDF5 file")
                 ("dockInFile", value<std::string > (&podata.dockInFile)->default_value(""), "Path to dock HDF5 files")
                 ("ligDir", value<std::string > (&podata.ligDir)->default_value("lig"), "ligand input directory")
                 ("version", value<int>(&podata.version)->default_value(16), "AMBER Version")
