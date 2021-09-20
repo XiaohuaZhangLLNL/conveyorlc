@@ -285,6 +285,12 @@ void getLigData(POdata &cdtMeta) {
         throw LBindException("Ligand " + cdtMeta.ligID + " preparation failed");
     }
 
+    if(nLig.has_path("meta/name")){
+        cdtMeta.ligName=nLig["meta/name"].as_string();
+    }else{
+        cdtMeta.ligName="NoName";
+    }
+
     if(nLig.has_path("meta/GBEN")) {
         cdtMeta.ligGB = nLig["meta/GBEN"].as_double();
     }else{
