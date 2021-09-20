@@ -1040,6 +1040,7 @@ int main(int argc, char** argv) {
         }
 
         std::cout << "A total of " << count << " keys found in inputs" << std::endl;
+        std::cout << "Time for extracting docking poses takes " << runingTime.elapsed() << " Sec."<< std::endl;
         std::vector<std::vector<std::string> > allKeysFinish;
         gather(world, keysFinish, allKeysFinish, 0);
 
@@ -1054,7 +1055,8 @@ int main(int argc, char** argv) {
             }
         }
         std::cout << "A total of " << count << " keys have been done" << std::endl;
-        std::cout << "A total of " << keysCalc.size() << " keys to enter gbsa calculations" << std::endl; 
+        std::cout << "A total of " << keysCalc.size() << " keys to enter gbsa calculations" << std::endl;
+        std::cout << "Time for finding out keys to calculate takes " << runingTime.elapsed() << " Sec."<< std::endl;
     }else{
 
         std::string gbsaHDF5Dir=workDir+"/scratch/gbsaHDF5";
