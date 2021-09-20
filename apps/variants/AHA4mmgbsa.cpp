@@ -226,6 +226,10 @@ void getRecData(POdata &cdtMeta)
     Node nRec;
 
     std::string recFilePath=cdtMeta.workDir+"/"+cdtMeta.recFile+":rec/" + cdtMeta.recID;
+    if(cdtMeta.recFile[0]=='/'){
+	recFilePath=cdtMeta.recFile+":rec/" + cdtMeta.recID;
+    }    
+
     relay::io::load(recFilePath, nRec);
 
     int status = nRec["status"].as_int();
@@ -268,6 +272,11 @@ void getLigData(POdata &cdtMeta) {
     //relay::io::hdf5_read(lig_hid, n);
     // Partial I/O
     std::string ligFilePath=cdtMeta.workDir+"/"+cdtMeta.ligFile+":lig/" + cdtMeta.ligID;
+
+    if(cdtMeta.ligFile[0]=='/'){
+        ligFilePath=cdtMeta.ligFile+":lig/" + cdtMeta.ligID;
+    }
+
     relay::io::load(ligFilePath, nLig);
 
     //Node nLig = n["lig/" + cdtMeta.ligID];
@@ -951,6 +960,7 @@ int main(int argc, char** argv) {
     cdtMeta.dataPath=dataPath;
     cdtMeta.inputDir=inputDir;
 
+    localDir=workDir; // force to use the workDir
     bool useLocalDir=(localDir!=workDir);
 
     if(useLocalDir){
@@ -1002,6 +1012,7 @@ int main(int argc, char** argv) {
     std::vector<std::string> keysFinish;
 
     if (world.rank() == 0) {
+        int count=0;
         for(int i=0; i < allDockingKeys.size(); ++i)
         {
             std::vector<std::string> keysVec=allDockingKeys[i];
@@ -1015,24 +1026,29 @@ int main(int argc, char** argv) {
                     {
                         std::string key=keystrs[0]+"/p"+std::to_string(k);
                         keysCalc.insert(key);
+                        count++;
                     }
                 }
 
             }
         }
 
-
+        std::cout << "A total of " << count << " keys found in inputs" << std::endl;
         std::vector<std::vector<std::string> > allKeysFinish;
         gather(world, keysFinish, allKeysFinish, 0);
 
+        count=0;
         for(int i=0; i < allKeysFinish.size(); ++i)
         {
             std::vector<std::string> keysVec=allKeysFinish[i];
             for(int j=0; j< keysVec.size(); ++j)
             {
                 keysCalc.erase(keysVec[j]);
+                count++;
             }
         }
+        std::cout << "A total of " << count << " keys have been done" << std::endl;
+        std::cout << "A total of " << keysCalc.size() << " keys to enter gbsa calculations" << std::endl; 
     }else{
 
         std::string gbsaHDF5Dir=workDir+"/scratch/gbsaHDF5";
