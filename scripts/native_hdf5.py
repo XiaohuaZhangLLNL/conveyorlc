@@ -12,8 +12,10 @@ def getArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', action='store', dest='infile', default=None,
                         help='HDF5 input file (default=None).')
-    parser.add_argument('-c', '--cutoff', action='store', dest='cutoff', default=-7.5,
+    parser.add_argument('-d', '--dock_cutoff', action='store', dest='dock_cutoff', default=-7.5,
                         help='Cutoff of docking score for gbsa (default=-7.5).')
+    parser.add_argument('-f', '--fusion_cutoff', action='store', dest='fusion_cutoff', default=7.5,
+                        help='Cutoff of fusion score for gbsa (default=7.5).')
     parser.add_argument('-o', '--outdir', action='store', dest='outdir', default=None,
                         help='Output directory (default=None).')
 
@@ -22,8 +24,11 @@ def getArgs():
     return args
 
 def extract_data(args):
-
-    cutoff=float(args.cutoff)
+    dock_cutoff = float(args.dock_cutoff)
+    fusion_cutoff = float(args.fusion_cutoff)
+    writePDBQT = True
+    if args.outdir == None:
+        writePDBQT = False
 
     f = h5py.File(args.infile, 'r')
 
@@ -46,8 +51,10 @@ def extract_data(args):
 
             # Pretty-print.
             #print(json.dumps(metadata, indent=4))
-            score_list=metadata['docking_score']
-            if score_list[0]< cutoff:
+            dock_scoreList=metadata['docking_score']
+            fusion_scoreList=metadata['fusion_score']
+            fusion_max=max(fusion_scoreList)
+            if dock_scoreList[0]< dock_cutoff or fusion_max> fusion_cutoff:
                 #print(score_list)
                 if first_entry:
                     #print("RECEPTER_ID: ", receptor_id)
@@ -58,17 +65,18 @@ def extract_data(args):
                     #print(metafile)
                     #metafh=open(metafile, 'w')
                     first_entry=False
-                metaline=receptor_id + "," + str(ligand_id) + "," + str(len(score_list)) 
+                metaline=receptor_id + "," + str(ligand_id) + "," + str(len(dock_scoreList))
                 #metafh.write(metaline)
                 print(metaline)
-                # pdbqt, if there.
-                bpdbqt = f['pdbqt'][idx]
-                pdbqt_str = bz2.decompress(bpdbqt.tobytes()).decode()
-                outdir=args.outdir+"/"+receptor_id+"/"+str(ligand_id)
-                os.makedirs(outdir, exist_ok=True)
-                outfile= outdir + "/poses.pdbqt"
-                with open(outfile, 'w') as outfh:
-                    outfh.write(pdbqt_str[:-1]) #remove the last binary char in pdbqt_str
+                if writePDBQT:
+                    # pdbqt, if there.
+                    bpdbqt = f['pdbqt'][idx]
+                    pdbqt_str = bz2.decompress(bpdbqt.tobytes()).decode()
+                    outdir=args.outdir+"/"+receptor_id+"/"+str(ligand_id)
+                    os.makedirs(outdir, exist_ok=True)
+                    outfile= outdir + "/poses.pdbqt"
+                    with open(outfile, 'w') as outfh:
+                        outfh.write(pdbqt_str[:-1]) #remove the last binary char in pdbqt_str
         except:
             pass
 
