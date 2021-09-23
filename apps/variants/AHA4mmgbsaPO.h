@@ -25,6 +25,9 @@ struct POdata{
     double recGB;
     double comGB;
 
+    double dockCutoff;
+    double fusionCutoff;
+
     std::string recID;
     std::string ligID;
     std::string poseID;
