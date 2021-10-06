@@ -321,7 +321,8 @@ void mmgbsa(POdata& cdtMeta){
     std::vector<std::string> lines;
     tokenize(lines, pdb,"\n");
 
-    ofstream ofh("ligand.pdb");
+    std::string ligpdb="ligand.pdb";
+    ofstream ofh(ligpdb);
     for(int i=0; i< lines.size(); i++){
         std::string line=lines[i];
         if (line.compare(0,4, atomStr)==0){
@@ -348,7 +349,7 @@ void mmgbsa(POdata& cdtMeta){
     std::string options=" -c bcc -nc "+ std::to_string(int(charge));
 
     boost::scoped_ptr<Amber> pAmber(new Amber(cdtMeta.version));
-    pAmber->antechamber(mol2fileFix, output, options);
+    pAmber->antechamber(ligpdb, output, options);
 
     {
         if(!fileExist(output)){

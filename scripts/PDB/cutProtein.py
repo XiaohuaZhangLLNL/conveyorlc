@@ -4,14 +4,27 @@ import argparse
 import time
 import logging
 
+# set up logger
+"""
 FORMAT = "%(asctime)s,%(msecs)d %(name)s %(filename)s:%(lineno)s %(funcName)s() - %(levelname)s - %(message)s"
 logging.basicConfig(filename="cutProtein.log",
                     filemode='a',
                     format=FORMAT,
                     datefmt='%H:%M:%S',
                     level=logging.DEBUG)
+"""
 
+LOGLEVEL = 2
+LOG_FMT = '%(asctime)s - %(name)s:%(funcName)s:%(lineno)s - %(levelname)s - %(message)s'
 Log = logging.getLogger(__name__)
+Log.setLevel(LOGLEVEL)
+
+sh = logging.StreamHandler()
+sh.setLevel(LOGLEVEL)
+sh.setFormatter(logging.Formatter(LOG_FMT))
+Log.addHandler(sh)
+
+#Log = logging.getLogger(__name__)
 
 def getArgs():
 
