@@ -67,12 +67,12 @@ using namespace OpenBabel;
  * Usage: mmgbsa <input-file>
  */
 
-void getDockingKeysNativeHDF5(std::string& fileName, std::string& localDir, std::vector<std::string>& keysFinish, POdata& cdtMeta)
+void getDockingKeysNativeHDF5(std::string& fileName, std::string& workDir, std::vector<std::string>& keysFinish, POdata& cdtMeta)
 {
     std::string cmd="native_hdf5.py -i "+ fileName
                      +" -d " + std::to_string(cdtMeta.dockCutoff)
                      +" -f " + std::to_string(cdtMeta.fusionCutoff)
-                     +" -o " + localDir +"/scratch/gbsa/";
+                     +" -o " + workDir +"/scratch/gbsa/";
     std::cout << cmd << std::endl;
     std::string results=exec(cmd.c_str());
     std::vector<std::string> keyStrs;
@@ -969,7 +969,7 @@ int main(int argc, char** argv) {
     cdtMeta.dataPath=dataPath;
     cdtMeta.inputDir=inputDir;
 
-    localDir=workDir; // force to use the workDir
+    //localDir=workDir; // force to use the workDir
     bool useLocalDir=(localDir!=workDir);
 
     if(useLocalDir){
@@ -1008,7 +1008,7 @@ int main(int argc, char** argv) {
 
         for(int i=start; i<hdf5Files.size(); i=i+stride)
         {
-            getDockingKeysNativeHDF5(hdf5Files[i], localDir, dockingKeys, cdtMeta);
+            getDockingKeysNativeHDF5(hdf5Files[i], workDir, dockingKeys, cdtMeta);
         }
 
         gather(world, dockingKeys, 0);
