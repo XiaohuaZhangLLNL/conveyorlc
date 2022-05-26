@@ -34,6 +34,7 @@ struct POdata{
     std::string message;
 
     std::string ligDir;
+    std::string ligList;
     std::string recFile;
     std::string ligFile;
     std::string ligName;

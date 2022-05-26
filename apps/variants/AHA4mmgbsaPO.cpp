@@ -31,6 +31,7 @@ bool AHA4mmgbsaPO(int argc, char** argv, POdata& podata) {
                 ("ligFile", value<std::string > (&podata.ligFile)->default_value("scratch/ligand.hdf5"), "ligand HDF5 file")
                 ("dockInFile", value<std::string > (&podata.dockInFile)->default_value(""), "Path to dock HDF5 files")
                 ("ligDir", value<std::string > (&podata.ligDir)->default_value("lig"), "ligand input directory")
+                ("ligList", value<std::string > (&podata.ligList)->default_value(""), "ligand input directory")
                 ("version", value<int>(&podata.version)->default_value(16), "AMBER Version")
                 ("dockCutoff", value<double>(&podata.dockCutoff)->default_value(-8.5), "Solute dielectric constant")
                 ("fusionCutoff", value<double>(&podata.fusionCutoff)->default_value(8.5), "Solute dielectric constant")
