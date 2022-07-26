@@ -75,7 +75,7 @@ void getDockingKeysNativeHDF5(std::string& fileName, std::string& workDir, std::
                      +" -o " + workDir +"/scratch/gbsa/";
     if(cdtMeta.ligList !="")
     {
-        cdtMeta.ligList=workDir+"/"+cdtMeta.ligList;
+        //cdtMeta.ligList=workDir+"/"+cdtMeta.ligList;
         cmd="native_hdf5.py -i "+ fileName
             +" -d " + std::to_string(cdtMeta.dockCutoff)
             +" -f " + std::to_string(cdtMeta.fusionCutoff)
