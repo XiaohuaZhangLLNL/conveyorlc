@@ -14,12 +14,14 @@
 struct POdata{
 
     bool keep;
+    bool cutProt;
     int version;
 
     bool error;
     double intDiel;
     double dockscore;
     double gbbind;
+    double cutRadius;
 
     double ligGB;
     double recGB;

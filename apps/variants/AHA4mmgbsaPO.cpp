@@ -37,6 +37,8 @@ bool AHA4mmgbsaPO(int argc, char** argv, POdata& podata) {
                 ("fusionCutoff", value<double>(&podata.fusionCutoff)->default_value(8.5), "Solute dielectric constant")
                 ("intDiel", value<double>(&podata.intDiel)->default_value(4.0), "Solute dielectric constant")
                 ("keep", bool_switch(&podata.keep)->default_value(false), "Keep all intermeidate files for fail calculation")
+                ("cutProt", bool_switch(&podata.cutProt)->default_value(false), "Keep all intermeidate files for fail calculation")
+                ("cutRadius", value<double>(&podata.cutRadius)->default_value(10.0), "Solute dielectric constant")
                 ;
         options_description info("Optional:");
         info.add_options()
