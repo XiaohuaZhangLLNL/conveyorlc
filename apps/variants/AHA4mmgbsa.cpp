@@ -30,6 +30,10 @@
 #include <openbabel/obconversion.h>
 #include <openbabel/atom.h>
 
+#include "Structure/Complex.h"
+#include "Structure/Molecule.h"
+#include "Structure/Fragment.h"
+#include "Structure/Atom.h"
 #include "Common/Tokenize.hpp"
 #include "Structure/Constants.h"
 #include "Common/File.hpp"
@@ -605,7 +609,17 @@ void mmgbsa(POdata& cdtMeta){
         std::string recName="rec_min.pdb";
         std::string ligName="lig_full.pdb";
         writeCutProtPDB(fileName, recName, ligName, cdtMeta.cutRadius);
-        cmd = "grep -v END recCut.pdb   > dd.pdb && cat dd.pdb lig_full.pdb > com_init.pdb";
+
+        std::vector<std::vector<int> > ssListCut;
+        boost::scoped_ptr<Pdb> pPdb(new Pdb());
+        pPdb->getDisulfide(fileName, ssListCut);
+
+        std::string stdPdbFile = "recCut_std.pdb";
+
+        pPdb->standardlizeSS(fileName, stdPdbFile, ssListCut);
+
+        cmd = "grep -v END recCut_std.pdb   > dd.pdb && cat dd.pdb lig_full.pdb > com_init.pdb";
+
     }
 
     //cmd = "grep -v END std4pdbqt.pdb   > dd.pdb && cat dd.pdb ligand.pdb > com_init.pdb";

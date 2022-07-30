@@ -1927,18 +1927,32 @@ void Pdb::standardlizeSS(const std::string& inFileName, const std::string& outFi
     for(unsigned i=0;i<moleculeList.size();i++){
         std::vector<Fragment*> resList=moleculeList[i]->getChildren();
 
-            if(resList.size()>1){// modify the HN to HT1 for N-term Chain must contain more than 1 residue
-                std::vector<Atom*> atomList=resList[0]->getChildren();
+        if(resList.size()>1){// modify the HN to HT1 for N-term Chain must contain more than 1 residue
+            std::vector<Atom*> atomList=resList[0]->getChildren();
 
-                for(unsigned k=0;k<atomList.size();k++){
-                    Atom* pAtom=atomList[k];
-                    //std::cout << "atom name |" << pAtom->getName() << "|"<< std::endl;
-                    if(pAtom->getName()==" H  "){
-                        pAtom->setName(" H1 ");
-                    //std::cout << "CHANGE atom name |" << pAtom->getName() << "|"<< std::endl;
+            for(unsigned k=0;k<atomList.size();k++){
+                Atom* pAtom=atomList[k];
+                //std::cout << "atom name |" << pAtom->getName() << "|"<< std::endl;
+                if(pAtom->getName()==" H  "){
+                    pAtom->setName(" H1 ");
+                //std::cout << "CHANGE atom name |" << pAtom->getName() << "|"<< std::endl;
+                }
+            }
+        }
+
+        if(resList.size()>0) {// modify the HN to HT1 for N-term Chain must contain more than 1 residue
+            std::vector<Atom *> atomList = resList[0]->getChildren();
+
+            for (unsigned k = 0; k < atomList.size(); k++) {
+                Atom *pAtom = atomList[k];
+                if (resList[0]->getName() != "LIG") {
+                    if (pAtom->getName() == " H2 " || pAtom->getName() == " H3 ") {
+                        atomList.erase(atomList.begin() + i);
+                        i--;
                     }
                 }
             }
+        }
 
           
     }
