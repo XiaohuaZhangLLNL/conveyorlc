@@ -68,6 +68,9 @@ public:
     bool isAA(Fragment* pFrag, Coor3d& coorN, Coor3d& coorCA, Coor3d& coorC, Coor3d& coorO);
     bool isAA(Fragment* pFrag);
     bool isAA(Fragment* pFrag, Coor3d& coorCA);
+
+    void writeCutProtPDB(std::string& fileName, std::string& recName, std::string& ligName, double cutRadius);
+
 private:
     void guessElement(std::string& atomType, const std::string& resName, const std::string& atomName);
     std::string newAtomName(const std::string& atomType, int seq);

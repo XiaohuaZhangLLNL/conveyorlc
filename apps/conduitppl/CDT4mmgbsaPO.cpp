@@ -40,6 +40,8 @@ bool CDT4mmgbsaPO(int argc, char** argv, POdata& podata) {
                 ("scoreCF", value<double>(&podata.scoreCF)->default_value(-8.0), "Score cutoff to save ligand with top score higher than certain value (default -8.0)")
                 ("useLigName", bool_switch(&podata.useLigName)->default_value(false), "Run gbsa rescoring for ligands by ligNames in a file")
                 ("ligNameFile", value<std::string > (&podata.ligNameFile)->default_value("ligName.list"), "Innput file contains a list of ligNames")
+                ("cutProt", bool_switch(&podata.cutProt)->default_value(false), "Turn on protein cut")
+                ("cutRadius", value<double>(&podata.cutRadius)->default_value(10.0), "Radius for protein cut")
                 ;
         options_description info("Optional:");
         info.add_options()

@@ -33,6 +33,8 @@ struct CDTmeta{
     bool newapp;
     bool minimize;
     bool useScoreCF; //switch to turn on score cutoff
+    bool cutProt;
+    double cutRadius;
     double scoreCF;  // value for score cutoff
     double intDiel;
     double dockscore;

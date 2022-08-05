@@ -2411,4 +2411,94 @@ void Pdb::fixElementStr(const std::string inputStr, std::string &outputStr) {
 
 }
 
+void Pdb::writeCutProtPDB(std::string& fileName, std::string& recName, std::string& ligName, double cutRadius){
+    std::ofstream outFile;
+    try {
+        outFile.open(fileName.c_str());
+    }
+    catch(...){
+        std::cout << "PDB::read >> Cannot open file" << fileName << std::endl;
+    }
+
+    double cutRadius2=cutRadius*cutRadius;
+
+    boost::scoped_ptr<Pdb> pPdb(new Pdb());
+    boost::scoped_ptr<Complex> pReceptor(new Complex());
+    pPdb->parse(recName, pReceptor.get());
+
+    boost::scoped_ptr<Complex> pLigand(new Complex());
+    pPdb->parse(ligName, pLigand.get());
+
+    std::vector<Molecule*> ligMolList=pLigand->getChildren();
+    if(ligMolList.size()!=1){
+        std::cout << "writeCutProtPDB >> ligand molecule size "<< ligMolList.size() << " does not equal to 1 "  << std::endl;
+        return;
+    }
+    std::vector<Fragment*> ligResList=ligMolList[0]->getChildren();
+    if(ligResList.size()!=1){
+        std::cout << "writeCutProtPDB >> ligand residue size "<< ligResList.size() << " does not equal to 1 "  << std::endl;
+        return;
+    }
+    std::vector<Atom*> ligAtomList=ligResList[0]->getChildren();
+
+    std::vector<Molecule*> molList=pReceptor->getChildren();
+
+    bool outputResidue=false;
+
+    for(unsigned i=0;i<molList.size();i++){
+
+        std::vector<Fragment*> resList=molList[i]->getChildren();
+
+        for(unsigned j=0;j<resList.size();j++){
+            Fragment* pResidue=resList[j];
+            Coor3d coorCA;
+            std::vector<Atom*> resAtomList=pResidue->getChildren();
+            for(unsigned k=0;k<resAtomList.size();k++){
+                Atom* pAtom=resAtomList[k];
+                Coor3d* pCoorAt=pAtom->getCoords();
+                for(unsigned s=0; s<ligAtomList.size(); s++){
+                    Atom* pLigandAtom=ligAtomList[s];
+                    Coor3d* pCoor=pLigandAtom->getCoords();
+                    if(pCoor->dist2(pCoorAt)<cutRadius2){
+                        outputResidue=true;
+                        break;
+                    }
+                }
+                if(outputResidue){
+                    break;
+                }
+            }
+
+            if(outputResidue){
+                std::vector<Atom*> resAtomList=pResidue->getChildren();
+
+                for(unsigned k=0;k<resAtomList.size();k++){
+                    Atom* pAtom=resAtomList[k];
+                    outFile << "ATOM  "<< std::setw(5)<< pAtom->getFileID()
+                            << " " << std::setw(4) << pAtom->getName()
+                            << " " << std::left << std::setw(3) << pResidue->getName()
+                            << " " << std::setw(1) << molList[i]->getName()
+                            << std::right << std::setw(4) << pResidue->getID()
+                            << "    "
+                            << std::fixed <<std::setprecision(3)
+                            << std::setw(8) << pAtom->getX()
+                            << std::setw(8) << pAtom->getY()
+                            << std::setw(8) << pAtom->getZ()
+                            <<"                      "
+                            << std::setw(2) << pAtom->getSymbol()
+                            << std::endl;
+                }
+            }
+            outputResidue=false;
+        }
+        outFile << "TER" <<std::endl;
+//        std::cout << "i= " << i << std::endl;
+    }
+    outFile << "END" <<std::endl;
+
+    outFile.close();
+
+}
+
+
 }// namespace LBIND

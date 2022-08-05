@@ -14,6 +14,7 @@
 struct POdata{
 
     bool keep;
+    bool cutProt;
     bool score_only;
     bool newapp;
     bool useScoreCF; //switch to turn on score cutoff
@@ -21,6 +22,7 @@ struct POdata{
     int version;
     double intDiel;
     double scoreCF;  // value for score cutoff
+    double cutRadius;
     std::string dockInDir;
     std::string recFile;
     std::string ligFile;

@@ -561,6 +561,8 @@ int main(int argc, char** argv) {
             cdtMeta.newapp=podata.newapp;
             cdtMeta.useScoreCF=podata.useScoreCF;
             cdtMeta.scoreCF=podata.scoreCF;
+            cdtMeta.cutProt=podata.cutProt;
+            cdtMeta.cutRadius=podata.cutRadius;
 
             if(podata.minimizeFlg=="on"){
                 cdtMeta.minimize=true;

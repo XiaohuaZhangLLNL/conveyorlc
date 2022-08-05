@@ -320,6 +320,27 @@ void CDTgbsa::run(CDTmeta &cdtMeta){
     }else {
         cmd = "grep -v END rec_min.pdb   > dd.pdb && cat dd.pdb lig_full.pdb > com_init.pdb";
     }
+
+    if(cdtMeta.cutProt){
+        boost::scoped_ptr<Pdb> pPdb(new Pdb());
+
+        std::string fileName="recCut.pdb";
+        std::string recName="rec_min.pdb";
+        std::string ligName="lig_full.pdb";
+        pPdb->writeCutProtPDB(fileName, recName, ligName, cdtMeta.cutRadius);
+
+        std::vector<std::vector<int> > ssListCut;
+
+        pPdb->getDisulfide(fileName, ssListCut);
+
+        std::string stdPdbFile = "recCut_std.pdb";
+
+        pPdb->standardlizeSS(fileName, stdPdbFile, ssListCut);
+
+        cmd = "grep -v END recCut_std.pdb   > dd.pdb && cat dd.pdb lig_full.pdb > com_init.pdb";
+
+    }
+
     errMesg="MMGBSA::run combine rec and lig to com pdb fails";
     command(cmd, errMesg);
 
@@ -622,6 +643,27 @@ void CDTgbsa::runNew(CDTmeta &cdtMeta){
         }else {
             cmd = "grep -v END rec_min.pdb   > dd.pdb && cat dd.pdb lig_full.pdb > com_init.pdb";
         }
+
+        if(cdtMeta.cutProt){
+            boost::scoped_ptr<Pdb> pPdb(new Pdb());
+
+            std::string fileName="recCut.pdb";
+            std::string recName="rec_min.pdb";
+            std::string ligName="lig_full.pdb";
+            pPdb->writeCutProtPDB(fileName, recName, ligName, cdtMeta.cutRadius);
+
+            std::vector<std::vector<int> > ssListCut;
+
+            pPdb->getDisulfide(fileName, ssListCut);
+
+            std::string stdPdbFile = "recCut_std.pdb";
+
+            pPdb->standardlizeSS(fileName, stdPdbFile, ssListCut);
+
+            cmd = "grep -v END recCut_std.pdb   > dd.pdb && cat dd.pdb lig_full.pdb > com_init.pdb";
+
+        }
+
         errMesg="MMGBSA::run combine rec and lig to com pdb fails";
         command(cmd, errMesg);
 
