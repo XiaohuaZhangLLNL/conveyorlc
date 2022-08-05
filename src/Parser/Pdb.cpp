@@ -1946,12 +1946,14 @@ void Pdb::standardlizeSS(const std::string& inFileName, const std::string& outFi
             for (unsigned k = 0; k < atomList.size(); k++) {
                 Atom *pAtom = atomList[k];
                 if (resList[0]->getName() != "LIG") {
-                    if (pAtom->getName() == " H2 " || pAtom->getName() == " H3 ") {
-                        atomList.erase(atomList.begin() + i);
-                        i--;
+                    if (pAtom->getName() == " H1 " || pAtom->getName() == " H2 " || pAtom->getName() == " H3 ") {
+                        atomList.erase(atomList.begin() + k);
+                        k--;
                     }
                 }
             }
+
+            resList[0]->setChildren(atomList);
         }
 
           
