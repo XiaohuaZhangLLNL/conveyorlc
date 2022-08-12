@@ -346,7 +346,7 @@ void CDTgbsa::run(CDTmeta &cdtMeta){
 
     std::vector<std::vector<int> > ssList;
     {
-        std::string stdPdbFile="rec_min.pdb";
+        std::string stdPdbFile="com_init.pdb";
         boost::scoped_ptr<Pdb> pPdb(new Pdb() );
         pPdb->getDisulfide(stdPdbFile, ssList);
     }
@@ -669,7 +669,7 @@ void CDTgbsa::runNew(CDTmeta &cdtMeta){
 
         std::vector<std::vector<int> > ssList;
         {
-            std::string stdPdbFile="rec_min.pdb";
+            std::string stdPdbFile="com_init.pdb";
             boost::scoped_ptr<Pdb> pPdb(new Pdb() );
             pPdb->getDisulfide(stdPdbFile, ssList);
         }
