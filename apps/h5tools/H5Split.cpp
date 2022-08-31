@@ -30,19 +30,22 @@ void split(POdata& podata){
 
     for(int i=0;i<item_names.size();i++) {
         const std::string &curr_item = item_names[i];
+        try {
+            Node nday;
+            std::string ligCdtFile = podata.outputDir + "/" + curr_item + ".hdf5:/";
+            nday["date"] = "Create By H5Merge " + timeStamp();
+            relay::io::hdf5_append(nday, ligCdtFile);
 
-        Node nday;
-        std::string ligCdtFile=podata.outputDir+"/"+curr_item+".hdf5:/";
-        nday["date"]="Create By H5Merge "+timeStamp();
-        relay::io::hdf5_append(nday, ligCdtFile);
+            Node nData;
+            relay::io::hdf5_read(rec_hid, path + curr_item, nData);
 
-        Node nData;
-        relay::io::hdf5_read(rec_hid, path + curr_item, nData);
-
-        Node n;
-        std::string ligIDpath = path + curr_item;
-        n[ligIDpath] = nData;
-        relay::io::hdf5_append(n, ligCdtFile);
+            Node n;
+            std::string ligIDpath = path + curr_item;
+            n[ligIDpath] = nData;
+            relay::io::hdf5_append(n, ligCdtFile);
+        } catch (...) {
+            std::cout << "Warning missing one entry" << std::endl;
+        }
     }
 
 }
@@ -68,20 +71,24 @@ void splitByNumber(POdata& podata){
         }
         count++;
 
-        const std::string &curr_item = item_names[i];
+        try {
+            const std::string &curr_item = item_names[i];
 
-        Node nday;
+            Node nday;
 
-        nday["date"]="Create By H5Merge "+timeStamp();
-        relay::io::hdf5_append(nday, ligCdtFile);
+            nday["date"] = "Create By H5Merge " + timeStamp();
+            relay::io::hdf5_append(nday, ligCdtFile);
 
-        Node nData;
-        relay::io::hdf5_read(rec_hid, path + curr_item, nData);
+            Node nData;
+            relay::io::hdf5_read(rec_hid, path + curr_item, nData);
 
-        Node n;
-        std::string ligIDpath = path + curr_item;
-        n[ligIDpath] = nData;
-        relay::io::hdf5_append(n, ligCdtFile);
+            Node n;
+            std::string ligIDpath = path + curr_item;
+            n[ligIDpath] = nData;
+            relay::io::hdf5_append(n, ligCdtFile);
+        } catch (...) {
+            std::cout << "Warning missing one entry" << std::endl;
+        }
     }
 
 }
@@ -94,9 +101,9 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    if(podata.num>0){
+    if (podata.num > 0) {
         splitByNumber(podata);
-    }else{
+    } else {
         split(podata);
     }
 
