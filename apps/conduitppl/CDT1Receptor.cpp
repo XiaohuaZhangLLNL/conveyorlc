@@ -291,10 +291,16 @@ void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& check
             std::vector<std::string> nonResStrs;
             const std::string delimiter=".";
             tokenize(nonResRaw, nonResStrs, delimiter);
+
+            std::string nonResParmFile =  libDir + nonResStrs[0] + ".prep";
+            if(!fileExist(nonResParmFile)){
+                nonResParmFile =  libDir + nonResStrs[0] + ".off";
+            }
+
             if(nonResStrs.size()==2 && nonResStrs[1]=="M"){
                 tleapFile << nonResStrs[0] <<" = loadmol2 "<< libDir << nonResStrs[0] << ".mol2 \n";
             }else{
-                tleapFile << "loadoff " << libDir << nonResStrs[0] << ".off \n";
+                tleapFile << "loadoff " << nonResParmFile << "\n";
             }
 
             tleapFile << "loadamberparams "<< libDir << nonResStrs[0] <<".frcmod \n";
