@@ -292,15 +292,21 @@ void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& check
             const std::string delimiter=".";
             tokenize(nonResRaw, nonResStrs, delimiter);
 
+            bool usePrep=true;
             std::string nonResParmFile =  libDir + nonResStrs[0] + ".prep";
             if(!fileExist(nonResParmFile)){
                 nonResParmFile =  libDir + nonResStrs[0] + ".off";
+                usePrep=false;
             }
 
             if(nonResStrs.size()==2 && nonResStrs[1]=="M"){
                 tleapFile << nonResStrs[0] <<" = loadmol2 "<< libDir << nonResStrs[0] << ".mol2 \n";
             }else{
-                tleapFile << "loadoff " << nonResParmFile << "\n";
+                if(usePrep){
+                    tleapFile << "loadamberprep " << nonResParmFile << "\n";
+                }else {
+                    tleapFile << "loadoff " << nonResParmFile << "\n";
+                }
             }
 
             tleapFile << "loadamberparams "<< libDir << nonResStrs[0] <<".frcmod \n";
