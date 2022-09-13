@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
     if(useLocalDir){
         std::string cmd = "rm -rf " + localDir+"/scratch";
         std::string errMesg = "Clean up local disk fails before calculation";
-        LBIND::command(cmd, errMesg);
+        //LBIND::command(cmd, errMesg);
         world.barrier();
     }
 
@@ -431,7 +431,7 @@ int main(int argc, char* argv[]) {
             // Remove the working directory
             std::string cmd = "rm -rf " + jobOut.dockDir;
             std::string errMesg="remove dockDir fails";
-            LBIND::command(cmd, errMesg);
+            //LBIND::command(cmd, errMesg);
 
         }
 
@@ -445,7 +445,7 @@ int main(int argc, char* argv[]) {
         world.barrier();
         std::string cmd = "rm -rf " + localDir+"/scratch";
         std::string errMesg = "Clean up local disk fails before calculation";
-        LBIND::command(cmd, errMesg);
+        //LBIND::command(cmd, errMesg);
 
     }
 
