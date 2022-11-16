@@ -902,7 +902,7 @@ env:
         SETUP_MAIN: |
             export LBindData=$(CONVEYOR_BIN)/data
             export PATH=$(CONVEYOR_BIN)/bin:$(BIN_HOME)/bin:$PATH
-            export AMBERHOME=$(BIN_HOME)/amber10
+            export AMBERHOME=$(BIN_HOME)/amber18
             export PATH=$AMBERHOME/bin/:$PATH
             export INPUTDIR=$(INPUT_DIR)
             export WORKDIR=$(OUTPUT_DIR)
