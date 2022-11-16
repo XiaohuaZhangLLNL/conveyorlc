@@ -126,13 +126,12 @@ CDT1Receptor CDT2Ligand   CDT3Docking  CDT4mmgbsa
 #MSUB -l partition=syrah
 #MSUB -m be
 
-export LBindData=/usr/gapps/aha/quartz/conveyorlc_10/data
-export PATH=/usr/gapps/aha/quartz/conveyorlc_10/bin:/usr/gapps/aha/quartz/bin:$PATH
-export AMBERHOME=/usr/gapps/aha/quartz/amber16
-export AMBERHOME10=/usr/gapps/aha/quartz/amber10
-export PATH=$AMBERHOME/bin/:$AMBERHOME10/bin/:$PATH
+export LBindData=/usr/gapps/bbs/TOSS-3/conveyorlc_10/data
+export PATH=/usr/gapps/bbs/TOSS-3/conveyorlc_10/bin:/usr/gapps/bbs/TOSS-3/openbabel.3.1.1/bin:$PATH
+export AMBERHOME=/usr/gapps/bbs/TOSS-3/amber18/
+export PATH=$AMBERHOME/bin/:$PATH
 
-srun -N 1 -n 16  CDT1Receptor --input  pdb.list --output out --version 13
+srun -N 1 -n 16  CDT1Receptor --input  pdb.list --output out
 ```
 
 The pdb.list can take many different input formats
@@ -172,7 +171,7 @@ pdb/1a50_protein.pdb SubRes:pdb/1a50_ligand.mol2
 If you have known the docking site and has ligand in active site you can run CDT1Receptor this way:
 (for ligand, it can take mol2, pdb, sdf format)
 ```asm
-srun -N 4 -n 64 CDT1Receptor --input  pdb.list --output out --version 13 --sitebylig on
+srun -N 4 -n 64 CDT1Receptor --input  pdb.list --output out --sitebylig on
 ```
 in pdb.list:
 ```asm
@@ -183,7 +182,7 @@ pdb/5os2_protein.pdb SubRes:pdb/5os2_ligand.mol2
 
 You also can use "--minimize off  " if you don't do the MM/GBSA rescoring
 ```asm
-srun -N 4 -n 64 CDT1Receptor --input  pdb.list --output out --version 13 --minimize off  --sitebylig on
+srun -N 4 -n 64 CDT1Receptor --input  pdb.list --output out --minimize off  --sitebylig on
 ```
 
 Sometimes docking box is not accurate or not you want.
@@ -220,13 +219,12 @@ If DockBX is defined for a receptor, the grid calculation will be skipped for th
 #MSUB -l partition=syrah
 #MSUB -m be
 
-export LBindData=/usr/gapps/aha/quartz/conveyorlc_10/data
-export PATH=/usr/gapps/aha/quartz/conveyorlc_10/bin:/usr/gapps/aha/quartz/bin:$PATH
-export AMBERHOME=/usr/gapps/aha/quartz/amber16
-export AMBERHOME10=/usr/gapps/aha/quartz/amber10
-export PATH=$AMBERHOME/bin/:$AMBERHOME10/bin/:$PATH
+export LBindData=/usr/gapps/bbs/TOSS-3/conveyorlc_10/data
+export PATH=/usr/gapps/bbs/TOSS-3/conveyorlc_10/bin:/usr/gapps/bbs/TOSS-3/openbabel.3.1.1/bin:$PATH
+export AMBERHOME=/usr/gapps/bbs/TOSS-3/amber18/
+export PATH=$AMBERHOME/bin/:$PATH
 
-srun -N 1 -n 16 CDT2Ligand --sdf pur2.sdf --version 13
+srun -N 1 -n 16 CDT2Ligand --sdf pur2.sdf
 ```
 Requirement for the SDF file:
 ```asm
@@ -256,11 +254,10 @@ scratch/lig/2/LIG.lib, LIG.prmtop,  LIG.inpcrd
 #MSUB -l partition=syrah
 #MSUB -m be
 
-export LBindData=/usr/gapps/aha/quartz/conveyorlc_10/data
-export PATH=/usr/gapps/aha/quartz/conveyorlc_10/bin:/usr/gapps/aha/quartz/bin:$PATH
-export AMBERHOME=/usr/gapps/aha/quartz/amber16
-export AMBERHOME10=/usr/gapps/aha/quartz/amber10
-export PATH=$AMBERHOME/bin/:$AMBERHOME10/bin/:$PATH
+export LBindData=/usr/gapps/bbs/TOSS-3/conveyorlc_10/data
+export PATH=/usr/gapps/bbs/TOSS-3/conveyorlc_10/bin:/usr/gapps/bbs/TOSS-3/openbabel.3.1.1/bin:$PATH
+export AMBERHOME=/usr/gapps/bbs/TOSS-3/amber18/
+export PATH=$AMBERHOME/bin/:$PATH
 
 srun -N 4 -n 4 -c 36 CDT3Docking --exhaustiveness 36 --num_modes 10
 ```
@@ -274,13 +271,12 @@ srun -N 4 -n 4 -c 36 CDT3Docking --exhaustiveness 36 --num_modes 10
 #MSUB -l partition=syrah
 #MSUB -m be
 
-export LBindData=/usr/gapps/aha/quartz/conveyorlc_10/data
-export PATH=/usr/gapps/aha/quartz/conveyorlc_10/bin:/usr/gapps/aha/quartz/bin:$PATH
-export AMBERHOME=/usr/gapps/aha/quartz/amber16
-export AMBERHOME10=/usr/gapps/aha/quartz/amber10
-export PATH=$AMBERHOME/bin/:$AMBERHOME10/bin/:$PATH
+export LBindData=/usr/gapps/bbs/TOSS-3/conveyorlc_10/data
+export PATH=/usr/gapps/bbs/TOSS-3/conveyorlc_10/bin:/usr/gapps/bbs/TOSS-3/openbabel.3.1.1/bin:$PATH
+export AMBERHOME=/usr/gapps/bbs/TOSS-3/amber18/
+export PATH=$AMBERHOME/bin/:$PATH
 
-srun -N 1 -n 16 CDT4mmgbsa --version 13
+srun -N 1 -n 16 CDT4mmgbsa 
 ```
 
 
@@ -531,10 +527,9 @@ srun -N 2 -n 24 PPL1Receptor --input pdb.list --output out
 #msub -l partition=cab
 #msub -m be
 
-export conveyorlc=/usr/gapps/kras/quartz/pipeline/conveyorlc
-export LBindData=$conveyorlc/data
-export PATH=$conveyorlc/bin:/usr/gapps/kras/quartz/pipeline/bin:$PATH
-export AMBERHOME=/usr/gapps/kras/quartz/amber16
+export LBindData=/usr/gapps/bbs/TOSS-3/conveyorlc_10/data
+export PATH=/usr/gapps/bbs/TOSS-3/conveyorlc_10/bin:/usr/gapps/bbs/TOSS-3/openbabel.3.1.1/bin:$PATH
+export AMBERHOME=/usr/gapps/bbs/TOSS-3/amber18/
 export PATH=$AMBERHOME/bin/:$PATH
 
 test -f /usr/gapps/kras/quartz/amber16/amber.sh && source /usr/gapps/kras/quartz/amber16/amber.sh
@@ -572,10 +567,9 @@ scratch/lig/2/LIG.lib, LIG.prmtop,  LIG.inpcrd
 #msub -l partition=cab
 #msub -m be
 
-export conveyorlc=/usr/gapps/kras/quartz/pipeline/conveyorlc
-export LBindData=$conveyorlc/data
-export PATH=$conveyorlc/bin:/usr/gapps/kras/quartz/pipeline/bin:$PATH
-export AMBERHOME=/usr/gapps/kras/quartz/amber16
+export LBindData=/usr/gapps/bbs/TOSS-3/conveyorlc_10/data
+export PATH=/usr/gapps/bbs/TOSS-3/conveyorlc_10/bin:/usr/gapps/bbs/TOSS-3/openbabel.3.1.1/bin:$PATH
+export AMBERHOME=/usr/gapps/bbs/TOSS-3/amber18/
 export PATH=$AMBERHOME/bin/:$PATH
 
 test -f /usr/gapps/kras/quartz/amber16/amber.sh && source /usr/gapps/kras/quartz/amber16/amber.sh
@@ -594,10 +588,9 @@ srun -N 64 -n 64 -c 16 PPL3Docking --recXML PPL1Track.xml --ligXML PPL2Track.xml
 #msub -l partition=cab
 #msub -m be
 
-export conveyorlc=/usr/gapps/kras/quartz/pipeline/conveyorlc
-export LBindData=$conveyorlc/data
-export PATH=$conveyorlc/bin:/usr/gapps/kras/quartz/pipeline/bin:$PATH
-export AMBERHOME=/usr/gapps/kras/quartz/amber16
+export LBindData=/usr/gapps/bbs/TOSS-3/conveyorlc_10/data
+export PATH=/usr/gapps/bbs/TOSS-3/conveyorlc_10/bin:/usr/gapps/bbs/TOSS-3/openbabel.3.1.1/bin:$PATH
+export AMBERHOME=/usr/gapps/bbs/TOSS-3/amber18/
 export PATH=$AMBERHOME/bin/:$PATH
 
 test -f /usr/gapps/kras/quartz/amber16/amber.sh && source /usr/gapps/kras/quartz/amber16/amber.sh
@@ -617,10 +610,9 @@ The pipeline will generate a lot of files and can cause problem for the file sys
 #msub -l partition=cab
 #msub -m be
 
-export conveyorlc=/usr/gapps/kras/quartz/pipeline/conveyorlc
-export LBindData=$conveyorlc/data
-export PATH=$conveyorlc/bin:/usr/gapps/kras/quartz/pipeline/bin:$PATH
-export AMBERHOME=/usr/gapps/kras/quartz/amber16
+export LBindData=/usr/gapps/bbs/TOSS-3/conveyorlc_10/data
+export PATH=/usr/gapps/bbs/TOSS-3/conveyorlc_10/bin:/usr/gapps/bbs/TOSS-3/openbabel.3.1.1/bin:$PATH
+export AMBERHOME=/usr/gapps/bbs/TOSS-3/amber18/
 export PATH=$AMBERHOME/bin/:$PATH
 
 srun -N 4 -n 64  PPL4PostProcess --comXML PPL3Track.xml
