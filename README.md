@@ -133,9 +133,40 @@ export PATH=$AMBERHOME/bin/:$PATH
 
 srun -N 1 -n 16  CDT1Receptor --input  pdb.list --output out
 ```
+The program will detect the cavities on the protein surface. It will need reference point to help identify which cavity is the active site. In the program, there are multiple ways to generate such reference point
 
-The pdb.list can take many different input formats
+* Use a ligand in the active site. The ligand doesn’t need to be big to cover the whole space.
+* Use a few key residues in the active site to help identify the active site.
+* Use user defined box information.
 
+These input information can be specify in the pdb.list. Please use anyone of the three options in the following pdb.list:
+```asm
+# Comments start with '#'
+# The first column of the input always is the path/pdb_file
+# The second column and third one are optional
+# To specify non-standard residues in receptor start with "NonRes:"
+# nonstandard residues also separated by '|'
+#############################################
+# 1. Use a ligand in the active site
+# srun -N $nnodes -n $procs CDT1Receptor --input  pdb.list --output out --sitebylig on
+# in your submitting script use “--sitebylig on”
+pdb/protease.pdb SubRes:pdb/ligand.pdb
+#############################################
+# 2. Use a few key residues
+# To specify key residues in the active site to help identify the binding site start with "KeyRes:"
+# residues separated by '|' and are in <three-letter-residue-name>.<residue-id>.[<chain-id>] format
+# in your submitting scriptt use “--sitebylig on”
+# srun -N $nnodes -n $procs CDT1Receptor --input  pdb.list --output out --sitebylig on
+pdb/corona.pdb KeyRes:TYR.489
+#############################################
+# 3. Use user defined box information
+#-35.5312,24.1875,4.5 is the coordinates of box center
+#16,18,16 is the box dimension.
+# in your submitting script don’t use “--sitebylig on”
+# srun -N $nnodes -n $procs CDT1Receptor --input  pdb.list --output out
+pdb/corona.pdb DockBX:-35.5312,24.1875,4.5|16,18,16
+```
+Here is the description of general format in pdb.list
 ```asm
 # 1. Comments start with '#'
 #
