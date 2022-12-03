@@ -197,7 +197,7 @@ bool glideGBSA(std::string& dir, double& deltaG) {
 
         tleapFile.close();    
     }
-    cmd="tleap -f "+tleapFName+" >& Com_leap.log";
+    cmd="tleap -f "+tleapFName+" > Com_leap.log";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str()); 
     

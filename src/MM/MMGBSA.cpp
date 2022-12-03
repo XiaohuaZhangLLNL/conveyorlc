@@ -140,7 +140,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
         tleapFile.close();    
     }
     
-    cmd="tleap -f "+tleapFName+" >& Lig_leap.log";
+    cmd="tleap -f "+tleapFName+" > Lig_leap.log";
     //std::cout <<cmd <<std::endl;
     errMesg="MMGBSA::run tleap ligand fails";
     command(cmd, errMesg);
@@ -207,7 +207,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
 
         tleapFile.close();    
     }
-    cmd="tleap -f "+tleapFName+" >& Com_leap.log";
+    cmd="tleap -f "+tleapFName+" > Com_leap.log";
     //std::cout <<cmd <<std::endl;
     errMesg="MMGBSA::run tleap complex fails";
     command(cmd, errMesg);
@@ -342,7 +342,7 @@ void MMGBSA::run(std::string& poseID, bool restart){
         tleapFile.close();
     }
 
-    cmd="tleap -f rec_leap.in >& rec_leap.log";
+    cmd="tleap -f rec_leap.in > rec_leap.log";
     //std::cout <<cmd <<std::endl;
     errMesg="MMGBSA::run tleap receptor fails";
     command(cmd, errMesg);

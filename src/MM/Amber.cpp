@@ -76,7 +76,7 @@ void Amber::antechamber(std::string& input, std::string& output, std::string& op
         fi=strs[strs.size() - 1];
     }
     std::string cmd=AMBERPATH +"/bin/antechamber -i " +input + " -fi "+fi+" -o "
-            + output + " -fo mol2 -s 0 -pf yes "+options+" >& antechamber.out"; 
+            + output + " -fo mol2 -s 0 -pf yes "+options+" > antechamber.out"; 
     //std::cout << cmd << std::endl;
     std::string errMesg = "Amber::antechamber fails options "+options;
     command(cmd, errMesg);      

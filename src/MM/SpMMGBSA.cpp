@@ -91,7 +91,7 @@ SpMMGBSA::~SpMMGBSA() {
 //        tleapFile.close();
 //    }
 //    
-//    cmd="tleap -f rec_leap.in >& rec_leap.log";
+//    cmd="tleap -f rec_leap.in > rec_leap.log";
 //    std::cout <<cmd <<std::endl;
 //    system(cmd.c_str());
 //
@@ -219,7 +219,7 @@ void SpMMGBSA::comRun(int poseID){
 
         tleapFile.close();    
     }
-    std::string cmd="tleap -f "+tleapFName+" >& Lig_leap.log";
+    std::string cmd="tleap -f "+tleapFName+" > Lig_leap.log";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str()); 
       
@@ -251,7 +251,7 @@ void SpMMGBSA::comRun(int poseID){
 
         tleapFile.close();    
     }
-    cmd="tleap -f "+tleapFName+" >& Com_leap.log";
+    cmd="tleap -f "+tleapFName+" > Com_leap.log";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str()); 
     
@@ -305,7 +305,7 @@ void SpMMGBSA::comRun(int poseID){
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());      
 
-    cmd="tleap -f rec_leap.in >& rec_leap.log";
+    cmd="tleap -f rec_leap.in > rec_leap.log";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());
 

@@ -143,7 +143,7 @@ bool preReceptors(std::string& dir, bool getPDBflg){
     geoFile.close();
        
     //! begin energy minimization of receptor 
-    cmd="reduce -Quiet -Trim  "+pdbOutFile+" >& rec_noh.pdb ";
+    cmd="reduce -Quiet -Trim  "+pdbOutFile+" > rec_noh.pdb ";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());
     
@@ -155,7 +155,7 @@ bool preReceptors(std::string& dir, bool getPDBflg){
         return jobStatus;        
     }     
     
-    cmd="reduce -Quiet -BUILD rec_noh.pdb >& rec_rd.pdb";
+    cmd="reduce -Quiet -BUILD rec_noh.pdb > rec_rd.pdb";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());        
 
@@ -170,7 +170,7 @@ bool preReceptors(std::string& dir, bool getPDBflg){
     std::string stdPdbFile="rec_std.pdb";
     pPdb->standardlize(checkFName, stdPdbFile);
 
-    cmd="reduce -Quiet -Trim  "+stdPdbFile+" >& rec.pdb ";
+    cmd="reduce -Quiet -Trim  "+stdPdbFile+" > rec.pdb ";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());
         
@@ -195,7 +195,7 @@ bool preReceptors(std::string& dir, bool getPDBflg){
         tleapFile.close();
     }
     
-    cmd="tleap -f rec_leap.in >& rec_leap.log";
+    cmd="tleap -f rec_leap.in > rec_leap.log";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());
 

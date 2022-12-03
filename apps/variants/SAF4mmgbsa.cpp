@@ -454,7 +454,7 @@ void mmgbsa(POdata& cdtMeta){
         tleapFile.close();
     }
 
-    cmd="tleap -f "+tleapFName+" >& Com_leap.log";
+    cmd="tleap -f "+tleapFName+" > Com_leap.log";
     errMesg="Complex tleap fails";
     command(cmd, errMesg);
 
@@ -626,7 +626,7 @@ void mmgbsa(POdata& cdtMeta){
         tleapFile.close();
     }
 
-    cmd="tleap -f rec_leap.in >& rec_leap.log";
+    cmd="tleap -f rec_leap.in > rec_leap.log";
     //std::cout <<cmd <<std::endl;
     errMesg="MMGBSA::run tleap receptor fails";
     command(cmd, errMesg);
@@ -722,7 +722,7 @@ void mmgbsa(POdata& cdtMeta){
         tleapFile.close();
     }
 
-    cmd="tleap -f "+tleapFName+" >& lig_leap.log";
+    cmd="tleap -f "+tleapFName+" > lig_leap.log";
     //std::cout <<cmd <<std::endl;
     errMesg="Ligand tleap fails";
     command(cmd, errMesg);

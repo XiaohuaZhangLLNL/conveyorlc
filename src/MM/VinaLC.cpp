@@ -76,7 +76,7 @@ void VinaLC::dms(std::string& cutPdbFile, std::string& surfFile){
     
     const double radius=1.5; // minimum sphere radius
        
-    std::string cmd="dms "+cutPdbFile+" -o "+surfFile+" -n -w "+Sstrm<std::string,double>(radius)+" >& dms.log";
+    std::string cmd="dms "+cutPdbFile+" -o "+surfFile+" -n -w "+Sstrm<std::string,double>(radius)+" > dms.log";
     system(cmd.c_str());
 }
 
@@ -102,7 +102,7 @@ void VinaLC::sphgen(std::string& surfFile, std::string& sphFile){
 
     sphgenFile.close();    
     
-    std::string cmd="sphgen >&sphgen";
+    std::string cmd="sphgen > sphgen";
     system(cmd.c_str());    
 }
 

@@ -71,7 +71,7 @@ bool preReceptor(std::string& pdbFilePath, std::string& workDir, std::string& da
     getPathFileName(pdbFilePath, pdbFile);
               
      //! begin energy minimization of receptor 
-    cmd="reduce -Quiet -Trim  "+pdbFile+" >& rec_noh.pdb ";
+    cmd="reduce -Quiet -Trim  "+pdbFile+" > rec_noh.pdb ";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());
     
@@ -82,7 +82,7 @@ bool preReceptor(std::string& pdbFilePath, std::string& workDir, std::string& da
         return jobStatus;        
     }     
     
-    cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/reduce_wwPDB_het_dict.txt\" >& rec_rd.pdb";
+    cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/reduce_wwPDB_het_dict.txt\" > rec_rd.pdb";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str()); 
     
@@ -121,7 +121,7 @@ bool preReceptor(std::string& pdbFilePath, std::string& workDir, std::string& da
         tleapFile.close();
     }
     
-    cmd="tleap -f rec_leap.in >& rec_leap.log";
+    cmd="tleap -f rec_leap.in > rec_leap.log";
     std::cout <<cmd <<std::endl;
     system(cmd.c_str());
 
