@@ -17,6 +17,9 @@
 #include <unordered_map>
 #include <chrono>
 #include <ctime>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -48,6 +51,7 @@
 #include "VinaLC/coords.h" // add_to_output_container
 #include "VinaLC/tokenize.h"
 #include "Common/Command.hpp"
+#include "Common/Timer.hpp"
 
 #include "dock.h"
 #include "mpiparser.h"
@@ -58,7 +62,7 @@ namespace mpi = boost::mpi;
 using namespace boost::filesystem;
 using namespace LBIND;
 
-
+using namespace std::chrono_literals;
 
 void getKeysHDF5(std::string& fileName, std::vector<std::string>& keysFinish)
 {
@@ -195,6 +199,30 @@ void sendJob(std::unordered_set<std::string> :: iterator& itr, mpi::communicator
 
             world.send(freeProc, inpTag, jobInput);
 
+}
+
+// Time out docking calculation if it exceeds 1 hour
+int dock_wrapper(JobInputData& jobInput, JobOutData& jobOut, std::string& localDir)
+{
+    std::mutex m;
+    std::condition_variable cv;
+    int retValue=1;
+
+    std::thread t([&cv, &jobInput, &jobOut, &localDir]()
+                  {
+                      dockjob(jobInput, jobOut, localDir);
+                      cv.notify_one();
+                  });
+
+    t.detach();
+
+    {
+        std::unique_lock<std::mutex> l(m);
+        if(cv.wait_for(l, 3600s) == std::cv_status::timeout)
+            throw std::runtime_error("Timeout");
+    }
+
+    return retValue;
 }
 
 int main(int argc, char* argv[]) {
@@ -420,7 +448,23 @@ int main(int argc, char* argv[]) {
 
             world.recv(0, inpTag, jobInput);
 
-            dockjob(jobInput, jobOut, localDir);
+            bool timedout = false;
+            try {
+                int i=5;
+                dock_wrapper(jobInput, jobOut, localDir);
+            }
+            catch(std::runtime_error& e) {
+                std::cout << e.what() << std::endl;
+                timedout = true;
+            }
+
+            if(timedout) {
+                std::cout << "TIMEOUT calculation for key = " << jobInput.key << std::endl;
+                jobOut.mesg="Calculation Timeout";
+                jobOut.error=false;
+            }
+
+            //dockjob(jobInput, jobOut, localDir);
 
             toHDF5File(jobInput, jobOut, dockHDF5File);
 

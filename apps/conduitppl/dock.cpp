@@ -228,6 +228,8 @@ bool checkLigData(std::string& fileName, std::string& ligKey){
    return false;
 }
 
+
+
 void getLigData(std::string& fileName, std::string& ligKey, std::string& ligName, std::stringstream& ligSS){
 
     hid_t lig_hid=relay::io::hdf5_open_file_for_read(fileName);

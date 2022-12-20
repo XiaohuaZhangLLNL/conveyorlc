@@ -93,6 +93,10 @@ T checked_convert_substring(const std::string& str, sz i, sz j, const std::strin
 		++i;
 
 	const std::string substr = str.substr(i-1, j-i+1);
+    //lexical_cast nan value won't throw the error. force it to throw error
+    if(substr=="nan" || substr=="-nan"){
+        throw atom_syntax_error(std::string("\"") + substr + "\" is not a valid " + dest_nature);
+    }
 	try {
 		return boost::lexical_cast<T>(substr);
 	}
