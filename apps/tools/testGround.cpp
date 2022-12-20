@@ -23,7 +23,7 @@
 #include "Parser/Pdb.h"
 #include "Parser/Mol2.h"
 #include "Parser/Sdf.h"
-#include "common/LBindException.h"
+#include "Common/LBindException.h"
 
 
 using namespace LBIND;
