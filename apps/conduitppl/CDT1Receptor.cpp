@@ -328,7 +328,7 @@ void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& check
         tleapFile.close();
     }
 
-    cmd = "tleap -f " + tleapFName + " >& " + recType + "_leap.log";
+    cmd = "tleap -f " + tleapFName + " > " + recType + "_leap.log";
     //std::cout <<cmd <<std::endl;
     errMesg = "tleap creating receptor prmtop fails";
     command(cmd, errMesg);
@@ -472,8 +472,8 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             //errMesg="pdb4amber fails";
             //command(cmd,errMesg);
             //! begin energy minimization of receptor
-            //cmd="reduce -Quiet -Trim  rec_pdb4amber.pdb >& rec_noh.pdb ";
-            cmd="reduce -Quiet -Trim  rec_AForm.pdb >& rec_noh.pdb ";
+            //cmd="reduce -Quiet -Trim  rec_pdb4amber.pdb > rec_noh.pdb ";
+            cmd="reduce -Quiet -Trim  rec_AForm.pdb > rec_noh.pdb ";
             //std::cout <<cmd <<std::endl;
             errMesg="reduce converting rec_AForm.pdb fails";
             command(cmd,errMesg);
@@ -485,9 +485,9 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
             }     
 
             if(jobInput.ambVersion==16 || jobInput.ambVersion==13){
-                cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/amber16_reduce_wwPDB_het_dict.txt\" >& rec_rd.pdb";
+                cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/amber16_reduce_wwPDB_het_dict.txt\" > rec_rd.pdb";
             }else{
-                cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/amber10_reduce_wwPDB_het_dict.txt\" >& rec_rd.pdb";
+                cmd="reduce -Quiet -BUILD rec_noh.pdb -DB \""+dataPath+"/amber10_reduce_wwPDB_het_dict.txt\" > rec_rd.pdb";
             }
 
             //std::cout <<cmd <<std::endl;
@@ -525,7 +525,7 @@ void preReceptor(JobInputData& jobInput, JobOutData& jobOut, std::string& workDi
                 //command(cmd,errMesg);
             }
             //cmd="prepare_receptor4.py -r "+b4pdbqt+" -o "+jobOut.pdbid+".pdbqt";
-            cmd="obabel -ipdb std4pdbqt.pdb -opdbqt -xr -O temp.pdbqt >& pdbqt.log";
+            cmd="obabel -ipdb std4pdbqt.pdb -opdbqt -xr -O temp.pdbqt > pdbqt.log";
             errMesg="obabel converting std4pdbqt.pdb  temp.pdbqt to fails";
             command(cmd,errMesg);  
             cmd="grep -v REMARK temp.pdbqt > rec_min.pdbqt";
