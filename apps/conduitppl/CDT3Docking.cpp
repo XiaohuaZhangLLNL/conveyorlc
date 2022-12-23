@@ -448,23 +448,7 @@ int main(int argc, char* argv[]) {
 
             world.recv(0, inpTag, jobInput);
 
-            bool timedout = false;
-            try {
-                int i=5;
-                dock_wrapper(jobInput, jobOut, localDir);
-            }
-            catch(std::runtime_error& e) {
-                std::cout << e.what() << std::endl;
-                timedout = true;
-            }
-
-            if(timedout) {
-                std::cout << "TIMEOUT calculation for key = " << jobInput.key << std::endl;
-                jobOut.mesg="Calculation Timeout";
-                jobOut.error=false;
-            }
-
-            //dockjob(jobInput, jobOut, localDir);
+            dockjob(jobInput, jobOut, localDir);
 
             toHDF5File(jobInput, jobOut, dockHDF5File);
 
