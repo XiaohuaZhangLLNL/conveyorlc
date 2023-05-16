@@ -108,7 +108,7 @@ void toConduit(JobOutData& jobOut, std::string& ligCdtFile){
         n[ligIDMeta + "/GBEN"] = jobOut.gbEn;
         n[ligIDMeta + "/Mesg"] = jobOut.message;
         std::string ligIDFile ="lig/"+jobOut.ligID+ "/file/";
-        if(jobOut.erro) {
+        if(jobOut.error) {
             std::vector <std::string> filenames = {"LIG.prmtop", "LIG.lib", "LIG.inpcrd", "LIG_min.pdbqt",
                                                    "LIG_min.pdb", "ligand.mol2",
                                                    "LIG_min.rst", "LIG_minGB.out", "ligand.frcmod"};
