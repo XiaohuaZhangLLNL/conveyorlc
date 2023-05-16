@@ -255,7 +255,16 @@ void getLigData(std::string& fileName, std::string& ligKey, std::string& ligName
 //__attribute__((annotate("@critical_path()")))
 void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& localDir){
     try{
+        // intialize Job out
         jobOut.error= true;
+        jobOut.mesg = "";
+        jobOut.ligName = "";
+        jobOut.numPose = 0;
+        jobOut.box.clear();
+        jobOut.scores.clear();
+        jobOut.scorelog = "";
+        jobOut.pdbqtfile = "";
+
 //        std::string flex_name, config_name, out_name, log_name;
         if (jobInput.randomize) {
             jobInput.seed = rand();
@@ -279,6 +288,7 @@ void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& localDir){
         bool checkLig=checkLigData(jobInput.ligFile, jobOut.ligID);
         if(!checkLig) {
             jobOut.error = false;
+            jobOut.mesg = "Ligand error";
             return;
         }
 

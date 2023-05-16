@@ -108,25 +108,23 @@ void toConduit(JobOutData& jobOut, std::string& ligCdtFile){
         n[ligIDMeta + "/GBEN"] = jobOut.gbEn;
         n[ligIDMeta + "/Mesg"] = jobOut.message;
         std::string ligIDFile ="lig/"+jobOut.ligID+ "/file/";
+        if(jobOut.erro) {
+            std::vector <std::string> filenames = {"LIG.prmtop", "LIG.lib", "LIG.inpcrd", "LIG_min.pdbqt",
+                                                   "LIG_min.pdb", "ligand.mol2",
+                                                   "LIG_min.rst", "LIG_minGB.out", "ligand.frcmod"};
+            std::cout << "CONDUIT: " << jobOut.ligPath << std::endl;
 
-        std::vector<std::string> filenames={"LIG.prmtop", "LIG.lib", "LIG.inpcrd", "LIG_min.pdbqt", "LIG_min.pdb", "ligand.mol2",
-                                  "LIG_min.rst", "LIG_minGB.out", "ligand.frcmod"};
-        std::cout << "CONDUIT: " << jobOut.ligPath << std::endl;
-
-        for(std::string& name : filenames)
-        {
-            std::string filename=jobOut.ligPath+"/"+name;
-            std::ifstream infile(filename);
-            if(infile.good())
-            {
-                std::string buffer((std::istreambuf_iterator<char>(infile)),
-                                   std::istreambuf_iterator<char>());
-                infile.close();
-                n[ligIDFile+name] = buffer;
-            }
-            else
-            {
-                std::cout << "File - " << filename << " is not there." << std::endl;
+            for (std::string &name: filenames) {
+                std::string filename = jobOut.ligPath + "/" + name;
+                std::ifstream infile(filename);
+                if (infile.good()) {
+                    std::string buffer((std::istreambuf_iterator<char>(infile)),
+                                       std::istreambuf_iterator<char>());
+                    infile.close();
+                    n[ligIDFile + name] = buffer;
+                } else {
+                    std::cout << "File - " << filename << " is not there." << std::endl;
+                }
             }
         }
 
@@ -253,6 +251,10 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
         std::unordered_set<std::string>& ligNameSet, POdata& podata) {
 
     try{
+        //Initialize JobOut
+        jobOut.ligName = "NoName";
+        jobOut.gbEn = 0;
+
         jobOut.ligID=jobInput.dirBuffer;
         jobOut.message="Finished!";
 
@@ -280,6 +282,7 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
 
         if(!fileExist(sdfPath)){
             std::string message=sdfPath+" does not exist.";
+            jobOut.error=false;
             throw LBindException(message);
         }
 
@@ -509,6 +512,9 @@ void preLigands(JobInputData& jobInput, JobOutData& jobOut, std::string& workDir
 
     } catch (LBindException& e){
         jobOut.message= e.what();
+        jobOut.error=false;
+        return;
+    } catch (...){
         jobOut.error=false;
         return;
     }
