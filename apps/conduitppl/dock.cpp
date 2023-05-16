@@ -207,12 +207,20 @@ void getLigDataOLD(std::string& fileName, std::string& ligKey, std::string& ligN
     relay::io::hdf5_close_file(lig_hid);
 }
 
-bool checkLigData(std::string& fileName, std::string& ligKey){
+bool checkLigData(std::string& fileName, std::string& ligKey, std::string& ligName){
     hid_t lig_hid=relay::io::hdf5_open_file_for_read(fileName);
 
    try {
         Node n_test;
         relay::io::hdf5_read(lig_hid, "lig/" + ligKey+ "/status", n_test);
+
+       Node nLig;
+       relay::io::hdf5_read(lig_hid, "lig/" + ligKey, nLig);
+       if(nLig.has_path("meta/name")){
+           ligName=nLig["meta/name"].as_string();
+       }else{
+           ligName="NoName";
+       }
 
         if (n_test.dtype().is_int()) {
             int status = n_test.as_int();
@@ -285,10 +293,12 @@ void dockjob(JobInputData& jobInput, JobOutData& jobOut, std::string& localDir){
         jobOut.pdbID=keys[0];
         jobOut.ligID=keys[1];
 
-        bool checkLig=checkLigData(jobInput.ligFile, jobOut.ligID);
+        std::string ligName;
+        bool checkLig=checkLigData(jobInput.ligFile, jobOut.ligID, ligName);
         if(!checkLig) {
             jobOut.error = false;
             jobOut.mesg = "Ligand error";
+            jobOut.ligName = ligName;
             return;
         }
 
