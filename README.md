@@ -496,13 +496,13 @@ You can use hdfx -h to see the options or ask Dan for detailed information
 
 1. Get scores
 ```asm
-/usr/gapps/bbs/TOSS-3/hdf_utils/hdfx -i gbsaHDF5 –m > meta_data.txt
+/usr/gapps/bbs/TOSS-3/hdf_utils/hdfx -m gbsaHDF5  > meta_data.txt
 ```
 2. Parse the scores
 3. Get complex files and ligand files
 ```asm
-/usr/gapps/bbs/TOSS-3/hdf_utils/hdfx -i gbsaHDF5 -k gbsa/lv14/286774/p6 -w temp
-/usr/gapps/bbs/TOSS-3/hdf_utils/hdfx -i ligand.hdf5 -k lig/286774 -w temp
+/usr/gapps/bbs/TOSS-3/hdf_utils/hdfx -k gbsa/lv14/286774/p6 -w temp gbsaHDF5
+/usr/gapps/bbs/TOSS-3/hdf_utils/hdfx -k lig/286774 -w temp ligand.hdf5
 ```
 132542 is lig id, compound id can be retrieved from the meta_data
 
