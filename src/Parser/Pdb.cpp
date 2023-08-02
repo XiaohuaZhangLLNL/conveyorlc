@@ -630,7 +630,7 @@ void Pdb::newAtomNameLine(std::string& fileLine, int& nC, int& nO, int& nN, int&
         }else {
             if(atomType.compare(0, 2, "Cl")==0){
                 nCL=nCL+1;
-                atomType="CL";
+                //atomType="CL";
                 newAtomName=this->newAtomName(atomType, nCL);
             } else {
                 nE=nE+1;
