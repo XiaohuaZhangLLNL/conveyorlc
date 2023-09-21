@@ -6,7 +6,7 @@
 
 Download spack program, create a environment for ConveyorLC
 ```asm
-git clone git@github.com:spack/spack.git
+git clone -c feature.manyFiles=true https://github.com/spack/spack.git
 . spack/share/spack/setup-env.sh
 spack env create conveyorlc
 spack env activate conveyorlc
