@@ -1,8 +1,57 @@
 # ConveyorLC: A Parallel Virtual Screening Pipeline for Docking and MM/GSBA
 
-## 1. Compile the program.
+## 1. Build and use ConveyorLC with Spack.
 
-### 1.1 MPI and Boost libraries are required for ConveyorLC.
+### 1.1 Build ConveyorLC with Spack
+
+Download spack program, create a environment for ConveyorLC
+```asm
+git clone git@github.com:spack/spack.git
+. spack/share/spack/setup-env.sh
+spack env create conveyorlc
+spack env activate conveyorlc
+```
+
+Setting up for spack.
+```asm
+spack mirror add develop https://binaries.spack.io/releases/develop
+spack buildcache keys --install --trust
+```
+
+specify the dependence for the conveyorlc
+```asm
+git clone https://github.com/XiaohuaZhangLLNL/spack4atom spack4atom
+spack repo add spack4atom
+spack repo list
+spack add boost@1.72.0+mpi+program_options+system+filesystem+regex+serialization+thread
+spack add hdf5+cxx
+spack add conveyorlc@master
+```
+build the all porgrams. It might take a while.
+```asm
+spack install
+``
+
+Some useful command for munally fixing the configuration
+```asm
+spack cd -e conveyorlc 
+spack concretize –force
+```
+
+### 1.2 Use ConveyorLC within Spack
+
+The following is the environment setting for running ConveyorLC
+```asm
+. <install_directory>/spack/share/spack/setup-env.sh
+spack env activate conveyorlc
+export LBindData="$(dirname `which CDT3Docking`)/../data/"
+export PATH=<Amber_installation_directory>/bin/:$PATH
+```
+
+
+## 2. Another way - compile the program and dependent libraries one by one
+
+### 2.1 MPI and Boost libraries are required for ConveyorLC.
 
 ConveyorLC depends on two external libraries to complete the compilation: MPI (https://www.open-mpi.org or https://www.mpich.org) and boost (https://www.boost.org).
 
@@ -25,7 +74,7 @@ On quartz:
 module load boost/1.62.0
 ```
 
-### 1.2 Obtain the code
+### 2.2 Obtain the code
 
 The code can be download from:
 
@@ -37,7 +86,7 @@ git clone git@github.com:XiaohuaZhangLLNL/conveyorlc.git
 ```
 
 
-### 1.3 Installation
+### 2.3 Installation
 
 Installing it by using cmake is straight forward:
 
@@ -48,7 +97,7 @@ make
 make install
 ```
 
-### 1.4 Installation with Spack configuration
+### 2.4 Installation with Spack configuration
 
 Use git clone to download spack4atom
 
@@ -81,7 +130,7 @@ spack clean --all conveyorlc
 spack install conveyorlc
 ```
 
-### 1.5 Compile with Conduit and HDF5
+### 2.5 Compile with Conduit and HDF5
 
 Conduit is an open source project from Lawrence Livermore National Laboratory
 that provides an intuitive model for describing hierarchical scientific data.
@@ -105,19 +154,30 @@ cmake ../ -DCMAKE_INSTALL_PREFIX=<conveyorlc_installation_dir> -DBOOST_ROOT=<Pat
 -DHDF5_ROOT=<path_to_HDF5_library> -DCONDUIT_DIR=<path_to_Conduit_library>
 ```
 
-### 1.6 Executables
+### 2.6 Executables
 
 The executables with Conduit and HDF5 support are
 ```asm
 CDT1Receptor CDT2Ligand   CDT3Docking  CDT4mmgbsa
 ```
 
+### 2.7 environment setting:
 
-## 2 Running the code
+```asm
+export LBindData=/usr/gapps/bbs/TOSS-3/conveyorlc_10/data
+export PATH=/usr/gapps/bbs/TOSS-3/conveyorlc_10/bin:/usr/gapps/bbs/TOSS-3/openbabel.3.1.1/bin:$PATH
+export AMBERHOME=/usr/gapps/bbs/TOSS-3/amber18/
+export PATH=$AMBERHOME/bin/:$PATH
+```
 
-### 2.1 Submitting scripts
 
-#### 2.1.1 To run the receptor preparation with CDT1Receptor
+## 3 Running the code
+
+### 3.1 Submitting scripts
+
+If use Spack with ConveyorLC, please swapp the environment setting with section 1.2
+
+#### 3.1.1 To run the receptor preparation with CDT1Receptor
 
 ```asm
 #MSUB -A bbs
@@ -241,7 +301,7 @@ pdb/sarinXtalnAChE_A.pdb KeyRes:SGB.203  NonRes:SGB  DockBX:1.034,-2.453,-3.123|
 If DockBX is defined for a receptor, the grid calculation will be skipped for that receptor and use the user defined docking box.
 
 
-#### 2.1.2 To run the ligand preparation
+#### 3.1.2 To run the ligand preparation
 
 ```asm
 #MSUB -A bbs
@@ -276,7 +336,7 @@ scratch/lig/2/LIG.lib, LIG.prmtop,  LIG.inpcrd
 ```
 
 
-#### 2.1.3 To run the docking
+#### 3.1.3 To run the docking
 
 ```asm
 #MSUB -A bbs
@@ -311,14 +371,14 @@ srun -N 1 -n 16 CDT4mmgbsa
 ```
 
 
-#### 2.1.4 To use the local disk on Quartz to avoid I/O impact on file system
+#### 3.1.4 To use the local disk on Quartz to avoid I/O impact on file system
 
 Both docking and rescoring support LOCALDIR on quartz. The only thing you need to do is add the following environment variable to you submitting script:
 ```asm
 export LOCALDIR=/dev/shm/<Your_OUN>/
 ```
 
-### 2.2 Output data structures
+### 3.2 Output data structures
 
 The output data structure is different from XML version.
 The calculated data are all in the scratch
@@ -376,7 +436,7 @@ hdfview <your_hdf5_file>
 ```
 Note: this is only a viewer. You cannot modify the files. Please use the following python scripts to do that.
 
-### 2.3 Python scripts
+### 3.3 Python scripts
 
 The conveyorLC has been installed:
 ```asm
@@ -507,9 +567,9 @@ You can use hdfx -h to see the options or ask Dan for detailed information
 132542 is lig id, compound id can be retrieved from the meta_data
 
 
-## 3 Deprecated executables
+## 4 Deprecated executables
 
-### 3.1 Deprecated executables in the pipeline
+### 4.1 Deprecated executables in the pipeline
 There will be executables in the ${conveyorlc_install_dir}/bin
 
 ```asm
@@ -548,7 +608,7 @@ srun -N 2 -n 24 PPL1Receptor --input pdb.list --output out
 ```
 
 
-#### 3.2.2 running the ligand preparation
+#### 4.2.2 running the ligand preparation
 
 ```asm
 #!/bin/bash 
@@ -588,7 +648,7 @@ scratch/lig/2/LIG.lib, LIG.prmtop,  LIG.inpcrd
 
 ```
 
-#### 3.2.3 running the docking calculation
+#### 4.2.3 running the docking calculation
 
 ```asm
 #!/bin/bash 
@@ -610,7 +670,7 @@ srun -N 64 -n 64 -c 16 PPL3Docking --recXML PPL1Track.xml --ligXML PPL2Track.xml
 
 ```
 
-#### 3.2.4 running the single-point MM/GBSA calculation
+#### 4.2.4 running the single-point MM/GBSA calculation
 ```asm
 #!/bin/bash 
 #msub -A bmc
@@ -631,7 +691,7 @@ srun -N 32 -n 512  PPL4mmgbsa --comXML PPL3Track.xml
 
 ```
 
-#### 3.2.5 zip up the MM/GBSA results by ligand to save space and reduce number of files
+#### 4.2.5 zip up the MM/GBSA results by ligand to save space and reduce number of files
 The pipeline will generate a lot of files and can cause problem for the file system. PPL4PostProcess tar-zip all mmgbsa poses for the same ligand into one file.
 ```asm
 #!/bin/bash 
@@ -652,7 +712,7 @@ srun -N 4 -n 64  PPL4PostProcess --comXML PPL3Track.xml
 
 
 
-### 3.3 Output
+### 4.3 Output
 
 Summray of outputs are in the XML format.
 
@@ -845,11 +905,11 @@ Note:
 ```
 
 
-## 4 Deprecated Work with Maestro workflow
+## 5 Deprecated Work with Maestro workflow
 
 The following set up works on Cab/Syrah. For other machines, change the commands accordingly.
 
-### 4.1 Set up python virtual environment
+### 5.1 Set up python virtual environment
 
 ```asm
   use -l python
@@ -872,13 +932,13 @@ put the following two command into your .bashrc or .cshrc
   source /g/g92/zhang30/.local/bin/virtualenvwrapper.sh
 ```
 
-### 4.2 Create a virtual environment for conveyorLC
+### 5.2 Create a virtual environment for conveyorLC
 
 ```asm
   mkvirtualenv conveyorlc
 ```
 
-### 4.3 Install maestro workflow
+### 5.3 Install maestro workflow
 
 ```asm
   git clone git@github.com:LLNL/maestrowf.git
@@ -888,7 +948,7 @@ put the following two command into your .bashrc or .cshrc
   pip install -e .
 ```
 
-### 4.4 Run the workflow to launch the conveyorlc pipeline
+### 5.4 Run the workflow to launch the conveyorlc pipeline
 
 ```asm
   workon conveyorlc
@@ -917,7 +977,7 @@ PPL3Docking   run_conveyorlc_20180504-155630  State.FINISHED     0:01:00.096606 
 All the results are under the run_conveyorlc_20180504-155630 subdirectory.
 
 
-### 4.5 run_conveyorlc.yaml sample file
+### 5.5 run_conveyorlc.yaml sample file
 
 ```asm
 description:
