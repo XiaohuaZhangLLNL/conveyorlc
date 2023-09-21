@@ -27,12 +27,13 @@ spack add boost@1.72.0+mpi+program_options+system+filesystem+regex+serialization
 spack add hdf5+cxx
 spack add conveyorlc@master
 ```
+
 build the all porgrams. It might take a while.
 ```asm
 spack install
-``
+```
 
-Some useful command for munally fixing the configuration
+Some useful commands for munally fixing the configuration if any errors occurs in the installation
 ```asm
 spack cd -e conveyorlc 
 spack concretize –force
