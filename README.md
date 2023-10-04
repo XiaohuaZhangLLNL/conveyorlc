@@ -11,6 +11,13 @@ git clone -c feature.manyFiles=true https://github.com/spack/spack.git
 spack env create conveyorlc
 spack env activate conveyorlc
 ```
+Optional, you can add external compilers if you are on the supercomputers.
+```asm
+module load gcc/12.1.1
+moduel load mavmpich2
+spack compiler find --scope site
+spack external find --scope site mvapich2
+```
 
 Setting up for spack.
 ```asm
