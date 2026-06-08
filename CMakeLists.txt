@@ -52,23 +52,23 @@ endif()
 message(STATUS "The host processor is ${CMAKE_HOST_SYSTEM_PROCESSOR}")
 
 # find MPI library
-set(MPI_CXX_SKIP_MPICXX ON)
-set(MPI_C_SKIP_MPICXX ON)
+#set(MPI_CXX_SKIP_MPICXX ON)
+#set(MPI_C_SKIP_MPICXX ON)
 find_package(MPI REQUIRED)
 #set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
-set(CMAKE_CXX_COMPILE_FLAGS "${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS}")
-set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS}")
-include_directories(${MPI_INCLUDE_PATH})
+#set(CMAKE_CXX_COMPILE_FLAGS "${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS}")
+#set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS}")
+#include_directories(${MPI_INCLUDE_PATH})
 
 # 2. Tell FindBoost to use the MPI variables already found by CMake
 # This prevents it from trying to re-detect MPI settings.
-set(MPI_CXX_FOUND TRUE)
-set(MPI_FOUND TRUE)
+#set(MPI_CXX_FOUND TRUE)
+#set(MPI_FOUND TRUE)
 
 # 3. Explicitly pass MPI hints if FindBoost is still struggling
 # Boost 1.60 often needs these to locate the specific MPI-linked binaries.
-set(Boost_MPI_LIBRARIES ${MPI_CXX_LIBRARIES})
-set(Boost_MPI_INCLUDE_DIRS ${MPI_CXX_INCLUDE_DIRS})
+#set(Boost_MPI_LIBRARIES MPI::MPI_CXX)
+#set(Boost_MPI_INCLUDE_DIRS ${MPI_CXX_INCLUDE_DIRS})
 
 if(NOT DEFINED Boost_ROOT AND NOT DEFINED ENV{Boost_ROOT} AND DEFINED ENV{BOOST_ROOT})
     set(Boost_ROOT $ENV{BOOST_ROOT})
@@ -100,10 +100,36 @@ else()
     find_package(Boost 1.60 REQUIRED COMPONENTS program_options system filesystem regex serialization mpi thread)
 endif()
 
+message(STATUS "Boost_LIBRARIES: ${Boost_LIBRARIES}")
+message(STATUS "Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
+
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 find_package(OpenBabel3 REQUIRED)
-include_directories( ${OPENBABEL3_INCLUDE_DIRS} ${OPENBABEL3_INCLUDE_DIRS}/openbabel3)
+if (NOT OPENBABEL_INCLUDE_DIRS AND NOT OPENBABEL3_INCLUDE_DIRS AND NOT OpenBabel3_INCLUDE_DIRS)
+    if(OpenBabel3_LIBRARIES)
+        set(RAW_LIB_LIST "${OpenBabel3_LIBRARIES}")
+        set(OPENBABEL3_LIBRARIES ${OpenBabel3_LIBRARIES})
+    elseif(OPENBABEL3_LIBRARIES)
+        set(RAW_LIB_LIST "${OPENBABEL3_LIBRARIES}")
+    endif()
+
+    if(RAW_LIB_LIST)
+        list(GET RAW_LIB_LIST 0 FIRST_LIB_PATH)
+        get_filename_component(OB3_LIB_DIR "${FIRST_LIB_PATH}" DIRECTORY)
+        get_filename_component(OB3_PREFIX_DIR "${OB3_LIB_DIR}" DIRECTORY)
+        set(OB3_BASE_INCLUDE "${OB3_PREFIX_DIR}/include")
+        include_directories(${OB3_BASE_INCLUDE} "${OB3_BASE_INCLUDE}/openbabel3")
+    endif()
+else()
+    if (OPENBABEL_INCLUDE_DIRS)
+        include_directories(${OPENBABEL_INCLUDE_DIRS})
+    elseif (OPENBABEL3_INCLUDE_DIRS)
+        include_directories(${OPENBABEL3_INCLUDE_DIRS}/openbabel3)
+    elseif (OpenBabel3_INCLUDE_DIRS)
+        include_directories(${OpenBabel3_INCLUDE_DIRS})
+    endif()
+endif()
 
 # find sqlite3
 find_package (sqlite3 QUIET)
