@@ -25,6 +25,6 @@ set_target_properties(H5Split PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(TARGETS H5Split DESTINATION bin)
 
 add_executable(H5Native H5Native.cpp H5Native.h)
-target_link_libraries(H5Native LBind ${Boost_LIBRARIES} ${HDF5_CXX_HL_LIBRARIES} hdf5_cpp)
+target_link_libraries(H5Native LBind ${Boost_LIBRARIES} ${HDF5_CXX_HL_LIBRARIES} ${HDF5_CXX_LIBRARIES})
 set_target_properties(H5Native PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 install(TARGETS H5Native DESTINATION bin)
