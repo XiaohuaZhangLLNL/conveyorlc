@@ -44,6 +44,8 @@ else()
               $ENV{OPENBABEL3_PATH}/include
               $ENV{OPENBABEL3_BASE}/include/openbabel3
               $ENV{OPENBABEL3_BASE}/include
+              $ENV{OPENBABEL3_DIR}/include/openbabel3
+              $ENV{OPENBABEL3_DIR}/include
               /usr/include
               /usr/local/include
               /usr/local/openbabel/include/openbabel3
