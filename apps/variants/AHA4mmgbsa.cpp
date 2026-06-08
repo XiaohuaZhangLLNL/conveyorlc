@@ -359,11 +359,9 @@ void getDockData(POdata &cdtMeta)
             std::string mesg="mmgbsa::receptor()\n\t Cannot open tleap file: "+tleapFName;
             throw LBindException(mesg);
         }
+        tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
         if(cdtMeta.version==16 || cdtMeta.version==13){
-            tleapFile << "source leaprc.ff14SB" << std::endl;
-            tleapFile << "source leaprc.phosaa10\n";
-        }else{
-            tleapFile << "source leaprc.ff99SB" << std::endl;
+            tleapFile << "source " << Amber::getAmberPhosAAFile() << std::endl;
         }
         tleapFile << "source leaprc.gaff\n"
                   << "source leaprc.water.tip3p\n"
@@ -558,11 +556,9 @@ void mmgbsa(POdata& cdtMeta){
             throw LBindException(mesg);
         }
 
+        tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
         if(cdtMeta.version==16 || cdtMeta.version==13){
-            tleapFile << "source leaprc.ff14SB" << std::endl;
-            tleapFile << "source leaprc.phosaa10\n";
-        }else{
-            tleapFile << "source leaprc.ff99SB" << std::endl;
+            tleapFile << "source " << Amber::getAmberPhosAAFile() << std::endl;
         }
         tleapFile << "source leaprc.gaff\n"
                   << "source leaprc.water.tip3p\n";
@@ -732,11 +728,9 @@ void mmgbsa(POdata& cdtMeta){
             throw LBindException(mesg);
         }
 
+        tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
         if (cdtMeta.version == 16 || cdtMeta.version==13) {
-            tleapFile << "source leaprc.ff14SB\n";
-            tleapFile << "source leaprc.phosaa10\n";
-        } else {
-            tleapFile << "source leaprc.ff99SB\n";
+            tleapFile << "source " << Amber::getAmberPhosAAFile() << std::endl;
         }
 
         tleapFile << "source leaprc.gaff\n";
@@ -849,11 +843,9 @@ void mmgbsa(POdata& cdtMeta){
             std::string mesg="mmgbsa::receptor()\n\t Cannot open tleap file: "+tleapFName;
             throw LBindException(mesg);
         }
+        tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
         if(cdtMeta.version==16 || cdtMeta.version==13){
-            tleapFile << "source leaprc.ff14SB" << std::endl;
-            tleapFile << "source leaprc.phosaa10\n";
-        }else{
-            tleapFile << "source leaprc.ff99SB" << std::endl;
+            tleapFile << "source " << Amber::getAmberPhosAAFile() << std::endl;
         }
         tleapFile << "source leaprc.gaff\n"
                   << "source leaprc.water.tip3p\n"

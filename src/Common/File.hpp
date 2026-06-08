@@ -10,6 +10,7 @@
 
 #include <string>
 #include <fstream>
+#include <sys/stat.h>
 
 #include "Structure/Sstrm.hpp"
 
@@ -40,7 +41,12 @@ inline void getFileBasename(const std::string& pathStr, std::string& pathFileNam
 }
 
 
-inline bool fileExist(std::string& pathFile){
+inline bool fileExist(const std::string& pathFile){
+    struct stat buffer;
+    if (stat(pathFile.c_str(), &buffer) != 0 || !S_ISREG(buffer.st_mode)) {
+        return false;
+    }
+
     std::ifstream my_file(pathFile.c_str());
     return my_file.good();    
 }
@@ -91,6 +97,25 @@ inline bool checkFile(std::string& pathFile){
         return false;
     }
     return true;
+}
+
+inline bool dirExists(const std::string& path)
+{
+    struct stat buffer;
+    return stat(path.c_str(), &buffer) == 0 && S_ISDIR(buffer.st_mode);
+}
+
+inline static std::string joinPath(const std::string& dir, const std::string& file)
+{
+    if (dir.empty()) {
+        return file;
+    }
+
+    if (dir.back() == '/') {
+        return dir + file;
+    }
+
+    return dir + "/" + file;
 }
     
 }//namespace LBIND 

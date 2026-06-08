@@ -121,13 +121,8 @@ void MMGBSA::run(std::string& poseID, bool restart){
             std::string mesg="mmgbsa::receptor()\n\t Cannot open tleap file: "+tleapFName;
             throw LBindException(mesg);
         }   
-        if(version==16 || version==13){
-            tleapFile << "source leaprc.ff14SB" << std::endl;
-        }else{
-            tleapFile << "source leaprc.ff99SB" << std::endl;
-        }
+        tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
         tleapFile << "source leaprc.gaff" << std::endl;
-
         tleapFile << "source leaprc.water.tip3p\n";
         
         tleapFile << "loadamberparams  " << ligDir <<  "/ligand.frcmod" <<std::endl;
@@ -167,13 +162,8 @@ void MMGBSA::run(std::string& poseID, bool restart){
             throw LBindException(mesg);
         }   
 
-        if(version==16 || version==13){
-            tleapFile << "source leaprc.ff14SB" << std::endl;
-        }else{
-            tleapFile << "source leaprc.ff99SB" << std::endl;
-        }
+        tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
         tleapFile << "source leaprc.gaff" << std::endl;
-
         tleapFile << "source leaprc.water.tip3p\n";
         
         for(unsigned int i=0; i<nonRes.size(); ++i){
@@ -303,14 +293,8 @@ void MMGBSA::run(std::string& poseID, bool restart){
             throw LBindException(mesg);
         }
         
-        if (version == 16 || version==13) {
-            tleapFile << "source leaprc.ff14SB\n";
-        } else {
-            tleapFile << "source leaprc.ff99SB\n";
-        }
-
+        tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
         tleapFile << "source leaprc.gaff\n";
-
         tleapFile << "source leaprc.water.tip3p\n";
         
         for(unsigned int i=0; i<nonRes.size(); ++i){

@@ -6,6 +6,8 @@
  */
 
 #include <string>
+#include <array>
+#include "Common/File.hpp"
 
 #ifndef AMBER_H
 #define	AMBER_H
@@ -35,16 +37,57 @@ public:
     void ambpdb(std::string input, std::string output);
     
     void prepLigands();
-    
+
+    template <std::size_t N>
+    static std::string findAmberLeaprcFile(
+        const std::string& amberHome,
+        const std::array<const char*, N>& candidates);
+
+    static std::string getAmberPath(void);
+    static std::string getAmberForceFieldFile(void);
+    static std::string getAmberPhosAAFile(void);
+    static int getAmberVersion(void);
+
+protected:
+    static const std::array<const char*, 6> AMBER_PROTEIN_FF_CANDIDATES;
+    static const std::array<const char*, 3> AMBER_PHOSAA_CANDIDATES;
+    static std::string setAmberPath(void);
+    static std::string setAmberForceFieldFile(void);
+    static std::string setAmberPhosAAFile(void);
+    static int setAmberVersion(void);
+
 private:
     void ligLeapInput(std::string pdbid, std::string ligName, std::string tleapFName);
     void comLeapInput(std::string pdbid, std::string ligName, std::string tleapFName);
     
 private:
-    int version;
+    static int version;
     Protein* pProtein;
-    std::string AMBERPATH;
+    static std::string AMBERPATH;
+    static std::string forceFieldFile;
+    static std::string phosAAFile;
 };
+
+template <size_t N>
+std::string Amber::findAmberLeaprcFile(
+    const std::string& amberHome,
+    const std::array<const char*, N>& candidates)
+{
+    const std::string searchDirs[] = {
+        joinPath(amberHome, "dat/leap/cmd"),
+        joinPath(amberHome, "dat/leap/cmd/oldff")
+    };
+
+    for (const auto& filename : candidates) {
+        for (const auto& dir : searchDirs) {
+            const std::string fullPath = joinPath(dir, filename);
+            if (fileExist(fullPath)) {
+                return fullPath;
+            }
+        }
+    }
+    return "";
+}
 
 }//namespace LBIND 
 #endif	/* AMBER_H */
