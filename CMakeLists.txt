@@ -52,18 +52,8 @@ endif()
 message(STATUS "The host processor is ${CMAKE_HOST_SYSTEM_PROCESSOR}")
 
 # find MPI library
-#set(MPI_CXX_SKIP_MPICXX ON)
-#set(MPI_C_SKIP_MPICXX ON)
 find_package(MPI REQUIRED)
-#set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
-#set(CMAKE_CXX_COMPILE_FLAGS "${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS}")
-#set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS}")
-#include_directories(${MPI_INCLUDE_PATH})
 
-# 2. Tell FindBoost to use the MPI variables already found by CMake
-# This prevents it from trying to re-detect MPI settings.
-#set(MPI_CXX_FOUND TRUE)
-#set(MPI_FOUND TRUE)
 
 # 3. Explicitly pass MPI hints if FindBoost is still struggling
 # Boost 1.60 often needs these to locate the specific MPI-linked binaries.
@@ -152,6 +142,14 @@ find_package(HDF5 REQUIRED COMPONENTS CXX HL)
 include_directories( ${HDF5_INCLUDE_DIRS} )
 
 # find Conduit for handling hierarchical scientific data
+if (NOT CONDUIT_DIR)
+    if (DEFINED ENV{CONDUIT_DIR})
+        set(CONDUIT_DIR $ENV{CONDUIT_DIR})
+    elseif (DEFINED ENV{Conduit_DIR})
+        set(CONDUIT_DIR $ENV{Conduit_DIR})
+    endif ()
+endif()
+
 find_package( Conduit REQUIRED )
 include_directories(${CONDUIT_INCLUDE_DIRS})
 
