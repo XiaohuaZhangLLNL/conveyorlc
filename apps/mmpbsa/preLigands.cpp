@@ -386,7 +386,11 @@ int main(int argc, char** argv) {
         std::cerr << "Error: Total process less than 2" << std::endl;
         return 1;
     }
-       
+
+    {
+        Amber amber_init;
+    }
+
     POdata podata;
     int error=0;
     

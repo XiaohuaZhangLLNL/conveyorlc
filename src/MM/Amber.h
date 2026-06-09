@@ -56,6 +56,16 @@ protected:
     static std::string setAmberPhosAAFile(void);
     static int setAmberVersion(void);
 
+    static void initStaticMembers();
+    struct Initializer {
+        Initializer() {
+            Amber::initStaticMembers();
+        }
+    };
+
+    // The declaration that triggers the magic
+    static Initializer initializer; 
+
 private:
     void ligLeapInput(std::string pdbid, std::string ligName, std::string tleapFName);
     void comLeapInput(std::string pdbid, std::string ligName, std::string tleapFName);

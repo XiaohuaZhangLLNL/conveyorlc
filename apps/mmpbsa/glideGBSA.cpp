@@ -398,6 +398,10 @@ int main(int argc, char** argv) {
         return 1;
     }
        
+    {
+        Amber amber_init;
+    }
+
     POdata podata;
     int error=0;
     

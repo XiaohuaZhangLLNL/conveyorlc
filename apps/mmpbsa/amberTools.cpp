@@ -431,6 +431,10 @@ int main(int argc, char** argv) {
         return 1;
     }
     
+    { // Trigger initialization of Amber static members
+        Amber amber_init;
+    }
+
     POdata podata;
     int error=0;
     

@@ -788,6 +788,9 @@ int main(int argc, char** argv) {
         world.abort(1);
     }
 
+    {
+        Amber amber_init;
+    }
 
     POdata podata;
 

@@ -413,6 +413,10 @@ int main(int argc, char** argv) {
 
     std::cout << "Number of tasks= " << nproc << " My rank= " << rank << std::endl;
 
+    {
+        Amber amber_init;
+    }
+
     if (rank == 0) {
         
         //! Tracking error using XML file

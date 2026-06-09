@@ -548,7 +548,11 @@ int main(int argc, char** argv) {
     }
 
     bool useLocalDir=(localDir!=workDir);
-       
+
+    {
+        Amber amber_init;
+    }
+
     POdata podata;
 
     bool success=CDT2LigandPO(argc, argv, podata);

@@ -825,6 +825,10 @@ int main(int argc, char** argv) {
     std::string dataPath;
     std::string localDir;
 
+    {
+        Amber amber_init;
+    }
+
     POdata cdtMeta;
     bool success = SAF4mmgbsaPO(argc, argv, cdtMeta);
     if (!success) {

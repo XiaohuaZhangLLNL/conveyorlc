@@ -48,6 +48,7 @@ std::string Amber::AMBERPATH = "";
 std::string Amber::forceFieldFile = "";
 std::string Amber::phosAAFile = "";
 int Amber::version = 10;
+Amber::Initializer Amber::initializer; 
 
 std::string Amber::setAmberPath(void)
 {
@@ -161,6 +162,14 @@ std::string Amber::getAmberPhosAAFile(void)
     return phosAAFile;
 }
 
+void Amber::initStaticMembers() {
+    std::cout << "[Amber static init]\n";
+    Amber::setAmberPath();
+    Amber::setAmberVersion();
+    Amber::setAmberForceFieldFile();
+    Amber::setAmberPhosAAFile();
+}
+
 Amber::Amber() {
     Amber::setAmberPath();
     Amber::setAmberVersion();
@@ -264,7 +273,7 @@ void Amber::ligLeapInput(std::string pdbid, std::string ligName, std::string tle
         throw LBindException(mesg);
     }   
 
-    tleapFile << "suorce " << Amber::forceFieldFile << std::endl;
+    tleapFile << "source " << Amber::forceFieldFile << std::endl;
     tleapFile << "source leaprc.gaff" << std::endl;
     tleapFile << "source leaprc.water.tip3p\n";
 
@@ -290,7 +299,7 @@ void Amber::comLeapInput(std::string pdbid, std::string ligName, std::string tle
         throw LBindException(mesg);
     }   
     
-    tleapFile << "suorce " << Amber::forceFieldFile << std::endl;
+    tleapFile << "source " << Amber::forceFieldFile << std::endl;
     tleapFile << "source leaprc.gaff" << std::endl;
     tleapFile << "source leaprc.water.tip3p\n";
 
@@ -316,7 +325,7 @@ void Amber::tleapInput(std::string& mol2FName, std::string& ligName, std::string
     
     std::string mol2FBase=mol2FName.substr(0,mol2FName.size()-5);
 
-    tleapFile << "suorce " << Amber::forceFieldFile << std::endl;
+    tleapFile << "source " << Amber::forceFieldFile << std::endl;
     tleapFile << "source leaprc.gaff" << std::endl;
     tleapFile << "source leaprc.water.tip3p\n";
 

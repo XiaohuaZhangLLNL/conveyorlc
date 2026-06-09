@@ -587,6 +587,10 @@ int main(int argc, char** argv) {
     
     mpi::timer runingTime;
 
+    {
+        Amber amber_init;
+    }
+
     POdata podata;
     int error=0;
     
