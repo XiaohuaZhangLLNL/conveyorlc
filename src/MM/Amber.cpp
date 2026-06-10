@@ -44,6 +44,11 @@ const std::array<const char*, 3> Amber::AMBER_PHOSAA_CANDIDATES = {{
     "leaprc.phosaa10"
 }};
 
+const std::array<std::string, 2> Amber::AMBER_LEAP_DIRS = {{
+        "dat/leap/cmd",
+        "dat/leap/cmd/oldff"
+}};
+
 std::string Amber::AMBERPATH = "";
 std::string Amber::forceFieldFile = "";
 std::string Amber::phosAAFile = "";
@@ -103,7 +108,8 @@ std::string Amber::setAmberForceFieldFile(void)
     if (envFFFile != nullptr && envFFFile[0] != '\0') {
         const std::string envPath(envFFFile);
 
-        if (!fileExist(envPath)) {
+        const auto fullPath = findAmberLeaprcFile(std::array<const char*, 1u>{envFFFile});
+        if (fullPath.empty() || !fileExist(fullPath)) {
             throw std::runtime_error(
                 "AMBER_FF_FILE is set but file does not exist: " + envPath);
         }
@@ -111,7 +117,7 @@ std::string Amber::setAmberForceFieldFile(void)
         return (forceFieldFile = envPath);
     }
 
-    forceFieldFile = findAmberLeaprcFile(AMBERPATH, AMBER_PROTEIN_FF_CANDIDATES);
+    forceFieldFile = findAmberLeaprcFile(AMBER_PROTEIN_FF_CANDIDATES);
     if (forceFieldFile.empty()) {
         throw std::runtime_error("No matching Amber leaprc file found");
     }
@@ -131,14 +137,16 @@ std::string Amber::setAmberPhosAAFile(void)
     if (envFFFile != nullptr && envFFFile[0] != '\0') {
         const std::string envPath(envFFFile);
 
-        if (!fileExist(envPath)) {
+        const auto fullPath = findAmberLeaprcFile(std::array<const char*, 1u>{envFFFile});
+        if (fullPath.empty() || !fileExist(fullPath)) {
             throw std::runtime_error(
                 "AMBER_PHOSAA_FILE is set but file does not exist: " + envPath);
         }
 
         return (phosAAFile = envPath);
     }
-    phosAAFile = findAmberLeaprcFile(AMBERPATH, AMBER_PHOSAA_CANDIDATES);
+
+    phosAAFile = findAmberLeaprcFile(AMBER_PHOSAA_CANDIDATES);
     return phosAAFile;
 }
 

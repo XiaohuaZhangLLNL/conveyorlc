@@ -38,11 +38,6 @@ public:
     
     void prepLigands();
 
-    template <std::size_t N>
-    static std::string findAmberLeaprcFile(
-        const std::string& amberHome,
-        const std::array<const char*, N>& candidates);
-
     static std::string getAmberPath(void);
     static std::string getAmberForceFieldFile(void);
     static std::string getAmberPhosAAFile(void);
@@ -51,10 +46,17 @@ public:
 protected:
     static const std::array<const char*, 6> AMBER_PROTEIN_FF_CANDIDATES;
     static const std::array<const char*, 3> AMBER_PHOSAA_CANDIDATES;
+    static const std::array<std::string, 2> AMBER_LEAP_DIRS;
+
     static std::string setAmberPath(void);
+    static int setAmberVersion(void);
+
+    template <std::size_t N>
+    static std::string findAmberLeaprcFile(
+        const std::array<const char*, N>& candidates);
+
     static std::string setAmberForceFieldFile(void);
     static std::string setAmberPhosAAFile(void);
-    static int setAmberVersion(void);
 
     static void initStaticMembers();
     struct Initializer {
@@ -80,13 +82,16 @@ private:
 
 template <size_t N>
 std::string Amber::findAmberLeaprcFile(
-    const std::string& amberHome,
     const std::array<const char*, N>& candidates)
 {
-    const std::string searchDirs[] = {
-        joinPath(amberHome, "dat/leap/cmd"),
-        joinPath(amberHome, "dat/leap/cmd/oldff")
-    };
+    const std::vector<std::string> searchDirs = []() {
+        std::vector<std::string> dirs;
+        dirs.reserve(AMBER_LEAP_DIRS.size());
+        for (const auto& dir : AMBER_LEAP_DIRS) {
+            dirs.push_back(joinPath(AMBERPATH, dir));
+        }
+        return dirs;
+    }();
 
     for (const auto& filename : candidates) {
         for (const auto& dir : searchDirs) {
