@@ -51,6 +51,7 @@
 #include "Common/LBindException.h"
 #include "Common/Utils.h"
 #include "XML/XMLHeader.hpp"
+#include "MM/Amber.h"
 
 #include "CDT1Receptor.h"
 #include "CDT1ReceptorPO.h"
@@ -275,11 +276,9 @@ void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& check
             throw LBindException(mesg);
         }
 
+        tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
         if (jobInput.ambVersion == 16 || jobInput.ambVersion == 13) {
-            tleapFile << "source leaprc.ff14SB\n";
-            tleapFile << "source leaprc.phosaa10\n";
-        } else {
-            tleapFile << "source leaprc.ff99SB\n";
+            tleapFile << "source " << Amber::getAmberPhosAAFile() << std::endl;
         }
 
         tleapFile << "source leaprc.gaff\n";
@@ -789,6 +788,9 @@ int main(int argc, char** argv) {
         world.abort(1);
     }
 
+    {
+        Amber amber_init;
+    }
 
     POdata podata;
 

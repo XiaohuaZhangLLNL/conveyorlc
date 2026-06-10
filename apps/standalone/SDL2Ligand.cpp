@@ -510,6 +510,10 @@ int main(int argc, char** argv) {
 
     bool useLocalDir=(localDir!=workDir);
 
+    {
+        Amber amber_init;
+    }
+
     POdata podata;
 
     bool success=SDL2LigandPO(argc, argv, podata);

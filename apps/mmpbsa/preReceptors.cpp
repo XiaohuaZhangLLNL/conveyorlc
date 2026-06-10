@@ -16,6 +16,7 @@
 #include "Parser/Pdb.h"
 #include "Parser/SanderOutput.h"
 #include "MM/VinaLC.h"
+#include "MM/Amber.h"
 #include "Structure/Sstrm.hpp"
 #include "Structure/Coor3d.h"
 #include "Structure/Constants.h"
@@ -165,7 +166,7 @@ bool preReceptors(std::string& dir){
             throw LBindException(mesg);
         }
         
-        tleapFile << "source leaprc.ff14SB\n"                
+        tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl
                   << "source leaprc.gaff\n"
                   << "REC = loadpdb rec_std.pdb\n"
                   << "saveamberparm REC REC.prmtop REC.inpcrd\n"
@@ -411,6 +412,10 @@ int main(int argc, char** argv) {
     }
 
     std::cout << "Number of tasks= " << nproc << " My rank= " << rank << std::endl;
+
+    {
+        Amber amber_init;
+    }
 
     if (rank == 0) {
         

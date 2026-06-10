@@ -187,7 +187,7 @@ bool glideGBSA(std::string& dir, double& deltaG) {
             throw LBindException(mesg);
         }   
 
-        tleapFile << "source leaprc.ff14SB" << std::endl;
+        tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
         tleapFile << "source leaprc.gaff" << std::endl;
         tleapFile << "loadamberparams  ligand.frcmod" <<std::endl;
         tleapFile << "loadoff LIG.lib" <<std::endl;
@@ -398,6 +398,10 @@ int main(int argc, char** argv) {
         return 1;
     }
        
+    {
+        Amber amber_init;
+    }
+
     POdata podata;
     int error=0;
     

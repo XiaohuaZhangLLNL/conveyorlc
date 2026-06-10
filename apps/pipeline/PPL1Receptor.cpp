@@ -31,6 +31,7 @@
 #include "Common/Tokenize.hpp"
 #include "Common/LBindException.h"
 #include "XML/XMLHeader.hpp"
+#include "MM/Amber.h"
 
 #include "PPL1ReceptorPO.h"
 
@@ -375,14 +376,8 @@ void minimization(JobInputData& jobInput, JobOutData& jobOut, std::string& check
             throw LBindException(mesg);
         }
 
-        if (jobInput.ambVersion == 16 || jobInput.ambVersion == 13) {
-            tleapFile << "source leaprc.ff14SB\n";
-        } else {
-            tleapFile << "source leaprc.ff99SB\n";
-        }
-
+        tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
         tleapFile << "source leaprc.gaff\n";
-
         tleapFile << "source leaprc.water.tip3p\n";
 
         for (unsigned int i = 0; i < jobInput.nonRes.size(); ++i) {
@@ -813,6 +808,10 @@ int main(int argc, char** argv) {
 
     mpi::timer runingTime;
 //    int error=0;
+
+    {
+        Amber amber_init;
+    }
 
     POdata podata;
     

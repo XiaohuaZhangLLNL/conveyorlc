@@ -6,6 +6,7 @@
  */
 
 #include "PPL2LigandPO.h"
+#include <MM/Amber.h>
 
 #include <iostream>
 
@@ -24,13 +25,17 @@ bool PPL2LigandPO(int argc, char** argv, POdata& podata) {
     positional_options_description positional;
     
     try {
+        {
+            LBIND::Amber amber_init;
+        }
+
         options_description inputs("Required:");
         inputs.add_options()
                 ("sdf", value<std::string > (&podata.sdfFile), "input SDF file name")
                 ("xmlout", value<std::string > (&podata.xmlOut)->default_value("PPL2Track.xml"), "xml tracking file name")
                 ("output", value<std::string > (&podata.outputFile), "output filename")
                 ("cmpName", value<std::string > (&podata.cmpName)->default_value("NoName"), "Use the SDF field property as ligand name (default no name)")
-                ("version", value<int>(&podata.version)->default_value(10), "AMBER Version")
+                ("version", value<int>(&podata.version)->default_value(LBIND::Amber::getAmberVersion()), "AMBER Version")
                 ("restart", value<bool>(&podata.restart)->default_value(false), "To restart the calculation")
                 ("firstLigID", value<int> (&podata.firstLigID)->default_value(1), "First ligID default from 1")
                 ;   

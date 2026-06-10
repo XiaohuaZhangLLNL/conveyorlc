@@ -190,10 +190,10 @@ void CDTgbsa::getDockData(LBIND::CDTmeta &cdtMeta)
             throw LBindException(mesg);
         }
         if(cdtMeta.version==16 || cdtMeta.version==13){
-            tleapFile << "source leaprc.ff14SB" << std::endl;
-            tleapFile << "source leaprc.phosaa10\n";
+            tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
+            tleapFile << "source " << Amber::getAmberPhosAAFile() << std::endl;
         }else{
-            tleapFile << "source leaprc.ff99SB" << std::endl;
+            tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
         }
         tleapFile << "source leaprc.gaff\n"
                   << "source leaprc.water.tip3p\n"
@@ -363,10 +363,10 @@ void CDTgbsa::run(CDTmeta &cdtMeta){
         }
 
         if(cdtMeta.version==16 || cdtMeta.version==13){
-            tleapFile << "source leaprc.ff14SB" << std::endl;
-            tleapFile << "source leaprc.phosaa10\n";
+            tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
+            tleapFile << "source " << Amber::getAmberPhosAAFile() << std::endl;
         }else{
-            tleapFile << "source leaprc.ff99SB" << std::endl;
+            tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
         }
         tleapFile << "source leaprc.gaff\n"
                   << "source leaprc.water.tip3p\n";
@@ -503,10 +503,10 @@ void CDTgbsa::run(CDTmeta &cdtMeta){
         }
 
         if (cdtMeta.version == 16 || cdtMeta.version==13) {
-            tleapFile << "source leaprc.ff14SB\n";
-            tleapFile << "source leaprc.phosaa10\n";
+            tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
+            tleapFile << "source " << Amber::getAmberPhosAAFile() << std::endl;
         } else {
-            tleapFile << "source leaprc.ff99SB\n";
+            tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
         }
 
         tleapFile << "source leaprc.gaff\n";
@@ -686,10 +686,10 @@ void CDTgbsa::runNew(CDTmeta &cdtMeta){
             }
 
             if(cdtMeta.version==16 || cdtMeta.version==13){
-                tleapFile << "source leaprc.ff14SB" << std::endl;
-                tleapFile << "source leaprc.phosaa10\n";
+                tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
+                tleapFile << "source " << Amber::getAmberPhosAAFile() << std::endl;
             }else{
-                tleapFile << "source leaprc.ff99SB" << std::endl;
+                tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
             }
             tleapFile << "source leaprc.gaff\n"
                       << "source leaprc.water.tip3p\n";
@@ -874,10 +874,10 @@ void CDTgbsa::runNew(CDTmeta &cdtMeta){
             }
 
             if (cdtMeta.version == 16 || cdtMeta.version==13) {
-                tleapFile << "source leaprc.ff14SB\n";
-                tleapFile << "source leaprc.phosaa10\n";
+                tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
+                tleapFile << "source " << Amber::getAmberPhosAAFile() << std::endl;
             } else {
-                tleapFile << "source leaprc.ff99SB\n";
+                tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
             }
 
             tleapFile << "source leaprc.gaff\n";
@@ -991,10 +991,10 @@ void CDTgbsa::runNew(CDTmeta &cdtMeta){
             throw LBindException(mesg);
         }
         if(cdtMeta.version==16 || cdtMeta.version==13){
-            tleapFile << "source leaprc.ff14SB" << std::endl;
-            tleapFile << "source leaprc.phosaa10\n";
+            tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
+            tleapFile << "source " << Amber::getAmberPhosAAFile() << std::endl;
         }else{
-            tleapFile << "source leaprc.ff99SB" << std::endl;
+            tleapFile << "source " << Amber::getAmberForceFieldFile() << std::endl;
         }
         tleapFile << "source leaprc.gaff\n"
                   << "source leaprc.water.tip3p\n"

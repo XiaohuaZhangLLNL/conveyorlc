@@ -12,6 +12,14 @@
 #include <sstream>
 #include <algorithm>
 
+#include <string>
+#include <array>
+#include <memory>
+#include <cstdio>
+#include <cstdlib>
+#include <stdexcept>
+#include <sys/stat.h>
+
 #include "Amber.h"
 #include "BackBone/Protein.h"
 #include "BackBone/Ligand.h"
@@ -21,24 +29,181 @@
 
 namespace LBIND {
 
+const std::array<const char*, 6> Amber::AMBER_PROTEIN_FF_CANDIDATES = {{
+    "leaprc.protein.ff19SB",
+    "leaprc.protein.ff14SB",
+    "leaprc.ff14SB",
+    "leaprc.ff12SB",
+    "leaprc.ff10",
+    "leaprc.ff99SB"
+}};
+
+const std::array<const char*, 3> Amber::AMBER_PHOSAA_CANDIDATES = {{
+    "leaprc.phosaa19SB",
+    "leaprc.phosaa14SB",
+    "leaprc.phosaa10"
+}};
+
+const std::array<std::string, 2> Amber::AMBER_LEAP_DIRS = {{
+        "dat/leap/cmd",
+        "dat/leap/cmd/oldff"
+}};
+
+std::string Amber::AMBERPATH = "";
+std::string Amber::forceFieldFile = "";
+std::string Amber::phosAAFile = "";
+int Amber::version = 10;
+Amber::Initializer Amber::initializer; 
+
+std::string Amber::setAmberPath(void)
+{
+    if (AMBERPATH.empty()) {
+        const char* amberHome = std::getenv("AMBERHOME");
+        if (amberHome == nullptr || amberHome[0] == '\0' || !dirExists(amberHome)) {
+            throw std::runtime_error(
+                "AMBERHOME is not set or is not a valid directory");
+        }
+        AMBERPATH = amberHome;
+    }
+    return AMBERPATH;
+}
+
+std::string getCommandOutput(const char* cmd) {
+    std::array<char, 128> buffer;
+    std::string result;
+
+    // Open pipe to read output (use _popen on Windows)
+    std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) {
+        throw std::runtime_error("popen() failed!");
+    }
+
+    // Read the output line-by-line
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    return result;
+}
+
+int Amber::setAmberVersion(void)
+{
+    std::string sander_cmd = joinPath(AMBERPATH, "bin/sander") + " --version | awk '{print $NF}'";
+    int sander_ver = std::stoi(getCommandOutput(sander_cmd.c_str()));
+    if (sander_ver > 0) {
+        version = sander_ver;
+    }
+    return version;
+}
+
+std::string Amber::setAmberForceFieldFile(void)
+{
+    if (!forceFieldFile.empty()) {
+        return forceFieldFile;
+    }
+
+    getAmberPath();
+
+    const char* envFFFile = std::getenv("AMBER_FF_FILE");
+
+    if (envFFFile != nullptr && envFFFile[0] != '\0') {
+        const std::string envPath(envFFFile);
+
+        const auto fullPath = findAmberLeaprcFile(std::array<const char*, 1u>{envFFFile});
+        if (fullPath.empty() || !fileExist(fullPath)) {
+            throw std::runtime_error(
+                "AMBER_FF_FILE is set but file does not exist: " + envPath);
+        }
+
+        return (forceFieldFile = envPath);
+    }
+
+    forceFieldFile = findAmberLeaprcFile(AMBER_PROTEIN_FF_CANDIDATES);
+    if (forceFieldFile.empty()) {
+        throw std::runtime_error("No matching Amber leaprc file found");
+    }
+    return forceFieldFile;
+}
+
+std::string Amber::setAmberPhosAAFile(void)
+{
+    if (!phosAAFile.empty()) {
+        return phosAAFile;
+    }
+
+    getAmberPath();
+
+    const char* envFFFile = std::getenv("AMBER_PHOSAA_FILE");
+
+    if (envFFFile != nullptr && envFFFile[0] != '\0') {
+        const std::string envPath(envFFFile);
+
+        const auto fullPath = findAmberLeaprcFile(std::array<const char*, 1u>{envFFFile});
+        if (fullPath.empty() || !fileExist(fullPath)) {
+            throw std::runtime_error(
+                "AMBER_PHOSAA_FILE is set but file does not exist: " + envPath);
+        }
+
+        return (phosAAFile = envPath);
+    }
+
+    phosAAFile = findAmberLeaprcFile(AMBER_PHOSAA_CANDIDATES);
+    return phosAAFile;
+}
+
+std::string Amber::getAmberPath(void)
+{
+    return AMBERPATH;
+}
+
+int Amber::getAmberVersion(void)
+{
+    return version;
+}
+
+std::string Amber::getAmberForceFieldFile(void)
+{
+    return forceFieldFile;
+}
+
+std::string Amber::getAmberPhosAAFile(void)
+{
+    return phosAAFile;
+}
+
+void Amber::initStaticMembers() {
+    std::cout << "[Amber static init]\n";
+    Amber::setAmberPath();
+    Amber::setAmberVersion();
+    Amber::setAmberForceFieldFile();
+    Amber::setAmberPhosAAFile();
+}
+
 Amber::Amber() {
-    version=10;
-    AMBERPATH=getenv("AMBERHOME");
+    Amber::setAmberPath();
+    Amber::setAmberVersion();
+    Amber::setAmberForceFieldFile();
+    Amber::setAmberPhosAAFile();
 }    
     
 Amber::Amber(int amberVersion) {
     version=amberVersion;
-    AMBERPATH=getenv("AMBERHOME");
+    Amber::setAmberPath();
+    Amber::setAmberForceFieldFile();
+    Amber::setAmberPhosAAFile();
 }
 
 Amber::Amber(Protein* pProt) : pProtein(pProt){
-    version=10;
-    AMBERPATH=getenv("AMBERHOME");
+    Amber::setAmberPath();
+    Amber::setAmberVersion();
+    Amber::setAmberForceFieldFile();
+    Amber::setAmberPhosAAFile();
 }
 
 Amber::Amber(Protein* pProt, int amberVersion) : pProtein(pProt){
-    version=amberVersion;
-    AMBERPATH=getenv("AMBERHOME");
+    Amber::setAmberPath();
+    Amber::setAmberVersion();
+    Amber::setAmberForceFieldFile();
+    Amber::setAmberPhosAAFile();
 }
 
 Amber::Amber(const Amber& orig) {
@@ -116,14 +281,8 @@ void Amber::ligLeapInput(std::string pdbid, std::string ligName, std::string tle
         throw LBindException(mesg);
     }   
 
-    if(version==16 || version==13){
-        tleapFile << "source leaprc.ff14SB" << std::endl;
-    }else{
-        tleapFile << "source leaprc.ff99SB" << std::endl;
-    }    
-
+    tleapFile << "source " << Amber::forceFieldFile << std::endl;
     tleapFile << "source leaprc.gaff" << std::endl;
-
     tleapFile << "source leaprc.water.tip3p\n";
 
     tleapFile << ligName <<" = loadmol2 " << pdbid <<"-lig-"<< ligName << ".mol2 " << std::endl;
@@ -148,12 +307,7 @@ void Amber::comLeapInput(std::string pdbid, std::string ligName, std::string tle
         throw LBindException(mesg);
     }   
     
-    if(version==16 || version==13){
-        tleapFile << "source leaprc.ff14SB" << std::endl;
-    }else{
-        tleapFile << "source leaprc.ff99SB" << std::endl;
-    }
-    
+    tleapFile << "source " << Amber::forceFieldFile << std::endl;
     tleapFile << "source leaprc.gaff" << std::endl;
     tleapFile << "source leaprc.water.tip3p\n";
 
@@ -178,15 +332,9 @@ void Amber::tleapInput(std::string& mol2FName, std::string& ligName, std::string
     }  
     
     std::string mol2FBase=mol2FName.substr(0,mol2FName.size()-5);
-       
-    if(version==16  || version==13){
-        tleapFile << "source leaprc.ff14SB" << std::endl;
-    }else{
-        tleapFile << "source leaprc.ff99SB" << std::endl;
-    }
-    
-    tleapFile << "source leaprc.gaff" << std::endl;
 
+    tleapFile << "source " << Amber::forceFieldFile << std::endl;
+    tleapFile << "source leaprc.gaff" << std::endl;
     tleapFile << "source leaprc.water.tip3p\n";
 
     tleapFile << "loadamberparams " << mol2FBase << ".frcmod" << std::endl;    
@@ -229,7 +377,7 @@ void Amber::minimization(std::string pdbid){
 
     //! sander -O -i min.in -o 1FKO_sus_min.out -p 1FKO_sus.prmtop -c 1FKO_sus.inpcrd  -r 1FKO_sus_min.crd  & 
     std::string cmd;
-    if(version==13){
+    if(Amber::version==13){
     	cmd=AMBERPATH +"/bin/sander13 -O -i "+pdbid+"-min.in -o "+pdbid+"-min.out -p "
             +pdbid +".prmtop -c " + pdbid +".inpcrd -r "+pdbid+"-min.crd";
     }else{

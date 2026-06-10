@@ -280,6 +280,10 @@ int main(int argc, char** argv) {
 
     bool useLocalDir=(localDir!=workDir);
 
+    {
+        Amber amber_init;
+    }
+
     POdata podata;
 
     if (world.rank() == 0) {

@@ -17,6 +17,7 @@
 #include "MM/MMGBSA.h"
 #include "Common/Tokenize.hpp"
 #include "Structure/Constants.h"
+#include "Structure/Sstrm.hpp"
 #include "Common/File.hpp"
 #include "Common/LBindException.h"
 #include "XML/XMLHeader.hpp"

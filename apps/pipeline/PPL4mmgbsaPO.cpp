@@ -6,6 +6,7 @@
  */
 
 #include "PPL4mmgbsaPO.h"
+#include <MM/Amber.h>
 
 #include <iostream>
 
@@ -24,6 +25,10 @@ bool PPL4mmgbsaPO(int argc, char** argv, POdata& podata) {
     positional_options_description positional;
     
     try {
+        {
+            LBIND::Amber amber_init;
+        }
+
         options_description inputs("Required:");
         inputs.add_options()
                 ("comXML", value<std::string > (&podata.recFile), "PPL3Track XML file")
@@ -31,7 +36,7 @@ bool PPL4mmgbsaPO(int argc, char** argv, POdata& podata) {
 //                ("output", value<std::string > (&podata.outputFile), "output filename")
                 ("xml", value<std::string > (&podata.xmlFile), "JobTracking XML filename")
                 ("restart", value<bool>(&podata.restart)->default_value(false), "Flag to restart calculation")
-                ("version", value<int>(&podata.version)->default_value(10), "AMBER Version")
+                ("version", value<int>(&podata.version)->default_value(LBIND::Amber::getAmberVersion()), "AMBER Version")
 //                ("PB", value<bool>(&podata.pbFlag)->default_value(true), "Turn on/off PB calculation (Default on).")
                 ;   
         options_description info("Optional:");

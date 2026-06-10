@@ -1,5 +1,10 @@
 # stop if cmake version below 3.0
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+cmake_policy(SET CMP0074 NEW)
+if(POLICY CMP0144)
+    cmake_policy(SET CMP0144 NEW)
+endif()
+
 
 # project name
 project(ConveyorLC)
@@ -48,10 +53,16 @@ message(STATUS "The host processor is ${CMAKE_HOST_SYSTEM_PROCESSOR}")
 
 # find MPI library
 find_package(MPI REQUIRED)
-#set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
-set(CMAKE_CXX_COMPILE_FLAGS "${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS}")
-set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS}")
-include_directories(${MPI_INCLUDE_PATH})
+
+
+# 3. Explicitly pass MPI hints if FindBoost is still struggling
+# Boost 1.60 often needs these to locate the specific MPI-linked binaries.
+#set(Boost_MPI_LIBRARIES MPI::MPI_CXX)
+#set(Boost_MPI_INCLUDE_DIRS ${MPI_CXX_INCLUDE_DIRS})
+
+if(NOT DEFINED Boost_ROOT AND NOT DEFINED ENV{Boost_ROOT} AND DEFINED ENV{BOOST_ROOT})
+    set(Boost_ROOT $ENV{BOOST_ROOT})
+endif()
 
 # find boost library
 if (NOT DEFINED     BOOST_ROOT        AND
@@ -69,11 +80,46 @@ if (NOT DEFINED     BOOST_ROOT        AND
     endif()
 endif()
 
-find_package(Boost 1.60 REQUIRED COMPONENTS program_options system filesystem regex serialization mpi thread)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.30")
+    if(POLICY CMP0167)
+        cmake_policy(SET CMP0167 NEW)
+    endif()
+
+    find_package(Boost 1.60 REQUIRED CONFIG COMPONENTS program_options system filesystem regex serialization mpi thread)
+else()
+    find_package(Boost 1.60 REQUIRED COMPONENTS program_options system filesystem regex serialization mpi thread)
+endif()
+
+message(STATUS "Boost_LIBRARIES: ${Boost_LIBRARIES}")
+message(STATUS "Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
+
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 find_package(OpenBabel3 REQUIRED)
-include_directories( ${OPENBABEL3_INCLUDE_DIRS} )
+if (NOT OPENBABEL_INCLUDE_DIRS AND NOT OPENBABEL3_INCLUDE_DIRS AND NOT OpenBabel3_INCLUDE_DIRS)
+    if(OpenBabel3_LIBRARIES)
+        set(RAW_LIB_LIST "${OpenBabel3_LIBRARIES}")
+        set(OPENBABEL3_LIBRARIES ${OpenBabel3_LIBRARIES})
+    elseif(OPENBABEL3_LIBRARIES)
+        set(RAW_LIB_LIST "${OPENBABEL3_LIBRARIES}")
+    endif()
+
+    if(RAW_LIB_LIST)
+        list(GET RAW_LIB_LIST 0 FIRST_LIB_PATH)
+        get_filename_component(OB3_LIB_DIR "${FIRST_LIB_PATH}" DIRECTORY)
+        get_filename_component(OB3_PREFIX_DIR "${OB3_LIB_DIR}" DIRECTORY)
+        set(OB3_BASE_INCLUDE "${OB3_PREFIX_DIR}/include")
+        include_directories(${OB3_BASE_INCLUDE} "${OB3_BASE_INCLUDE}/openbabel3")
+    endif()
+else()
+    if (OPENBABEL_INCLUDE_DIRS)
+        include_directories(${OPENBABEL_INCLUDE_DIRS})
+    elseif (OPENBABEL3_INCLUDE_DIRS)
+        include_directories(${OPENBABEL3_INCLUDE_DIRS}/openbabel3)
+    elseif (OpenBabel3_INCLUDE_DIRS)
+        include_directories(${OpenBabel3_INCLUDE_DIRS})
+    endif()
+endif()
 
 # find sqlite3
 find_package (sqlite3 QUIET)
@@ -92,10 +138,18 @@ include_directories( ${ZLIB_INCLUDE_DIRS} )
 
 # find HDF5
 
-find_package( HDF5 REQUIRED )
+find_package(HDF5 REQUIRED COMPONENTS CXX HL)
 include_directories( ${HDF5_INCLUDE_DIRS} )
 
 # find Conduit for handling hierarchical scientific data
+if (NOT CONDUIT_DIR)
+    if (DEFINED ENV{CONDUIT_DIR})
+        set(CONDUIT_DIR $ENV{CONDUIT_DIR})
+    elseif (DEFINED ENV{Conduit_DIR})
+        set(CONDUIT_DIR $ENV{Conduit_DIR})
+    endif ()
+endif()
+
 find_package( Conduit REQUIRED )
 include_directories(${CONDUIT_INCLUDE_DIRS})
 
