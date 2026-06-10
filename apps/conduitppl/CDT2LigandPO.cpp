@@ -6,6 +6,7 @@
  */
 
 #include "CDT2LigandPO.h"
+#include <MM/Amber.h>
 
 #include <iostream>
 
@@ -24,13 +25,17 @@ bool CDT2LigandPO(int argc, char** argv, POdata& podata) {
     positional_options_description positional;
     
     try {
+        {
+            LBIND::Amber amber_init;
+        }
+
         options_description inputs("Required:");
         inputs.add_options()
                 ("sdf", value<std::string > (&podata.sdfFile), "input SDF file name")
                 ("xmlout", value<std::string > (&podata.xmlOut)->default_value("CDT2Track.xml"), "xml tracking file name")
                 ("output", value<std::string > (&podata.outputFile), "output filename")
                 ("cmpName", value<std::string > (&podata.cmpName)->default_value("NoName"), "Use the SDF field property as ligand name (default no name)")
-                ("version", value<int>(&podata.version)->default_value(16), "AMBER Version")
+                ("version", value<int>(&podata.version)->default_value(LBIND::Amber::getAmberVersion()), "AMBER Version")
                 ("minimize", value<std::string> (&podata.minimizeFlg)->default_value("on"), "Run minimization by default")
                 ("restart", value<bool>(&podata.restart)->default_value(false), "To restart the calculation")
                 ("saveSDF", value<std::string> (&podata.saveSDF)->default_value("on"), "Save SDF to HDF5")

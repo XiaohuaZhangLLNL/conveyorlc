@@ -13,6 +13,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/convenience.hpp> // filesystem::basename
+#include <MM/Amber.h>
 
 using namespace boost::program_options;
 /*
@@ -22,13 +23,17 @@ bool CDT1ReceptorPO(int argc, char** argv, POdata& podata) {
     
     bool help;
     positional_options_description positional;
-    
+
     try {
+        {
+            LBIND::Amber amber_init;
+        }
+
         options_description inputs("Required:");
         inputs.add_options()
                 ("input", value<std::string > (&podata.inputFile), "PDB file list for input")
                 ("output", value<std::string > (&podata.outputFile), "output filename")
-                ("version", value<int>(&podata.version)->default_value(16), "AMBER Version")
+                ("version", value<int>(&podata.version)->default_value(LBIND::Amber::getAmberVersion()), "AMBER Version")
                 ("radius", value<double>(&podata.radius)->default_value(1.40), "probe sphere radius")
                 ("surfSphNum", value<int>(&podata.surfSphNum)->default_value(960), "number of sphere vectors for surface")
                 ("gridSphNum", value<int>(&podata.gridSphNum)->default_value(100), "number of sphere vectors for grid")        

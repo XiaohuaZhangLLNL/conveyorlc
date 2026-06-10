@@ -7,6 +7,7 @@
 
 #include <string>
 #include <array>
+#include <vector>
 #include "Common/File.hpp"
 
 #ifndef AMBER_H

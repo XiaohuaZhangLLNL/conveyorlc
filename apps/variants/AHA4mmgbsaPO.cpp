@@ -14,6 +14,7 @@
 #include <boost/filesystem/convenience.hpp> // filesystem::basename
 
 #include "AHA4mmgbsaPO.h"
+#include <MM/Amber.h>
 
 using namespace boost::program_options;
 /*
@@ -25,6 +26,10 @@ bool AHA4mmgbsaPO(int argc, char** argv, POdata& podata) {
     positional_options_description positional;
     
     try {
+        {
+            LBIND::Amber amber_init;
+        }
+
         options_description inputs("Required:");
         inputs.add_options()
                 ("recFile", value<std::string > (&podata.recFile)->default_value("scratch/receptor.hdf5"), "receptor HDF5 file")
@@ -32,7 +37,7 @@ bool AHA4mmgbsaPO(int argc, char** argv, POdata& podata) {
                 ("dockInFile", value<std::string > (&podata.dockInFile)->default_value(""), "Path to dock HDF5 files")
                 ("ligDir", value<std::string > (&podata.ligDir)->default_value("lig"), "ligand input directory")
                 ("ligList", value<std::string > (&podata.ligList)->default_value(""), "ligand input directory")
-                ("version", value<int>(&podata.version)->default_value(16), "AMBER Version")
+                ("version", value<int>(&podata.version)->default_value(LBIND::Amber::getAmberVersion()), "AMBER Version")
                 ("dockCutoff", value<double>(&podata.dockCutoff)->default_value(-8.5), "Solute dielectric constant")
                 ("fusionCutoff", value<double>(&podata.fusionCutoff)->default_value(8.5), "Solute dielectric constant")
                 ("intDiel", value<double>(&podata.intDiel)->default_value(4.0), "Solute dielectric constant")

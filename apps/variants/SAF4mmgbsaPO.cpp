@@ -14,6 +14,7 @@
 #include <boost/filesystem/convenience.hpp> // filesystem::basename
 
 #include "SAF4mmgbsaPO.h"
+#include <MM/Amber.h>
 
 using namespace boost::program_options;
 /*
@@ -25,12 +26,16 @@ bool SAF4mmgbsaPO(int argc, char** argv, POdata& podata) {
     positional_options_description positional;
     
     try {
+        {
+            LBIND::Amber amber_init;
+        }
+
         options_description inputs("Required:");
         inputs.add_options()
                 ("recFile", value<std::string > (&podata.recFile)->default_value("scratch/receptor.hdf5"), "receptor HDF5 file")
                 ("ligFile", value<std::string > (&podata.ligFile)->default_value(""), "ligand input file")
                 ("ligDir", value<std::string > (&podata.ligDir)->default_value("lig"), "ligand input directory")
-                ("version", value<int>(&podata.version)->default_value(16), "AMBER Version")
+                ("version", value<int>(&podata.version)->default_value(LBIND::Amber::getAmberVersion()), "AMBER Version")
                 ("intDiel", value<double>(&podata.intDiel)->default_value(4.0), "Solute dielectric constant")
                 ("keep", bool_switch(&podata.keep)->default_value(false), "Keep all intermeidate files for fail calculation")
                 ;
